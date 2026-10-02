@@ -2,12 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, useNavigate, useParams } from 'react-router-dom'
 import CoachDashboard from './CoachDashboard'
 import PlayerPage from './PlayerPage'
-import { acceptInvite, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
+import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
 
-function errorText(error) {
-  return error.response?.data?.detail ?? 'Request failed. Please try again.'
-}
+const errorText = errorMessage
 
 function AuthForm({ onSignedIn, embedded = false }) {
   const [mode, setMode] = useState('login')

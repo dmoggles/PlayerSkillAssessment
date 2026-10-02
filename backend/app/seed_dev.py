@@ -15,7 +15,8 @@ from .models import (
 from .routers.assessments import MATRIX, SKILLS
 
 
-USERS = ("dev-owner@example.invalid", "dev-coach@example.invalid")
+USERS = ("dev-owner@example.com", "dev-coach@example.com")
+LEGACY_USERS = ("dev-owner@example.invalid", "dev-coach@example.invalid")
 TEAMS = ("[DEV DEMO] Falcons", "[DEV DEMO] Hawks")
 PERIODS = ("Autumn 2025", "Spring 2026", "Autumn 2026")
 ROSTERS = (
@@ -83,14 +84,20 @@ def seed():
     passwords = [secrets.token_urlsafe(20) for _ in USERS]
     with SessionLocal.begin() as db:
         users = []
-        for email, password in zip(USERS, passwords):
+        for email, legacy_email, password in zip(USERS, LEGACY_USERS, passwords):
             user = db.execute(select(User).filter_by(email=email)).scalar_one_or_none()
+            legacy_user = db.execute(select(User).filter_by(email=legacy_email)).scalar_one_or_none()
+            if user is not None and legacy_user is not None:
+                raise RuntimeError(f"Refusing to merge two demo accounts for {email}")
+            if legacy_user is not None:
+                user = legacy_user
             if user is not None:
                 memberships = db.execute(
                     select(Team.name).join(Membership).filter(Membership.user_id == user.id)
                 ).scalars().all()
                 if not memberships or any(name not in TEAMS for name in memberships):
                     raise RuntimeError(f"Refusing to rotate {email}: account is not exclusively a demo account")
+                user.email = email
             else:
                 user = User(email=email, password_hash=hasher.hash(password), verified_at=utcnow())
                 db.add(user)

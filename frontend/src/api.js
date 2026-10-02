@@ -11,6 +11,22 @@ api.interceptors.request.use(config => {
 const data = promise => promise.then(response => response.data)
 const team = id => `/teams/${id}`
 
+export function errorMessage(error, fallback = 'Request failed. Please try again.') {
+  const detail = error?.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail)) {
+    const messages = detail.map(item => {
+      if (typeof item === 'string') return item
+      if (!item || typeof item.msg !== 'string') return null
+      const field = Array.isArray(item.loc) ? item.loc.filter(part => !['body', 'query', 'path'].includes(part)).join('.') : ''
+      return field ? `${field}: ${item.msg}` : item.msg
+    }).filter(Boolean)
+    if (messages.length) return messages.join(' ')
+  }
+  if (detail && typeof detail.msg === 'string') return detail.msg
+  return fallback
+}
+
 export const restoreSession = () => data(api.get('/auth/me')).then(value => { csrfToken = value.csrf_token; return value })
 export const register = (email, password) => data(api.post('/auth/register', { email, password }))
 export const resendVerification = email => data(api.post('/auth/resend-verification', { email }))
@@ -19,6 +35,7 @@ export const login = (email, password) => data(api.post('/auth/login', { email, 
 export const logout = () => data(api.post('/auth/logout')).finally(() => { csrfToken = '' })
 export const forgotPassword = email => data(api.post('/auth/forgot-password', { email }))
 export const resetPassword = (token, password) => data(api.post('/auth/reset-password', { token, password }))
+export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
 export const getSkillMatrix = () => data(api.get('/skill-matrix'))

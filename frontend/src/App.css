@@ -419,7 +419,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .dashboard-header h1 { font-size: clamp(1.7rem, 2.2vw, 2.4rem); letter-spacing: -.035em; line-height: 1.1; }
 .dashboard-header .subtitle { margin-top: 7px; }
 .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .7rem; font-weight: 800; color: var(--accent); margin-bottom: 9px; }
-.settings-account { display: none; }
+.settings-account { display: block; }
+.change-password { margin-bottom: 18px; }
+.change-password > button { padding: 10px 15px; border: 0; border-radius: 8px; background: var(--green); color: #fff; font-weight: 600; }
+.change-password form { margin-top: 14px; max-width: 420px; }
+.change-password form button { justify-self: start; padding: 10px 15px; border: 0; border-radius: 8px; background: var(--green); color: #fff; font-weight: 600; }
+.change-password form button:disabled { opacity: .6; cursor: wait; }
 .context-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 14px; background: #e9edf1; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 22px; }
 .context-controls .field { min-width: 175px; flex: 1; }
 .context-controls .field:last-child { max-width: 340px; }
@@ -502,7 +507,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .dashboard-header { display: none; }
   .context-panel > .panel-heading { display: none; }
   .context-panel .subtabs { margin-top: 0; }
-  .settings-account { display: block; }
   .settings-account-email { margin-bottom: 14px; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
   .desktop-context { display: none; }
   .mobile-context-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 58px; padding: 10px 13px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; background: white; color: var(--text); text-align: left; box-shadow: 0 2px 8px #14233408; }

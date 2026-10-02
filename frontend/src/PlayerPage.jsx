@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getSelfLinkInfo, getSkillMatrix, submitSelfAssessment } from './api'
+import { errorMessage, getSelfLinkInfo, getSkillMatrix, submitSelfAssessment } from './api'
 import SkillForm from './SkillForm'
 import { sectionsFor } from './matrix'
 
@@ -16,7 +16,7 @@ export default function PlayerPage() {
   useEffect(() => {
     Promise.all([getSelfLinkInfo(token), getSkillMatrix()])
       .then(([link, skills]) => { setInfo(link); setMatrix(skills); setStatus('ready') })
-      .catch(e => { setError(e.response?.data?.detail ?? 'This link is unavailable.'); setStatus('error') })
+      .catch(e => { setError(errorMessage(e, 'This link is unavailable.')); setStatus('error') })
   }, [token])
 
   async function submit(event) {
@@ -27,7 +27,7 @@ export default function PlayerPage() {
       await submitSelfAssessment(token, { position, ratings: skills.map(skill => ({ skill_id: skill.id, score: typeof ratings[skill.id] === 'number' ? ratings[skill.id] : null })) })
       setStatus('done')
     } catch (e) {
-      setError(e.response?.data?.detail ?? 'Could not save your assessment.')
+      setError(errorMessage(e, 'Could not save your assessment.'))
       setStatus('ready')
     }
   }

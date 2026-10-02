@@ -28,6 +28,11 @@ class ResetBody(TokenOnly):
     password: str = Field(min_length=12, max_length=200)
 
 
+class ChangePasswordBody(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=12, max_length=200)
+
+
 def normalized(email: str) -> str:
     return email.strip().casefold()
 
@@ -133,6 +138,20 @@ def logout(response: Response, identity: tuple[User, Session] = Depends(get_sess
     db.commit()
     response.delete_cookie(COOKIE_NAME, path="/")
     return {"message": "Signed out"}
+
+
+@router.post("/change-password")
+def change_password(body: ChangePasswordBody, identity: tuple[User, Session] = Depends(get_session), db: DbSession = Depends(get_db)):
+    user, current_session = identity
+    if not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(400, "Current password is incorrect")
+    if verify_password(body.new_password, user.password_hash):
+        raise HTTPException(400, "Choose a different password")
+    user.password_hash = hasher.hash(body.new_password)
+    db.query(Session).filter(Session.user_id == user.id, Session.id != current_session.id).delete(synchronize_session=False)
+    db.query(AuthToken).filter_by(user_id=user.id, purpose="reset").delete(synchronize_session=False)
+    db.commit()
+    return {"message": "Password changed. Other sessions have been signed out."}
 
 
 @router.post("/forgot-password")

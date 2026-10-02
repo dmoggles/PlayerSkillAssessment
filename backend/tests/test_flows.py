@@ -104,6 +104,33 @@ def test_session_csrf_and_password_reset(monkeypatch):
     assert client.post("/auth/login", json={"email": "reset@example.com", "password": "new-secure-password"}).status_code == 200
 
 
+def test_owner_and_coach_can_change_own_password(monkeypatch):
+    clean_database()
+    owner, owner_csrf = signed_in("owner-password@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("coach-password@example.com", monkeypatch)
+    team_id = owner.post("/teams", json={"name": "Password team"}, headers={"x-csrf-token": owner_csrf}).json()["id"]
+    invites = []
+    monkeypatch.setattr(teams, "send_email", lambda to, subject, body: invites.append(body))
+    assert owner.post(f"/teams/{team_id}/invites", json={"email": "coach-password@example.com"}, headers={"x-csrf-token": owner_csrf}).status_code == 200
+    assert coach.post("/invites/accept", json={"token": invites[-1].split("/")[-1]}, headers={"x-csrf-token": coach_csrf}).status_code == 200
+
+    for client, csrf, email in ((owner, owner_csrf, "owner-password@example.com"),
+                                (coach, coach_csrf, "coach-password@example.com")):
+        other_session = TestClient(app)
+        assert other_session.post("/auth/login", json={"email": email, "password": "secure-password-123"}).status_code == 200
+        headers = {"x-csrf-token": csrf}
+        endpoint = "/auth/change-password"
+        assert client.post(endpoint, json={"current_password": "wrong", "new_password": "different-password-123"}, headers=headers).status_code == 400
+        assert client.post(endpoint, json={"current_password": "secure-password-123", "new_password": "secure-password-123"}, headers=headers).status_code == 400
+        assert client.post(endpoint, json={"current_password": "secure-password-123", "new_password": "short"}, headers=headers).status_code == 422
+        assert client.post(endpoint, json={"current_password": "secure-password-123", "new_password": "different-password-123"}).status_code == 403
+        assert client.post(endpoint, json={"current_password": "secure-password-123", "new_password": "different-password-123"}, headers=headers).status_code == 200
+        assert client.get("/auth/me").status_code == 200
+        assert other_session.get("/auth/me").status_code == 401
+        assert TestClient(app).post("/auth/login", json={"email": email, "password": "secure-password-123"}).status_code == 401
+        assert TestClient(app).post("/auth/login", json={"email": email, "password": "different-password-123"}).status_code == 200
+
+
 def test_resend_verification_replaces_old_link(monkeypatch):
     clean_database()
     messages = []

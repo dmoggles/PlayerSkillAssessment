@@ -7,6 +7,7 @@ import { createServer } from 'vite'
 import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, initialPeriodId, initialPlayerId } from '../src/dashboardModel.js'
 import { horizontalSwipe, ratedCount } from '../src/mobileAssessmentModel.js'
 import { columnsByScore } from '../src/teamDataModel.js'
+import { errorMessage } from '../src/api.js'
 
 async function loadJsx(entry) {
   const server = await createServer({ logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' })
@@ -18,6 +19,13 @@ test('five distinct coach areas have URL-safe IDs and short phone labels', () =>
   assert.deepEqual(AREAS.map(area => area.id), ['assessment', 'player-data', 'team-data', 'development', 'settings'])
   assert.equal(new Set(AREAS.map(area => area.short)).size, 5)
   for (const area of AREAS) assert.match(area.id, /^[a-z-]+$/)
+})
+
+test('API validation errors become readable text without exposing submitted values', () => {
+  const error = { response: { data: { detail: [{ type: 'value_error', loc: ['body', 'password'], msg: 'Value error', input: 'secret-value', ctx: {} }] } } }
+  assert.equal(errorMessage(error), 'password: Value error')
+  assert.equal(errorMessage({ response: { data: { detail: 'Not found' } } }), 'Not found')
+  assert.equal(errorMessage({}), 'Request failed. Please try again.')
 })
 
 test('player data exposes all four sub-tabs, including confirmed priorities', () => {
@@ -129,6 +137,7 @@ test('mobile Settings has an account sign-out control', async () => {
   const { default: CoachDashboard } = await loadJsx('src/CoachDashboard.jsx')
   const router = createMemoryRouter([{ path: '*', element: React.createElement(CoachDashboard, { user: { email: 'coach@example.com' }, onLogout: () => {} }) }], { initialEntries: ['/app/settings'] })
   const html = renderToStaticMarkup(React.createElement(RouterProvider, { router }))
+  assert.match(html, /Change password/)
   assert.match(html, /<section class="panel dashboard-panel settings-account">[\s\S]*?coach@example\.com[\s\S]*?<button type="button">Sign out<\/button>/)
 })
 
