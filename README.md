@@ -22,7 +22,7 @@ Create an account, follow the verification email in Mailpit, sign in, create a t
 Backend tests against the local database:
 
 ```bash
-docker compose exec -T db createdb -U assessment_owner assessment_test
+docker compose -f compose.yaml -f compose.local.yaml exec -T db createdb -U assessment_owner assessment_test
 cd backend
 DATABASE_URL=postgresql+psycopg://assessment_owner:local-owner-only@127.0.0.1:5433/assessment_test uv sync --frozen --extra test
 DATABASE_URL=postgresql+psycopg://assessment_owner:local-owner-only@127.0.0.1:5433/assessment_test uv run alembic upgrade head
@@ -48,14 +48,15 @@ Passwords use Argon2. Email verification, expiring reset and invitation tokens, 
 
 ## VPS deployment
 
-The target is one VPS running Docker Compose, with separate web, API, and PostgreSQL containers. Caddy terminates HTTPS. PostgreSQL has a persistent volume and is not internet-facing. The application connects as `assessment_app`; migrations connect as `assessment_owner`.
+Development and production follow the same pattern as `football-data-collector` on a shared VPS: host Nginx terminates HTTPS, while separate Docker Compose projects bind their web containers to loopback ports 8083 (development) and 8082 (production). The existing football-data-collector ports 8081 and 8080 are untouched. PostgreSQL is internal to each Compose project and each project has its own persistent volume. The application connects as `assessment_app`; migrations connect as `assessment_owner`.
 
-1. Point the desired domain at the VPS. Install Docker Engine with Compose v2, `age`, and the AWS CLI (or an S3-compatible CLI configuration). Open ports 80 and 443. Create a deployment directory, then copy [production.env.example](deploy/production.env.example) to `.env` in that directory and fill in every value. Keep `.env` readable only by the deploy user. Percent-encode reserved characters in database URL passwords. Set `PUBLIC_BASE_URL` to the exact HTTPS origin and `SECURE_COOKIES=true`.
-2. Configure a transactional SMTP relay for verification, invitations, and resets. For private GHCR packages, sign the VPS into GHCR once with a read-only package token. Set `API_IMAGE` and `WEB_IMAGE` to the lower-case GHCR image names for this repository.
-3. Add GitHub Actions secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, `DEPLOY_SSH_KEY`, and `DEPLOY_KNOWN_HOSTS` to the `production` environment. `DEPLOY_KNOWN_HOSTS` must contain the pinned SSH host key. The deploy user needs Docker permissions and write access to `DEPLOY_PATH`. Protect the production environment as appropriate for your team.
-4. Push to `main`. The workflow tests, builds and publishes both images, copies the Compose/Caddy files to the VPS, migrates the database, starts the services, and checks the local web-to-API health route. The first deployment creates the PostgreSQL volume and role. Later deployments retain the volume.
+1. Create two distinct deployment directories owned by the deploy user, such as `~/player-assessment-dev` and `~/player-assessment`. Do not use the same directory for both: Compose uses the directory name to isolate volumes and containers. Copy [development.env.example](deploy/development.env.example) to `.env.dev` in the dev directory and [production.env.example](deploy/production.env.example) to `.env.prod` in the production directory. Set different database passwords, keep these files off Git and mode `600`, and percent-encode reserved characters in database URL passwords. Set `PUBLIC_BASE_URL` to each environment's exact HTTPS origin and `SECURE_COOKIES=true`.
+2. Point two DNS names at the VPS. Copy [the Nginx setup script](deploy/setup_host_nginx.sh), [production template](deploy/nginx-prod.conf.example), and [development template](deploy/nginx-dev.conf.example) to the same directory on the VPS. From that directory, run `sudo bash setup_host_nginx.sh YOUR_PROD_DOMAIN YOUR_DEV_DOMAIN YOUR_CERTBOT_EMAIL`. It checks for existing sites, asks you to confirm the DNS results, installs and tests the two host Nginx sites, reloads Nginx, and requests HTTPS certificates with Certbot. If a certificate request fails, the HTTP sites remain installed; resolve DNS/port 80 and rerun the failed Certbot command rather than rerunning the setup script. Only host Nginx needs public ports 80/443; do not open 8082, 8083, or PostgreSQL ports. The two new sites must have hostnames distinct from the existing TapLine sites.
+3. Production requires a transactional SMTP relay for verification, invitations, and resets. Development uses Mailpit at `127.0.0.1:8025` on the VPS; use an SSH tunnel to view its inbox. For private GHCR packages, sign the VPS deploy user into GHCR once with a read-only package token.
+4. In this repository, create GitHub environments named `development` and `production`. In **each** environment set `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_FINGERPRINT` (the verified `SHA256:...` SSH host-key fingerprint), and `DEPLOY_PATH` (the absolute path to that environment's deployment directory). Obtain the fingerprint from a trusted VPS session with `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub -E sha256`; copy only the `SHA256:...` field after verifying it. These are distinct from secrets in `football-data-collector`; GitHub does not share repository environment secrets. The deploy user needs Docker permissions and write access to both directories. Protect the production environment as appropriate.
+5. Every push to `main` runs tests, publishes `:dev` and commit-SHA images, then deploys development. Publishing a GitHub release runs tests, publishes the release-tagged and `:latest` images, then deploys that exact release tag to production. Both workflows copy Compose files, pull images, start their database, run migrations, restart the app, and check `/api/health` through the local web port. The workflows do not create `.env.dev`, `.env.prod`, DNS, or Nginx sites.
 
-The workflow publishes both `latest` and commit-SHA image tags. To roll back app code, set `API_IMAGE` and `WEB_IMAGE` in the VPS `.env` to a prior SHA tag and run `docker compose -f compose.yaml -f compose.prod.yaml up -d --no-build`. Database migrations are forward-only operationally: inspect a migration and take a backup before applying one that removes or rewrites data.
+If an older version of this app has already created production data on this VPS, preserve its Compose project name and volume when choosing the production directory. Do not switch to a new directory or remove an old volume until the data has been backed up and migrated. Stop any old Caddy container for this app before enabling the new host Nginx sites. Database migrations are forward-only operationally: inspect a migration and take a backup before applying one that removes or rewrites data. To roll back app code, set both image names in `.env.prod` to the desired release tag and run `docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml up -d --no-build api web`; a code rollback does not reverse database migrations.
 
 ### Backups and restore checks
 
@@ -64,9 +65,9 @@ Configure an off-host S3-compatible bucket with access limited to backups, versi
 Monthly, restore a backup into a separate database and verify its tables and representative row counts. From the deployment directory, for example:
 
 ```bash
-docker compose -f compose.yaml -f compose.prod.yaml exec -T db createdb -U assessment_owner assessment_restore
-aws s3 cp s3://YOUR-BUCKET/YOUR-BACKUP.dump.age - | age -d -i /secure/off-host/age-key.txt | docker compose -f compose.yaml -f compose.prod.yaml exec -T db pg_restore -U assessment_owner -d assessment_restore --no-owner
-docker compose -f compose.yaml -f compose.prod.yaml exec -T db psql -U assessment_owner -d assessment_restore -c 'SELECT count(*) FROM assessments;'
+docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db createdb -U assessment_owner assessment_restore
+aws s3 cp s3://YOUR-BUCKET/YOUR-BACKUP.dump.age - | age -d -i /secure/off-host/age-key.txt | docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db pg_restore -U assessment_owner -d assessment_restore --no-owner
+docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db psql -U assessment_owner -d assessment_restore -c 'SELECT count(*) FROM assessments;'
 ```
 
-The backup destination, SMTP relay, domain, and VPS credentials are deployment prerequisites; no production server is configured by this repository alone.
+The backup destination, SMTP relay, DNS names, Nginx sites, and VPS credentials are deployment prerequisites; no server is configured by this repository alone.

@@ -1,19 +1,4 @@
 services:
-  caddy:
-    image: caddy:2.9-alpine
+  web:
     ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
-    volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - web
-    restart: unless-stopped
-
-volumes:
-  caddy_data:
-  caddy_config:
+      - "127.0.0.1:8082:80"

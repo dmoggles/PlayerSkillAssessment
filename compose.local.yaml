@@ -1,0 +1,10 @@
+services:
+  db:
+    ports:
+      - "127.0.0.1:5433:5432"
+  web:
+    ports:
+      - "${WEB_BIND_HOST:-127.0.0.1}:8080:80"
+  mailpit:
+    ports:
+      - "127.0.0.1:8025:8025"

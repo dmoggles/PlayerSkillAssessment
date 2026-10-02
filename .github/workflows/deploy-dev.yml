@@ -1,0 +1,141 @@
+name: Deploy to Development
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: assessment_test
+          POSTGRES_USER: assessment
+          POSTGRES_PASSWORD: test-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U assessment -d assessment_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configurations
+        run: |
+          docker compose -f compose.yaml -f compose.local.yaml --profile local config -q
+          docker compose --env-file deploy/development.env.example -f compose.yaml -f compose.dev.yaml --profile local config -q
+          docker compose --env-file deploy/production.env.example -f compose.yaml -f compose.prod.yaml config -q
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v6
+      - name: Backend tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+psycopg://assessment:test-only@localhost:5432/assessment_test
+          PUBLIC_BASE_URL: http://testserver
+          SMTP_HOST: localhost
+        run: |
+          uv sync --frozen --extra test
+          uv run alembic upgrade head
+          uv run pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend checks
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build
+
+  build-and-push:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - service: api
+            context: backend
+            image: ghcr.io/dmoggles/playerskillassessment-api
+          - service: web
+            context: frontend
+            image: ghcr.io/dmoggles/playerskillassessment-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ${{ matrix.image }}:dev
+            ${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}-dev
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}-dev
+
+  deploy:
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check deployment settings
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_FINGERPRINT: ${{ secrets.SSH_FINGERPRINT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_PRIVATE_KEY SSH_FINGERPRINT DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then echo "::error::$name is not configured for development"; exit 1; fi
+          done
+      - name: Copy Compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          timeout: 30s
+          source: compose.yaml,compose.dev.yaml,deploy/init-app-user.sh
+          target: ${{ secrets.DEPLOY_PATH }}
+      - name: Pull, migrate, restart
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          timeout: 30s
+          command_timeout: 20m
+          envs: DEPLOY_PATH
+          script: |
+            set -eu
+            cd "$DEPLOY_PATH"
+            test -f .env.dev
+            docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local pull api web
+            docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local up -d db mailpit
+            docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local run --rm migrate
+            docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local up -d --no-build api web
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-connrefused http://127.0.0.1:8083/api/health
