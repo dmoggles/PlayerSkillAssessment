@@ -71,3 +71,14 @@ docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T
 ```
 
 The backup destination, SMTP relay, DNS names, Nginx sites, and VPS credentials are deployment prerequisites; no server is configured by this repository alone.
+
+### Seed the development deployment
+
+Once the latest development API image has deployed and migrations have run, SSH to the VPS and run this from the **development** deployment directory (the one containing `.env.dev`):
+
+```bash
+cd /path/to/player-assessment-dev
+bash deploy/seed_dev_host.sh
+```
+
+The script requires an interactive confirmation and a development-looking `PUBLIC_BASE_URL`. It creates two verified logins, two separate teams (one with self-assessment enabled), ten synthetic players, three periods per team, varied coach/player ratings, and some confirmed priorities. The second login also has coach access to the first team. It does not email anyone. It is safe to rerun without duplicating records, but each run **rotates both demo passwords and revokes their sessions**. Copy the freshly printed credentials to a password manager; they are not written to a file. Never run this against production or use these accounts for real player data.
