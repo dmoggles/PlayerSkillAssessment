@@ -97,10 +97,9 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_FINGERPRINT: ${{ secrets.SSH_FINGERPRINT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          for name in SSH_HOST SSH_PORT SSH_USER SSH_PRIVATE_KEY SSH_FINGERPRINT DEPLOY_PATH; do
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_PRIVATE_KEY DEPLOY_PATH; do
             if [ -z "${!name}" ]; then echo "::error::$name is not configured for production"; exit 1; fi
           done
       - name: Copy Compose files to server
@@ -110,7 +109,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           timeout: 30s
           source: compose.yaml,compose.prod.yaml,deploy/init-app-user.sh,deploy/backup.sh
           target: ${{ secrets.DEPLOY_PATH }}
@@ -124,7 +122,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           timeout: 30s
           command_timeout: 20m
           envs: DEPLOY_PATH,RELEASE_TAG
