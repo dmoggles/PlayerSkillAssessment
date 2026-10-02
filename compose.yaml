@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: assessment
+      POSTGRES_USER: assessment_owner
+      POSTGRES_PASSWORD: ${POSTGRES_OWNER_PASSWORD:-local-owner-only}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-local-app-only}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/init-app-user.sh:/docker-entrypoint-initdb.d/01-app-user.sh:ro
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assessment_owner -d assessment"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    image: ${API_IMAGE:-assessment-api:local}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://assessment_app:local-app-only@db:5432/assessment}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      SECURE_COOKIES: ${SECURE_COOKIES:-false}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-assessment@localhost}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    image: ${WEB_IMAGE:-assessment-web:local}
+    ports:
+      - "${WEB_BIND_HOST:-127.0.0.1}:8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.24
+    profiles: ["local"]
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  migrate:
+    build: ./backend
+    image: ${API_IMAGE:-assessment-api:local}
+    profiles: ["tools"]
+    environment:
+      DATABASE_URL: ${MIGRATION_DATABASE_URL:-postgresql+psycopg://assessment_owner:local-owner-only@db:5432/assessment}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+
+volumes:
+  postgres_data:

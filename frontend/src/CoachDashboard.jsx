@@ -1,0 +1,271 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useBlocker, useLocation, useNavigate } from 'react-router-dom'
+import { activatePeriod, addPlayer, archivePlayer, createPeriod, createTeam, getCoachAssessment, getComparison, getMembers, getPeriodAssessments, getPeriods, getPlayerHistory, getPlayers, getRevisions, getSkillMatrix, getTeams, inviteCoach, issueSelfLink, removeCoach, renamePlayer, revokeSelfLink, submitCoachAssessment, updateTeam } from './api'
+import SkillForm from './SkillForm'
+import MobileAssessment from './MobileAssessment'
+import ComparisonView from './ComparisonView'
+import SummaryView from './SummaryView'
+import ConfirmedPrioritiesPanel from './ConfirmedPrioritiesView'
+import PrioritiesView from './PrioritiesView'
+import HeatmapView from './HeatmapView'
+import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
+import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, initialPeriodId, initialPlayerId } from './dashboardModel'
+
+const fail = error => error.response?.data?.detail ?? 'Request failed. Please try again.'
+
+function NavIcon({ name }) {
+  const paths = {
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M4 12h2m12 0h2M12 4v2m0 12v2M6.4 6.4l1.4 1.4m8.4 8.4 1.4 1.4m0-11.2-1.4 1.4M7.8 16.2l-1.4 1.4" /></>,
+    assessment: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4.5V3h6v1.5M8 10h8m-8 4h8m-8 4h5" /></>,
+    player: <><circle cx="12" cy="8" r="3" /><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6" /></>,
+    team: <><circle cx="8" cy="9" r="2.5" /><circle cx="16" cy="9" r="2.5" /><path d="M2.5 19c0-3 2.5-5 5.5-5m8 0c3 0 5.5 2 5.5 5M6 20c0-3.3 2.5-5.5 6-5.5s6 2.2 6 5.5" /></>,
+    development: <><path d="M4 19h16M6 16l4-4 3 2 5-7M15 7h3v3" /></>,
+  }
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
+}
+
+export function ProgressView({ matrix, history }) {
+  const periods = history.filter(row => row.assessments.coach)
+  if (!periods.length) return <p className="muted">No coach assessments recorded yet.</p>
+  const skillIds = [...new Set(periods.flatMap(row => row.assessments.coach.ratings.map(r => r.skill_id)))]
+  const names = Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
+  const score = (row, id) => row.assessments.coach.ratings.find(r => r.skill_id === id)?.score
+  const change = id => {
+    const first = score(periods[0], id)
+    const last = score(periods[periods.length - 1], id)
+    return first != null && last != null && periods.length > 1 ? `${last - first > 0 ? '+' : ''}${last - first}` : '—'
+  }
+  return <div className="history">
+    <h3>Progress across periods</h3>
+    <div className="desktop-data"><div className="heatmap-scroll"><table className="heatmap-table"><thead><tr><th>Skill</th>{periods.map(row => <th key={row.period_id}>{row.label}</th>)}<th>Change</th></tr></thead><tbody>{skillIds.map(id => <tr key={id}><td>{names[id] ?? id}</td>{periods.map(row => <td key={row.period_id}>{score(row, id) ?? '—'}</td>)}<td>{change(id)}</td></tr>)}</tbody></table></div></div>
+    <div className="mobile-data mobile-card-list">{skillIds.map(id => <article className="data-card" key={id}><h4>{names[id] ?? id}</h4><dl>{periods.map(row => <div key={row.period_id}><dt>{row.label}</dt><dd>{score(row, id) ?? '—'}</dd></div>)}<div className="data-card-total"><dt>Change</dt><dd>{change(id)}</dd></div></dl></article>)}</div>
+  </div>
+}
+
+function Section({ title, description, children, className = '' }) {
+  return <section className={`panel dashboard-panel ${className}`}><div className="panel-heading"><h2>{title}</h2>{description && <p>{description}</p>}</div>{children}</section>
+}
+
+export default function CoachDashboard({ user, onLogout }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const currentArea = AREAS.find(area => location.pathname === `/app/${area.id}`) ?? AREAS[0]
+  const [matrix, setMatrix] = useState(null)
+  const [teams, setTeams] = useState([])
+  const [teamId, setTeamId] = useState('')
+  const [players, setPlayers] = useState([])
+  const [periods, setPeriods] = useState([])
+  const [playerId, setPlayerId] = useState('')
+  const [periodId, setPeriodId] = useState('')
+  const [coach, setCoach] = useState(null)
+  const [comparison, setComparison] = useState(null)
+  const [history, setHistory] = useState([])
+  const [revisions, setRevisions] = useState([])
+  const [heatmap, setHeatmap] = useState([])
+  const [playerDataView, setPlayerDataView] = useState('summary')
+  const [newTeam, setNewTeam] = useState('')
+  const [newPlayer, setNewPlayer] = useState('')
+  const [newPeriod, setNewPeriod] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [members, setMembers] = useState([])
+  const [link, setLink] = useState('')
+  const [message, setMessage] = useState('')
+  const [position, setPosition] = useState('defender')
+  const [secondary, setSecondary] = useState('')
+  const [frequency, setFrequency] = useState('sometimes')
+  const [ratings, setRatings] = useState({})
+  const [assessmentBaseline, setAssessmentBaseline] = useState(null)
+  const [prioritiesDirty, setPrioritiesDirty] = useState(false)
+
+  const selectedTeam = teams.find(t => t.id === Number(teamId))
+  const selectedPlayer = players.find(p => p.id === Number(playerId))
+  const selectedPeriod = periods.find(p => p.id === Number(periodId))
+  const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings) !== assessmentBaseline
+  const dirty = assessmentDirty || prioritiesDirty
+  const blocker = useBlocker(dirty)
+  const blockerPrompted = useRef(false)
+  const contextDialogRef = useRef(null)
+
+  const restoreAssessment = useCallback(() => {
+    const primary = coach?.primary_position ?? 'defender'
+    const nextSecondary = coach?.secondary_position ?? ''
+    const nextFrequency = coach?.secondary_position_frequency ?? 'sometimes'
+    const nextRatings = Object.fromEntries((coach?.ratings ?? []).map(r => [r.skill_id, r.score]))
+    setPosition(primary); setSecondary(nextSecondary); setFrequency(nextFrequency); setRatings(nextRatings)
+    setAssessmentBaseline(assessmentSignature(primary, nextSecondary, nextFrequency, nextRatings))
+  }, [coach])
+
+  useEffect(() => {
+    if (blocker.state !== 'blocked') { blockerPrompted.current = false; return }
+    if (blockerPrompted.current) return
+    blockerPrompted.current = true
+    queueMicrotask(() => {
+      if (window.confirm('Discard unsaved changes?')) {
+        restoreAssessment()
+        setPrioritiesDirty(false)
+        blocker.proceed()
+      } else blocker.reset()
+    })
+  }, [blocker, restoreAssessment])
+
+  useEffect(() => {
+    if (!dirty) return
+    const beforeUnload = event => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', beforeUnload)
+    return () => window.removeEventListener('beforeunload', beforeUnload)
+  }, [dirty])
+
+  useEffect(() => {
+    const phone = window.matchMedia('(max-width: 760px)')
+    const closeOnDesktop = () => { if (!phone.matches && contextDialogRef.current?.open) contextDialogRef.current.close() }
+    phone.addEventListener('change', closeOnDesktop)
+    return () => phone.removeEventListener('change', closeOnDesktop)
+  }, [])
+
+  function confirmDiscard() {
+    if (!dirty) return true
+    if (!window.confirm('Discard unsaved changes?')) return false
+    restoreAssessment()
+    setPrioritiesDirty(false)
+    return true
+  }
+
+  function chooseTeam(id) {
+    if (!confirmDiscard()) return
+    setTeamId(id); setPlayers([]); setPeriods([]); setPlayerId(''); setPeriodId('')
+    setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setAssessmentBaseline(null)
+  }
+  function choosePlayer(id) {
+    if (!confirmDiscard()) return
+    setPlayerId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
+  }
+  function choosePeriod(id) {
+    if (!confirmDiscard()) return
+    setPeriodId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
+  }
+
+  useEffect(() => {
+    Promise.all([getSkillMatrix(), getTeams()]).then(([skills, rows]) => { setMatrix(skills); setTeams(rows); if (rows.length) setTeamId(String(rows[0].id)) }).catch(e => setMessage(fail(e)))
+  }, [])
+
+  useEffect(() => {
+    if (!teamId) return
+    let live = true
+    Promise.all([getPlayers(teamId), getPeriods(teamId)]).then(([roster, rounds]) => {
+      if (!live) return
+      setPlayers(roster); setPeriods(rounds)
+      setPlayerId(initialPlayerId(roster))
+      setPeriodId(initialPeriodId(rounds))
+    }).catch(e => { if (live) setMessage(fail(e)) })
+    getMembers(teamId).then(value => { if (live) setMembers(value) }).catch(() => { if (live) setMembers([]) })
+    return () => { live = false }
+  }, [teamId])
+
+  useEffect(() => {
+    if (!teamId || !playerId || !periodId) return
+    let live = true
+    Promise.allSettled([getCoachAssessment(teamId, playerId, periodId), getComparison(teamId, playerId, periodId), getPlayerHistory(teamId, playerId)]).then(([assessmentResult, comparisonResult, historyResult]) => {
+      if (!live) return
+      if (comparisonResult.status === 'fulfilled') setComparison(comparisonResult.value)
+      if (historyResult.status === 'fulfilled') setHistory(historyResult.value)
+      if (assessmentResult.status !== 'fulfilled') { setMessage(fail(assessmentResult.reason)); return }
+      const assessment = assessmentResult.value
+      setCoach(assessment)
+      const primary = assessment?.primary_position ?? 'defender'
+      const nextSecondary = assessment?.secondary_position ?? ''
+      const nextFrequency = assessment?.secondary_position_frequency ?? 'sometimes'
+      const nextRatings = Object.fromEntries((assessment?.ratings ?? []).map(r => [r.skill_id, r.score]))
+      setPosition(primary); setSecondary(nextSecondary); setFrequency(nextFrequency); setRatings(nextRatings)
+      setAssessmentBaseline(assessmentSignature(primary, nextSecondary, nextFrequency, nextRatings))
+      if (assessment) getRevisions(teamId, assessment.id).then(value => { if (live) setRevisions(value) }).catch(() => {})
+    })
+    return () => { live = false }
+  }, [teamId, playerId, periodId])
+
+  useEffect(() => {
+    if (currentArea.id !== 'team-data' || !teamId || !periodId) return
+    let live = true
+    getPeriodAssessments(teamId, periodId).then(value => { if (live) setHeatmap(value) }).catch(e => { if (live) setMessage(fail(e)) })
+    return () => { live = false }
+  }, [currentArea.id, teamId, periodId])
+
+  async function createTeamAction(event) {
+    event.preventDefault()
+    try { const team = await createTeam(newTeam.trim()); setTeams(previous => [...previous, team]); chooseTeam(String(team.id)); setNewTeam(''); setMessage('Team created.') } catch (e) { setMessage(fail(e)) }
+  }
+  async function createPlayerAction(event) {
+    event.preventDefault()
+    try { const player = await addPlayer(teamId, newPlayer.trim()); setPlayers(previous => [...previous, player]); choosePlayer(String(player.id)); setNewPlayer(''); setMessage('Player added.') } catch (e) { setMessage(fail(e)) }
+  }
+  async function createPeriodAction(event) {
+    event.preventDefault()
+    try { const period = await createPeriod(teamId, newPeriod.trim()); setPeriods(previous => [period, ...previous.map(p => ({ ...p, is_active: false }))]); choosePeriod(String(period.id)); setNewPeriod(''); setMessage('Period created.') } catch (e) { setMessage(fail(e)) }
+  }
+  async function save(event) {
+    event.preventDefault()
+    const skills = sectionsFor(matrix, skillSetFor(position)).flatMap(section => section.skills)
+    try {
+      const assessment = await submitCoachAssessment(teamId, {
+        player_id: Number(playerId), period_id: Number(periodId), version: coach?.version ?? 0,
+        primary_position: position, secondary_position: secondary || null,
+        secondary_position_frequency: secondary ? frequency : null,
+        ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null })),
+      })
+      setCoach(assessment); setMessage('Assessment saved.')
+      const nextRatings = Object.fromEntries((assessment.ratings ?? []).map(r => [r.skill_id, r.score]))
+      setRatings(nextRatings)
+      setAssessmentBaseline(assessmentSignature(assessment.primary_position, assessment.secondary_position ?? '', assessment.secondary_position_frequency ?? 'sometimes', nextRatings))
+      getComparison(teamId, playerId, periodId).then(setComparison)
+      getPlayerHistory(teamId, playerId).then(setHistory)
+      getRevisions(teamId, assessment.id).then(setRevisions)
+    } catch (e) { setMessage(fail(e)) }
+  }
+  async function makeLink() {
+    try { const value = await issueSelfLink(teamId, playerId, periodId); setLink(value.url); setMessage('New link created. Copy it now; it will not be shown again.') } catch (e) { setMessage(fail(e)) }
+  }
+  async function revokeLink() { try { await revokeSelfLink(teamId, playerId, periodId); setLink(''); setMessage('Link revoked.') } catch (e) { setMessage(fail(e)) } }
+
+  const context = <div className="context-controls">
+    <label className="field">Team<select value={teamId} onChange={event => chooseTeam(event.target.value)}><option value="">Select team</option>{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
+    {selectedTeam && <label className="field">Period<select value={periodId} onChange={event => choosePeriod(event.target.value)}><option value="">Select period</option>{periods.map(period => <option key={period.id} value={period.id}>{period.label}{period.is_active ? ' · active' : ''}</option>)}</select></label>}
+    {selectedTeam && ['assessment', 'player-data', 'development'].includes(currentArea.id) && <label className="field">Player<select value={playerId} onChange={event => choosePlayer(event.target.value)}><option value="">Select player</option>{players.map(player => <option key={player.id} value={player.id}>{player.name}{player.active ? '' : ' · archived'}</option>)}</select></label>}
+  </div>
+  const needsPlayer = ['assessment', 'player-data', 'development'].includes(currentArea.id)
+  const contextPrimary = needsPlayer && selectedPlayer ? selectedPlayer.name : selectedTeam?.name ?? 'Choose a team'
+  const contextSecondary = [needsPlayer && selectedPlayer ? selectedTeam?.name : null, selectedPeriod?.label].filter(Boolean).join(' · ') || 'Tap to choose team and period'
+
+  return <div className="dashboard-shell">
+    <aside className="dashboard-sidebar"><div className="brand"><span className="brand-mark">PS</span><div><strong>Player Skills</strong><span>Coach workspace</span></div></div><nav aria-label="Main navigation" className="side-nav">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.label}</span></button>)}</nav><div className="sidebar-account"><span>{user.email}</span><button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button></div></aside>
+    <main className="dashboard-main"><header className="dashboard-header"><div><p className="eyebrow">Coach workspace</p><h1>{currentArea.label}</h1><p className="subtitle">{currentArea.subtitle}</p></div></header>
+      {message && <p className="notice" role="status">{message} <button className="link-btn" onClick={() => setMessage('')}>Dismiss</button></p>}
+      <div className="desktop-context">{context}</div>
+      <button className="mobile-context-trigger" type="button" aria-haspopup="dialog" onClick={() => contextDialogRef.current?.showModal()}><span className="mobile-context-text"><strong>{contextPrimary}</strong><small>{contextSecondary}</small></span><span className="mobile-context-change">Change <span aria-hidden="true">⌄</span></span></button>
+      <dialog ref={contextDialogRef} className="mobile-context-dialog" aria-labelledby="context-dialog-title" onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close() }}><div className="context-sheet"><div className="context-sheet-heading"><div><p className="eyebrow">Current selection</p><h2 id="context-dialog-title">Team, period and player</h2></div><button type="button" aria-label="Close selection" onClick={() => contextDialogRef.current?.close()}>×</button></div>{context}<button className="context-sheet-done" type="button" onClick={() => contextDialogRef.current?.close()}>Done</button></div></dialog>
+      {currentArea.id === 'settings' && <div className="settings-grid">
+        <Section title="Teams" description="Choose a team or create another coaching workspace"><form className="inline-row" onSubmit={createTeamAction}><input aria-label="New team name" placeholder="New team name" required maxLength={120} value={newTeam} onChange={e => setNewTeam(e.target.value)} /><button>Add team</button></form></Section>
+        {selectedTeam && <>
+          <Section title="Periods" description="Organise assessments over time"><div className="settings-list">{periods.map(period => <div className="settings-item" key={period.id}><span>{period.label} {period.is_active && <span className="status-pill">Active</span>}</span>{!period.is_active && <button type="button" onClick={async () => { try { await activatePeriod(teamId, period.id); setPeriods(previous => previous.map(p => ({ ...p, is_active: p.id === period.id }))); setMessage('Active period updated.') } catch (e) { setMessage(fail(e)) } }}>Set active</button>}</div>)}</div><form className="inline-row" onSubmit={createPeriodAction}><input aria-label="New period label" placeholder="New period label" required maxLength={100} value={newPeriod} onChange={e => setNewPeriod(e.target.value)} /><button>Add period</button></form></Section>
+          <Section title="Squad" description="Players remain in your records after archiving"><div className="settings-list">{players.map(player => <div className="settings-item" key={player.id}><span>{player.name} {!player.active && <span className="status-pill muted-pill">Archived</span>}</span><div className="item-actions"><button type="button" onClick={async () => { const name = window.prompt('New player name', player.name); if (!name?.trim()) return; try { const updated = await renamePlayer(teamId, player.id, name.trim()); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Rename</button>{player.active && <button type="button" onClick={async () => { if (!window.confirm(`Archive ${player.name}? Assessment history stays available.`)) return; try { const updated = await archivePlayer(teamId, player.id); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Archive</button>}</div></div>)}</div><form className="inline-row" onSubmit={createPlayerAction}><input aria-label="New player name" placeholder="New player name" required maxLength={100} value={newPlayer} onChange={e => setNewPlayer(e.target.value)} /><button>Add player</button></form></Section>
+          {canManageTeam(selectedTeam) && <Section title="Team access" description="Only team owners can change these settings"><div className="settings-item"><span><strong>{selectedTeam.name}</strong><small>Team name</small></span><button type="button" onClick={async () => { const name = window.prompt('Team name', selectedTeam.name); if (!name?.trim()) return; try { const updated = await updateTeam(teamId, { name: name.trim(), self_assessment_enabled: selectedTeam.self_assessment_enabled }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (e) { setMessage(fail(e)) } }}>Rename</button></div><label className="checkbox"><input type="checkbox" checked={selectedTeam.self_assessment_enabled} onChange={async e => { try { const updated = await updateTeam(teamId, { name: selectedTeam.name, self_assessment_enabled: e.target.checked }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (error) { setMessage(fail(error)) } }} /> Allow player self-assessment</label><form className="inline-row" onSubmit={async e => { e.preventDefault(); try { const result = await inviteCoach(teamId, inviteEmail); setInviteEmail(''); setMessage(result.message) } catch (error) { setMessage(fail(error)) } }}><input type="email" aria-label="Coach email" placeholder="Coach email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} /><button>Invite coach</button></form><div className="members"><h3>Coaches</h3>{members.map(member => <div className="settings-item" key={member.user_id}><span>{member.email} <span className="status-pill muted-pill">{member.role}</span></span>{member.role === 'coach' && <button type="button" onClick={async () => { if (!window.confirm(`Remove ${member.email} from this team?`)) return; try { await removeCoach(teamId, member.user_id); setMembers(previous => previous.filter(row => row.user_id !== member.user_id)) } catch (error) { setMessage(fail(error)) } }}>Remove</button>}</div>)}</div></Section>}
+        </>}
+        <Section title="Account" className="settings-account"><p className="settings-account-email">{user.email}</p><button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button></Section>
+      </div>}
+      {currentArea.id !== 'settings' && !selectedTeam && <Section title="Start with a team" description="Create your first team in Settings, then add a period and players."><button type="button" onClick={() => navigate('/app/settings')}>Open Settings</button></Section>}
+      {selectedTeam && currentArea.id === 'assessment' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="Ready to assess"><p className="muted">Add a player and period in Settings to begin.</p></Section> : <>
+        <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Rate each skill, then save the coach assessment">
+          <form onSubmit={save}>
+            <div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) setRatings({}); setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div>
+            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} /><button className="submit-btn">Save assessment</button></div>
+            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
+          </form>
+          {revisions.length > 0 && <details className="revisions"><summary>Revision history ({revisions.length})</summary><ul>{revisions.map(revision => <li key={revision.version}>Version {revision.version} · {revision.editor} · {new Date(revision.created_at).toLocaleString()}</li>)}</ul></details>}
+        </Section>
+        {selectedTeam.self_assessment_enabled && selectedPeriod.is_active && selectedPlayer.active && <Section title="Player self-assessment" description="Share a one-time link for this player and period"><div className="inline-row"><button type="button" onClick={makeLink}>Create link</button><button type="button" onClick={revokeLink}>Revoke link</button></div>{link && <div className="field link-field"><label>Copy this link now; it will not be shown again</label><input readOnly value={link} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button></div>}</Section>}
+      </>)}
+      {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Explore individual assessment results"><nav className="subtabs" aria-label="Player data views">{PLAYER_DATA_TABS.map(([id, label]) => <button aria-current={playerDataView === id ? 'page' : undefined} className={playerDataView === id ? 'active' : ''} key={id} type="button" onClick={() => setPlayerDataView(id)}>{label}</button>)}</nav>{playerDataView === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'progress' && <ProgressView matrix={matrix} history={history} />}{playerDataView === 'priorities' && <ConfirmedPrioritiesPanel key={`${teamId}-${playerId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} />}</Section>)}
+      {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix ? <Section title="No team data yet"><p className="muted">Add a period in Settings to view team data.</p></Section> : <Section className="context-panel" title={`${selectedTeam.name} · ${selectedPeriod.label}`} description="Compare assessed skills across the squad"><HeatmapView matrix={matrix} assessments={heatmap} /></Section>)}
+      {selectedTeam && currentArea.id === 'development' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Review and confirm the three most important priorities"><PrioritiesView matrix={matrix} coach={comparison?.coach} player={comparison?.player} teamId={teamId} playerId={playerId} periodId={periodId} onDirtyChange={setPrioritiesDirty} /></Section>)}
+    </main>
+    <nav className="bottom-nav" aria-label="Main navigation">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} aria-label={area.label} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.short}</span></button>)}</nav>
+  </div>
+}

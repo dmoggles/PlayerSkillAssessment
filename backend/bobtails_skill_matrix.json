@@ -1,0 +1,435 @@
+{
+  "meta": {
+    "team": "Bob-Tails",
+    "season": "2026/27",
+    "age_group": "U12",
+    "format": "7-a-side",
+    "formation": "2-3-1",
+    "version": "1.0.0",
+    "scale": {
+      "points": [1, 2, 3, 4, 5],
+      "anchors": {
+        "1": "Developing",
+        "3": "Achieving",
+        "5": "Excelling"
+      },
+      "notes": "2 and 4 are intermediate points with no descriptor. Use when a player clearly exceeds one anchor but has not fully reached the next."
+    }
+  },
+
+  "positions": [
+    { "id": "goalkeeper", "label": "Goalkeeper" },
+    { "id": "defender",   "label": "Defender" },
+    { "id": "midfielder", "label": "Midfielder" },
+    { "id": "winger",     "label": "Winger" },
+    { "id": "striker",    "label": "Striker" }
+  ],
+
+  "position_weight_values": {
+    "HIGH": 1.5,
+    "MED":  1.0,
+    "LOW":  0.5
+  },
+
+  "secondary_position_blend": {
+    "rarely":    { "primary": 1.0,  "secondary": 0.0  },
+    "sometimes": { "primary": 0.7,  "secondary": 0.3  },
+    "often":     { "primary": 0.55, "secondary": 0.45 }
+  },
+
+  "sections": [
+    {
+      "id": "technical",
+      "label": "Technical Skills",
+      "applies_to": ["defender", "midfielder", "winger", "striker"],
+      "skills": [
+        {
+          "id": "first_touch_body_shape",
+          "label": "First Touch & Body Shape",
+          "descriptors": {
+            "1": "Ball bounces away; receives square-on with no idea what's behind them",
+            "3": "Controls most passes cleanly; occasionally opens body shape before receiving",
+            "5": "Consistently opens up half-sideways before the ball arrives, shifts it into space in one movement"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": true
+        },
+        {
+          "id": "dribbling_carrying",
+          "label": "Dribbling / Carrying",
+          "descriptors": {
+            "1": "Head down when running with ball; loses it under light pressure",
+            "3": "Can carry at pace in space; slows down under pressure",
+            "5": "Comfortable carrying at speed, changes direction to beat a press"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "MED",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "1v1_attacking",
+          "label": "1v1 Attacking",
+          "descriptors": {
+            "1": "No clear intention when facing a defender; slows down or passes backwards",
+            "3": "Attempts to take on a defender; success inconsistent, tends to use one move only",
+            "5": "Can beat a defender with a change of pace or direction, knows when to take on and when to pass"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "LOW",
+            "midfielder": "MED",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "passing_short",
+          "label": "Passing (Short)",
+          "descriptors": {
+            "1": "Frequently mishits or misses target; defaults to kicking rather than passing",
+            "3": "Accurate to a stationary teammate within 10m; weight sometimes off",
+            "5": "Consistent accuracy and weight; plays to feet or into space as appropriate"
+          },
+          "position_weights": {
+            "goalkeeper": "MED",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "switching_play",
+          "label": "Switching Play",
+          "descriptors": {
+            "1": "Always plays short or forward; doesn't look to the far side",
+            "3": "Recognises space on the other side and attempts to switch; accuracy inconsistent",
+            "5": "Switches play deliberately and accurately, changing the point of attack"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "HIGH",
+            "winger":     "LOW",
+            "striker":    "LOW"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "shooting",
+          "label": "Shooting",
+          "descriptors": {
+            "1": "Scuffs or balloons most attempts; no clear striking technique",
+            "3": "Gets shots on target from central positions; power and accuracy developing",
+            "5": "Can strike with both power and placement; attempts from wider angles too"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "LOW",
+            "midfielder": "LOW",
+            "winger":     "MED",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "restarts",
+          "label": "Restarts (Throw-ins / Kick-ins & Free Kicks)",
+          "descriptors": {
+            "1": "Plays the restart to the nearest player regardless of whether they're marked; no awareness of options",
+            "3": "Looks before playing; finds a free player most of the time but decision can be slow",
+            "5": "Uses restarts purposefully to maintain possession or play forward into space; varies delivery based on what's on"
+          },
+          "position_weights": {
+            "goalkeeper": "MED",
+            "defender":   "MED",
+            "midfielder": "MED",
+            "winger":     "MED",
+            "striker":    "LOW"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "1v1_defending",
+          "label": "1v1 Defending",
+          "descriptors": {
+            "1": "Dives in immediately; easily turned",
+            "3": "Stays on feet, shows attacker onto weaker side; timing of challenges developing",
+            "5": "Reads the attacker's body shape, delays, wins the ball cleanly"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "LOW"
+          },
+          "is_dependency_root": false
+        }
+      ]
+    },
+
+    {
+      "id": "tactical",
+      "label": "Tactical Skills",
+      "applies_to": ["defender", "midfielder", "winger", "striker"],
+      "skills": [
+        {
+          "id": "receiving_movement",
+          "label": "Receiving Movement",
+          "descriptors": {
+            "1": "Stands still waiting for the ball; easy to mark, gives the passer no options",
+            "3": "Makes runs to get free some of the time; movement is sometimes too early or in the wrong direction",
+            "5": "Consistently moves to create an angle, times the run so they're free when the ball arrives"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": true
+        },
+        {
+          "id": "shape_awareness",
+          "label": "Shape Awareness (2-3-1)",
+          "descriptors": {
+            "1": "Doesn't know their starting position or drifts far from it",
+            "3": "Knows where to stand; moves back into shape after the ball is lost",
+            "5": "Adjusts position based on where the ball is, not just their own zone"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "supporting_ball_carrier",
+          "label": "Supporting the Ball Carrier",
+          "descriptors": {
+            "1": "Stands and watches; doesn't offer angles",
+            "3": "Moves to offer one option nearby; angle and timing sometimes off",
+            "5": "Offers two options at different depths, stays in the passer's sightline"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "communication",
+          "label": "Communication",
+          "descriptors": {
+            "1": "Silent during play; teammates don't know where she is or what she wants",
+            "3": "Calls for the ball and occasionally warns teammates under pressure; not yet a habit",
+            "5": "Constantly talking — calls for the ball, warns 'man on', directs teammates during transitions and set pieces"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "composure_under_pressure",
+          "label": "Composure Under Pressure",
+          "descriptors": {
+            "1": "Panics when pressed in own half; kicks blindly or forces a risky pass through the middle",
+            "3": "Recognises pressure early; looks for the safe option (back to keeper, wide, or out of play) most of the time",
+            "5": "Stays calm under a press, plays simply and quickly to relieve pressure, communicates to help teammates"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "MED",
+            "striker":    "MED"
+          },
+          "is_dependency_root": true
+        },
+        {
+          "id": "decision_making_open_play",
+          "label": "Decision-Making in Open Play",
+          "descriptors": {
+            "1": "Holds the ball too long or rushes; doesn't look before receiving",
+            "3": "Makes the right pass most of the time in space; takes one extra touch when not needed",
+            "5": "Looks before receiving, carries when space is there, plays quickly when a teammate is free"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "pressing_unit",
+          "label": "Pressing / Defending as a Unit",
+          "descriptors": {
+            "1": "Ball-watches; doesn't press or drops off randomly",
+            "3": "Presses the ball carrier when it's clear to do so; cover position still developing",
+            "5": "Triggers a press at the right moment, reads teammates' positions before pressing"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "transition_winning",
+          "label": "Transition (Winning the Ball)",
+          "descriptors": {
+            "1": "Stops when possession is won; waits to be told what to do",
+            "3": "Recognises when the team has won the ball and reacts quickly",
+            "5": "Immediately pushes forward after winning it, looks to exploit the disorganised defence"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "MED",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "transition_losing",
+          "label": "Transition (Losing the Ball)",
+          "descriptors": {
+            "1": "Doesn't track back or get goal-side; ball-watches after losing it",
+            "3": "Gets goal-side after losing possession; recovery run speed inconsistent",
+            "5": "Sprints back into shape, communicates to help teammates reorganise"
+          },
+          "position_weights": {
+            "goalkeeper": "LOW",
+            "defender":   "HIGH",
+            "midfielder": "HIGH",
+            "winger":     "HIGH",
+            "striker":    "MED"
+          },
+          "is_dependency_root": false
+        }
+      ]
+    },
+
+    {
+      "id": "goalkeeper",
+      "label": "Goalkeeper Skills",
+      "applies_to": ["goalkeeper"],
+      "skills": [
+        {
+          "id": "handling_shot_stopping",
+          "label": "Handling & Shot-Stopping",
+          "descriptors": {
+            "1": "Drops or parries balls she should hold; uncomfortable with shots at height",
+            "3": "Holds most shots at her body cleanly; diving stops still developing",
+            "5": "Gets behind the ball consistently, strong hands, deals with shots across her body"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH"
+          },
+          "is_dependency_root": true
+        },
+        {
+          "id": "distribution_short",
+          "label": "Distribution (Short)",
+          "descriptors": {
+            "1": "Rolls or throws without looking; frequently gives it to a pressured teammate",
+            "3": "Finds a free player short most of the time; decision on when to distribute sometimes slow",
+            "5": "Distributes quickly to the free player, varying between feet and hands based on the situation"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "distribution_long",
+          "label": "Distribution (Long / Kicking)",
+          "descriptors": {
+            "1": "Kicks without purpose or accuracy; ball frequently goes straight to opposition",
+            "3": "Can reach a target area with a goal kick; accuracy and consistency still developing",
+            "5": "Uses goal kicks and drop kicks intentionally to switch play or find a target player"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "commanding_area",
+          "label": "Commanding the Area",
+          "descriptors": {
+            "1": "Stays on the line; doesn't claim crosses or organise defenders",
+            "3": "Claims some crosses; starting to communicate with defenders but not consistently",
+            "5": "Claims crosses confidently, organises the backline, comes off her line to deal with through balls"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH"
+          },
+          "is_dependency_root": false
+        },
+        {
+          "id": "positioning_angles",
+          "label": "Positioning & Angles",
+          "descriptors": {
+            "1": "Stays rooted to the centre of the goal; doesn't adjust to the ball's position",
+            "3": "Moves to narrow the angle on central shots; positioning for wide balls still developing",
+            "5": "Consistently sets her position based on where the ball is, making herself big without being exposed"
+          },
+          "position_weights": {
+            "goalkeeper": "HIGH"
+          },
+          "is_dependency_root": false
+        }
+      ]
+    }
+  ],
+
+  "dependency_map": {
+    "first_touch_body_shape":   ["decision_making_open_play", "switching_play"],
+    "receiving_movement":       ["supporting_ball_carrier"],
+    "supporting_ball_carrier":  ["pressing_unit"],
+    "composure_under_pressure": ["transition_losing", "transition_winning"],
+    "handling_shot_stopping":   ["positioning_angles", "commanding_area"]
+  },
+
+  "dependency_bonus": 1.0,
+
+  "priority": {
+    "top_n": 3,
+    "low_score_threshold": 2,
+    "formula_note": "priority_score = (6 - avg_score) * effective_position_weight + dependency_bonus. avg_score = mean(coach_score, player_score) if both present, else coach_score. effective_position_weight = primary_weight * primary_blend + secondary_weight * secondary_blend, using secondary_position_blend table."
+  }
+}
