@@ -113,7 +113,14 @@ def test_resend_verification_replaces_old_link(monkeypatch):
     old_token = messages[-1].split("/")[-1]
     response = client.post("/auth/resend-verification", json={"email": "new@example.com"})
     assert response.status_code == 200
-    assert "test inbox" in response.json()["message"]
+    assert "new link has been sent" in response.json()["message"]
     new_token = messages[-1].split("/")[-1]
     assert client.post("/auth/verify", json={"token": old_token}).status_code == 400
     assert client.post("/auth/verify", json={"token": new_token}).status_code == 200
+
+
+def test_email_delivery_message_only_mentions_test_inbox_for_mailpit(monkeypatch):
+    monkeypatch.setattr(accounts.settings, "smtp_host", "mailpit")
+    assert "test inbox" in accounts.delivery_message("Check your email.")
+    monkeypatch.setattr(accounts.settings, "smtp_host", "localhost")
+    assert accounts.delivery_message("Check your email.") == "Check your email."
