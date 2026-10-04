@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getPlayerHistory } from './api'
+import FollowUpCard from './FollowUpCard'
+import { priorityFollowUp } from './followUpModel'
 
 const MEDALS = {
   1: { icon: '🥇', label: 'Gold medal' },
@@ -18,12 +20,15 @@ function PriorityCards({ priorities, names }) {
   })}</div>
 }
 
-export function ConfirmedPrioritiesView({ matrix, history, periodId }) {
+export function ConfirmedPrioritiesView({ matrix, history, periodId, periods = [] }) {
   const names = Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
   const selected = history.find(row => row.period_id === Number(periodId))
   const otherPeriods = history.filter(row => row.period_id !== Number(periodId) && row.priorities.length)
 
+  const followUp = priorityFollowUp(periods, history, periodId, selected?.assessments?.coach)
+
   return <div className="confirmed-priorities">
+    <FollowUpCard matrix={matrix} followUp={followUp} />
     <h3>{selected?.label ?? 'Selected period'}</h3>
     {selected?.priorities.length
       ? <PriorityCards priorities={selected.priorities} names={names} />
@@ -32,7 +37,7 @@ export function ConfirmedPrioritiesView({ matrix, history, periodId }) {
   </div>
 }
 
-export default function ConfirmedPrioritiesPanel({ matrix, teamId, playerId, periodId }) {
+export default function ConfirmedPrioritiesPanel({ matrix, teamId, playerId, periodId, periods }) {
   const [history, setHistory] = useState([])
   const [state, setState] = useState('loading')
 
@@ -44,5 +49,5 @@ export default function ConfirmedPrioritiesPanel({ matrix, teamId, playerId, per
 
   if (state === 'loading') return <p className="muted" role="status">Loading confirmed priorities…</p>
   if (state === 'error') return <p className="error" role="alert">Could not load confirmed priorities. Please try again.</p>
-  return <ConfirmedPrioritiesView matrix={matrix} history={history} periodId={periodId} />
+  return <ConfirmedPrioritiesView matrix={matrix} history={history} periodId={periodId} periods={periods} />
 }

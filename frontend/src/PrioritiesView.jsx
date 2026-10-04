@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { ratingMap, completeness, priorityScores, suggestedPriorities } from './assessment'
 import { getPriorities, setPriorities } from './api'
+import FollowUpCard from './FollowUpCard'
+import { PRIORITY_TAGS, keepPriority, priorityTag } from './followUpModel'
 
 const fmt1 = (v) => (v == null ? '—' : v.toFixed(1))
 const noop = () => {}
 
-export default function PrioritiesView({ matrix, coach, player, teamId, periodId, playerId, onDirtyChange = noop, readOnly = false }) {
+export default function PrioritiesView({ matrix, coach, player, teamId, periodId, playerId, followUp = null, onDirtyChange = noop, readOnly = false }) {
   const ranked = useMemo(() => priorityScores(matrix, coach, player), [matrix, coach, player])
   const suggested = useMemo(() => suggestedPriorities(matrix, coach, player), [matrix, coach, player])
   const byId = useMemo(() => Object.fromEntries(ranked.map(r => [r.skill_id, r])), [ranked])
@@ -31,14 +33,16 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
       .catch(() => { setRows(suggested.map(s => ({ skill_id: s.skill_id, coach_note: '' }))); onDirtyChange(false) })
   }, [teamId, periodId, playerId, coach, suggested, onDirtyChange])
 
+  const followUpCard = <FollowUpCard matrix={matrix} followUp={followUp} />
   if (!coach) {
-    return <p className="muted">No coach assessment for this player yet — assess them first.</p>
+    return <div className="priorities">{followUpCard}<p className="muted">No coach assessment for this player yet — assess them first.</p></div>
   }
 
   const comp = completeness(matrix, coach.position, ratingMap(coach))
   if (comp.pct < 100) {
     return (
       <div className="priorities">
+        {followUpCard}
         <p className="warning">Priorities unlock once the coach assessment is 100% complete.</p>
         <div className="completeness">
           <span className="completeness-label">Coach assessment</span>
@@ -70,9 +74,12 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   }
 
   const chosen = new Set(rows.map(r => r.skill_id))
+  const previousIds = followUp?.items.map(item => item.skill_id) ?? []
+  const keep = skillId => { setRows(rs => keepPriority(rs, skillId, previousIds)); onDirtyChange(true); setStatus('idle') }
 
   return (
     <div className="priorities">
+      <FollowUpCard matrix={matrix} followUp={followUp} chosen={chosen} canKeep={skillId => Boolean(byId[skillId])} onKeep={readOnly ? null : keep} />
       <div className="priorities-toolbar"><button type="button" className="priority-help-button" aria-label="How priorities work" onClick={() => helpDialog.current?.showModal()}>?</button></div>
       <dialog ref={helpDialog} className="priority-help-dialog" aria-labelledby="priority-help-title">
         <form method="dialog">
@@ -84,7 +91,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
 
       {rows.map((row, i) => {
         const info = byId[row.skill_id]
-        const isSuggested = suggested[i]?.skill_id === row.skill_id
+        const tag = priorityTag(row.skill_id, suggested[i]?.skill_id, previousIds)
         return (
           <div key={i} className="priority-row">
             <div className="priority-rank">{i + 1}</div>
@@ -109,7 +116,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
               </div>
               {info && (
                 <details className="priority-breakdown">
-                  <summary aria-label={`Urgency ${fmt1(info.score)}, ${isSuggested ? 'Suggested' : 'Override'}. Show score breakdown`}><span>Urgency <strong>{fmt1(info.score)}</strong></span><span className="priority-breakdown-action"><span className={`alg-tag ${isSuggested ? 'suggested' : 'override'}`}>{isSuggested ? 'Suggested' : 'Override'}</span><span aria-hidden="true" className="priority-breakdown-chevron">⌄</span></span></summary>
+                  <summary aria-label={`Urgency ${fmt1(info.score)}, ${PRIORITY_TAGS[tag]}. Show score breakdown`}><span>Urgency <strong>{fmt1(info.score)}</strong></span><span className="priority-breakdown-action"><span className={`alg-tag ${tag}`}>{PRIORITY_TAGS[tag]}</span><span aria-hidden="true" className="priority-breakdown-chevron">⌄</span></span></summary>
                   <div className="priority-breakdown-body">
                     <div><span>Assessment score</span><strong>{fmt1(info.avg)} / 5</strong></div>
                     <div><span>Position weight</span><strong>{fmt1(info.weight)}</strong></div>

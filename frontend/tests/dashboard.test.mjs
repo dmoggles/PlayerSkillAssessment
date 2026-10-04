@@ -312,3 +312,43 @@ test('coach notes affect the unsaved-changes check and appear in the form and re
   assert.doesNotMatch(archived, /textarea|Add note/)
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(SkillForm, base)), /Add note|textarea/)
 })
+
+test('priority follow-up compares last confirmed priorities with this period by coach score', async () => {
+  const { priorityFollowUp, keepPriority } = await loadJsx('src/followUpModel.js')
+  const { default: FollowUpCard } = await loadJsx('src/FollowUpCard.jsx')
+  const coach = scores => ({ ratings: Object.entries(scores).map(([skill_id, score]) => ({ skill_id, score })) })
+  const periods = [{ id: 3, label: 'Spring' }, { id: 2, label: 'Winter' }, { id: 1, label: 'Autumn' }]
+  const history = [
+    { period_id: 1, label: 'Autumn', assessments: { coach: coach({ touch: 2, pass: 3, scan: 2 }) }, priorities: [
+      { skill_id: 'scan', rank: 2, coach_note: 'Look before receiving' }, { skill_id: 'touch', rank: 1 }, { skill_id: 'pass', rank: 3 }] },
+    { period_id: 2, label: 'Winter', assessments: { coach: coach({ touch: 3 }) }, priorities: [] },
+  ]
+  const current = coach({ touch: 3, pass: 3, scan: 1 })
+  const followUp = priorityFollowUp(periods, history, 3, current)
+  assert.equal(followUp.periodLabel, 'Autumn')  // Winter had no confirmed priorities
+  assert.deepEqual(followUp.items.map(i => [i.skill_id, i.before, i.now, i.trend]), [
+    ['touch', 2, 3, 'improved'], ['scan', 2, 1, 'worse'], ['pass', 3, 3, 'unchanged']])
+  assert.equal(priorityFollowUp(periods, history, 3, null).items[0].trend, 'pending')
+  assert.equal(priorityFollowUp(periods, history, 1, current), null)  // nothing earlier
+  assert.equal(priorityFollowUp(periods, history, 99, current), null)
+
+  const rows = [{ skill_id: 'touch', coach_note: '' }, { skill_id: 'shoot', coach_note: 'x' }, { skill_id: 'head', coach_note: '' }]
+  assert.deepEqual(keepPriority(rows, 'scan', ['touch', 'scan', 'pass']).map(r => r.skill_id), ['touch', 'shoot', 'scan'])
+  assert.deepEqual(keepPriority(keepPriority(rows, 'scan', ['touch', 'scan', 'pass']), 'pass', ['touch', 'scan', 'pass']).map(r => r.skill_id), ['touch', 'pass', 'scan'])
+  assert.equal(keepPriority(rows, 'touch', ['touch']), rows)
+  assert.deepEqual(keepPriority(rows.slice(0, 1), 'scan', ['scan']).map(r => r.skill_id), ['touch', 'scan'])
+
+  const matrix = { sections: [{ skills: [{ id: 'touch', label: 'First touch' }, { id: 'scan', label: 'Scanning' }, { id: 'pass', label: 'Passing' }] }] }
+  const html = renderToStaticMarkup(React.createElement(FollowUpCard, { matrix, followUp, chosen: new Set(['pass']), canKeep: () => true, onKeep: () => {} }))
+  assert.match(html, /Last period&#x27;s priorities <small>Autumn<\/small>/)
+  assert.match(html, /Coach score 2 → 1/)
+  assert.match(html, /Look before receiving/)
+  assert.equal(html.match(/>Keep<\/button>/g)?.length, 1)  // scan only: touch improved, pass already chosen
+  assert.match(html, /In this period/)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(FollowUpCard, { matrix, followUp })), /Keep|In this period/)
+
+  const { priorityTag } = await loadJsx('src/followUpModel.js')
+  assert.equal(priorityTag('scan', 'scan', ['scan']), 'suggested')
+  assert.equal(priorityTag('scan', 'touch', ['scan']), 'carried')
+  assert.equal(priorityTag('head', 'touch', ['scan']), 'override')
+})
