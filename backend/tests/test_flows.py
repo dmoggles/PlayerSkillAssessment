@@ -354,3 +354,34 @@ def test_cleanup_removes_only_expired_auth_records(monkeypatch):
     with engine.begin() as conn:
         assert conn.execute(text("SELECT token_hash FROM auth_tokens")).scalars().all() == ["live"]
         assert "recent" in conn.execute(text("SELECT key FROM login_attempts")).scalars().all()
+
+
+def test_coach_notes_are_saved_trimmed_and_versioned(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("notes-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Notes"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Ash"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
+            "note": "  Strong week overall  ",
+            "ratings": [{"skill_id": "first_touch_body_shape", "score": 2, "note": " Heavy touch under a press "},
+                        {"skill_id": "switching_play", "score": 3, "note": "   "}]}
+    saved = owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).json()
+    assert saved["note"] == "Strong week overall"
+    notes = {r["skill_id"]: r["note"] for r in saved["ratings"]}
+    assert notes == {"first_touch_body_shape": "Heavy touch under a press", "switching_play": None}
+    body.update(version=1, note=None)
+    body["ratings"][0]["note"] = "x" * 501
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 422
+    body["ratings"][0]["note"] = None
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).json()["note"] is None
+    snapshots = [r["snapshot"] for r in owner.get(f"/teams/{team_id}/assessments/{saved['id']}/revisions").json()]
+    assert snapshots[0]["note"] == "Strong week overall" and snapshots[0]["ratings"][0]["note"] == "Heavy touch under a press"
+    assert snapshots[1]["note"] is None and snapshots[1]["ratings"][0]["note"] is None
+
+    owner.patch(f"/teams/{team_id}", json={"name": "Notes", "self_assessment_enabled": True}, headers=headers)
+    token = owner.post(f"/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link", headers=headers).json()["url"].split("/")[-1]
+    submitted = TestClient(app).post(f"/self/{token}", json={"position": "outfield", "ratings": [
+        {"skill_id": "first_touch_body_shape", "score": 4, "note": "players cannot leave notes"}]}).json()
+    assert submitted["ratings"][0]["note"] is None

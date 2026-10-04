@@ -1,8 +1,17 @@
+import { useState } from 'react'
 import { sectionsFor, scalePoints, scaleAnchors } from './matrix'
 
 export const UNKNOWN = 'unknown'
 
-export default function SkillForm({ matrix, position, ratings, onChange, readOnly = false, allowUnknown = false, sectionId = null, skillId = null, showSectionTitle = true }) {
+// Coach-only note on one rating: collapsed to an "Add note" button until used.
+function SkillNote({ label, value, onChange, readOnly }) {
+  const [open, setOpen] = useState(false)
+  if (readOnly) return value ? <p className="skill-note-text">Note: {value}</p> : null
+  if (!open && !value) return <button type="button" className="skill-note-add" onClick={() => setOpen(true)}>Add note</button>
+  return <label className="skill-note">Note <small>Coach only</small><textarea rows={2} maxLength={500} aria-label={`Note on ${label}`} autoFocus={open && !value} value={value} onChange={e => onChange(e.target.value)} /></label>
+}
+
+export default function SkillForm({ matrix, position, ratings, onChange, notes = {}, onNoteChange = null, readOnly = false, allowUnknown = false, sectionId = null, skillId = null, showSectionTitle = true }) {
   const relevantSections = sectionsFor(matrix, position).filter(section => sectionId === null || section.id === sectionId)
   const SCALE = scalePoints(matrix)
   const ANCHOR_LABELS = scaleAnchors(matrix)
@@ -55,6 +64,7 @@ export default function SkillForm({ matrix, position, ratings, onChange, readOnl
                     </button>
                   )}
                 </div>
+                {onNoteChange && <SkillNote label={skill.label} value={notes[skill.id] ?? ''} readOnly={readOnly} onChange={note => onNoteChange(skill.id, note)} />}
               </div>
             )
           })}

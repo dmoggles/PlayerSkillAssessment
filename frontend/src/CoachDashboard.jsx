@@ -14,7 +14,7 @@ import RevisionHistory from './RevisionHistory'
 import { auditText } from './auditModel'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
-import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, initialPeriodId, initialPlayerId } from './dashboardModel'
+import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId } from './dashboardModel'
 
 const fail = errorMessage
 
@@ -84,26 +84,27 @@ export default function CoachDashboard({ user, onLogout }) {
   const [secondary, setSecondary] = useState('')
   const [frequency, setFrequency] = useState('sometimes')
   const [ratings, setRatings] = useState({})
+  const [notes, setNotes] = useState({})
+  const [assessmentNote, setAssessmentNote] = useState('')
   const [assessmentBaseline, setAssessmentBaseline] = useState(null)
   const [prioritiesDirty, setPrioritiesDirty] = useState(false)
 
   const selectedTeam = teams.find(t => t.id === Number(teamId))
   const selectedPlayer = players.find(p => p.id === Number(playerId))
   const selectedPeriod = periods.find(p => p.id === Number(periodId))
-  const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings) !== assessmentBaseline
+  const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings, notes, assessmentNote) !== assessmentBaseline
   const dirty = assessmentDirty || prioritiesDirty
   const blocker = useBlocker(dirty)
   const blockerPrompted = useRef(false)
   const contextDialogRef = useRef(null)
 
-  const restoreAssessment = useCallback(() => {
-    const primary = coach?.primary_position ?? 'defender'
-    const nextSecondary = coach?.secondary_position ?? ''
-    const nextFrequency = coach?.secondary_position_frequency ?? 'sometimes'
-    const nextRatings = Object.fromEntries((coach?.ratings ?? []).map(r => [r.skill_id, r.score]))
-    setPosition(primary); setSecondary(nextSecondary); setFrequency(nextFrequency); setRatings(nextRatings)
-    setAssessmentBaseline(assessmentSignature(primary, nextSecondary, nextFrequency, nextRatings))
-  }, [coach])
+  const applyForm = useCallback(assessment => {
+    const form = formFromAssessment(assessment)
+    setPosition(form.position); setSecondary(form.secondary); setFrequency(form.frequency)
+    setRatings(form.ratings); setNotes(form.notes); setAssessmentNote(form.note)
+    setAssessmentBaseline(formSignature(form))
+  }, [])
+  const restoreAssessment = useCallback(() => applyForm(coach), [applyForm, coach])
 
   useEffect(() => {
     if (blocker.state !== 'blocked') { blockerPrompted.current = false; return }
@@ -150,13 +151,13 @@ export default function CoachDashboard({ user, onLogout }) {
   }
   function choosePlayer(id) {
     if (!confirmDiscard()) return
-    setPlayerId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
+    setPlayerId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setLink(''); setRatings({}); setNotes({}); setAssessmentNote(''); setAssessmentBaseline(null)
   }
   function choosePeriod(id) {
     if (confirmDiscard()) selectPeriod(id)
   }
   function selectPeriod(id) {
-    setPeriodId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
+    setPeriodId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setRatings({}); setNotes({}); setAssessmentNote(''); setAssessmentBaseline(null)
   }
 
   useEffect(() => {
@@ -186,16 +187,11 @@ export default function CoachDashboard({ user, onLogout }) {
       if (assessmentResult.status !== 'fulfilled') { setMessage(fail(assessmentResult.reason)); return }
       const assessment = assessmentResult.value
       setCoach(assessment)
-      const primary = assessment?.primary_position ?? 'defender'
-      const nextSecondary = assessment?.secondary_position ?? ''
-      const nextFrequency = assessment?.secondary_position_frequency ?? 'sometimes'
-      const nextRatings = Object.fromEntries((assessment?.ratings ?? []).map(r => [r.skill_id, r.score]))
-      setPosition(primary); setSecondary(nextSecondary); setFrequency(nextFrequency); setRatings(nextRatings)
-      setAssessmentBaseline(assessmentSignature(primary, nextSecondary, nextFrequency, nextRatings))
+      applyForm(assessment)
       if (assessment) getRevisions(teamId, assessment.id).then(value => { if (live) setRevisions(value) }).catch(() => {})
     })
     return () => { live = false }
-  }, [teamId, playerId, periodId])
+  }, [teamId, playerId, periodId, applyForm])
 
   useEffect(() => {
     if (currentArea.id !== 'team-data' || !teamId || !periodId) return
@@ -224,12 +220,11 @@ export default function CoachDashboard({ user, onLogout }) {
         player_id: Number(playerId), period_id: Number(periodId), version: coach?.version ?? 0,
         primary_position: position, secondary_position: secondary || null,
         secondary_position_frequency: secondary ? frequency : null,
-        ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null })),
+        note: assessmentNote.trim() || null,
+        ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null, note: notes[skill.id]?.trim() || null })),
       })
       setCoach(assessment); setMessage('Assessment saved.')
-      const nextRatings = Object.fromEntries((assessment.ratings ?? []).map(r => [r.skill_id, r.score]))
-      setRatings(nextRatings)
-      setAssessmentBaseline(assessmentSignature(assessment.primary_position, assessment.secondary_position ?? '', assessment.secondary_position_frequency ?? 'sometimes', nextRatings))
+      applyForm(assessment)
       getComparison(teamId, playerId, periodId).then(setComparison)
       getPlayerHistory(teamId, playerId).then(setHistory)
       getRevisions(teamId, assessment.id).then(setRevisions)
@@ -326,9 +321,9 @@ export default function CoachDashboard({ user, onLogout }) {
         <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description={selectedPlayer.active ? 'Rate each skill, then save the coach assessment' : 'Coach assessment (read-only)'}>
           {!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}
           <form onSubmit={save}>
-            <fieldset className="plain-fieldset" disabled={!selectedPlayer.active}><div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) setRatings({}); setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div></fieldset>
-            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
-            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
+            <fieldset className="plain-fieldset" disabled={!selectedPlayer.active}><div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) { setRatings({}); setNotes({}) } setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div><label className="field assessment-note">Overall note <small>Coach only</small><textarea rows={2} maxLength={1000} placeholder="Anything to remember about this assessment" value={assessmentNote} onChange={e => setAssessmentNote(e.target.value)} /></label></fieldset>
+            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
+            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
           </form>
           <RevisionHistory matrix={matrix} revisions={revisions} />
         </Section>

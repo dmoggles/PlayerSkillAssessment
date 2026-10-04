@@ -8,6 +8,8 @@ const secondaryLabel = snapshot => snapshot.secondary_position
   ? `${positionLabel(snapshot.secondary_position)}${snapshot.secondary_position_frequency ? ` (${frequencyLabel(snapshot.secondary_position_frequency)})` : ''}`
   : 'None'
 const scores = snapshot => Object.fromEntries((snapshot.ratings ?? []).map(r => [r.skill_id, r.score]))
+const ratingNotes = snapshot => Object.fromEntries((snapshot.ratings ?? []).filter(r => r.note).map(r => [r.skill_id, r.note]))
+const noteChange = (before, after) => !before ? 'added' : !after ? 'removed' : 'edited'
 const shown = score => score ?? '—'
 
 export const skillLabels = matrix => Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
@@ -26,6 +28,12 @@ export function revisionChanges(previous, current, labels = {}) {
   for (const id of ids) {
     if ((before[id] ?? null) !== (after[id] ?? null)) changes.push(`${labels[id] ?? id}: ${shown(before[id])} → ${shown(after[id])}`)
   }
+  const notesBefore = ratingNotes(previous)
+  const notesAfter = ratingNotes(current)
+  for (const id of [...new Set([...Object.keys(notesAfter), ...Object.keys(notesBefore)])]) {
+    if (notesBefore[id] !== notesAfter[id]) changes.push(`${labels[id] ?? id} note ${noteChange(notesBefore[id], notesAfter[id])}`)
+  }
+  if ((previous.note ?? null) !== (current.note ?? null)) changes.push(`Overall note ${noteChange(previous.note, current.note)}`)
   return changes
 }
 

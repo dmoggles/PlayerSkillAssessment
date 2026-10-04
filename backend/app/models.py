@@ -94,6 +94,7 @@ class Assessment(Base):
     secondary_position: Mapped[str | None] = mapped_column(String(20))
     secondary_position_frequency: Mapped[str | None] = mapped_column(String(20))
     matrix_version: Mapped[str] = mapped_column(String(20), default="1.0.0")
+    note: Mapped[str | None] = mapped_column(String(1000))
     version: Mapped[int] = mapped_column(Integer, default=1)
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -113,6 +114,7 @@ class Rating(Base):
     assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"))
     skill_id: Mapped[str] = mapped_column(String(80))
     score: Mapped[int | None] = mapped_column(SmallInteger)
+    note: Mapped[str | None] = mapped_column(String(500))
 
 
 class AssessmentRevision(Base):

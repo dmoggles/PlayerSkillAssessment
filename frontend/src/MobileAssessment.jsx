@@ -3,7 +3,7 @@ import SkillForm from './SkillForm'
 import { sectionsFor } from './matrix'
 import { horizontalSwipe, ratedCount } from './mobileAssessmentModel'
 
-export default function MobileAssessment({ matrix, position, ratings, onChange, readOnly = false }) {
+export default function MobileAssessment({ matrix, position, ratings, onChange, notes, onNoteChange, readOnly = false }) {
   const sections = sectionsFor(matrix, position)
   const [expandedId, setExpandedId] = useState(null)
   const [indexes, setIndexes] = useState({})
@@ -34,7 +34,7 @@ export default function MobileAssessment({ matrix, position, ratings, onChange, 
             onTouchStart={event => { const touch = event.changedTouches[0]; touchStart.current = { x: touch.clientX, y: touch.clientY } }}
             onTouchEnd={event => { const touch = event.changedTouches[0]; const direction = horizontalSwipe(touchStart.current, { x: touch.clientX, y: touch.clientY }); touchStart.current = null; if (direction) move(section, direction) }}
             onTouchCancel={() => { touchStart.current = null }}>
-            <SkillForm matrix={matrix} position={position} ratings={ratings} onChange={onChange} readOnly={readOnly} sectionId={section.id} skillId={skill.id} showSectionTitle={false} />
+            <SkillForm matrix={matrix} position={position} ratings={ratings} onChange={onChange} notes={notes} onNoteChange={onNoteChange} readOnly={readOnly} sectionId={section.id} skillId={skill.id} showSectionTitle={false} />
           </div>
           <div className="skill-pager"><button type="button" onClick={() => move(section, -1)} disabled={index === 0} aria-label="Previous skill">← Previous</button><span aria-live="polite">{index + 1} / {section.skills.length}</span><button type="button" onClick={() => move(section, 1)} disabled={index === section.skills.length - 1} aria-label="Next skill">Next →</button></div>
         </div>}

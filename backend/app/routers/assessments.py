@@ -23,6 +23,7 @@ POSITIONS = {p["id"] for p in MATRIX["positions"]}
 class RatingIn(BaseModel):
     skill_id: str
     score: int | None = Field(default=None, ge=1, le=5)
+    note: str | None = Field(default=None, max_length=500)
 
 
 class CoachAssessmentIn(BaseModel):
@@ -32,6 +33,7 @@ class CoachAssessmentIn(BaseModel):
     primary_position: str
     secondary_position: str | None = None
     secondary_position_frequency: str | None = None
+    note: str | None = Field(default=None, max_length=1000)
     ratings: list[RatingIn]
 
 
@@ -51,6 +53,11 @@ class PrioritiesIn(BaseModel):
     priorities: list[PriorityIn]
 
 
+def clean_note(value: str | None) -> str | None:
+    value = (value or "").strip()
+    return value or None
+
+
 def validate_ratings(ratings: list[RatingIn], position: str):
     ids = [r.skill_id for r in ratings]
     if len(ids) != len(set(ids)) or not set(ids).issubset(SKILLS[position]):
@@ -66,7 +73,8 @@ def assessment_out(a: Assessment | None):
             "secondary_position_frequency": a.secondary_position_frequency,
             "matrix_version": a.matrix_version, "version": a.version, "updated_by": a.updated_by,
             "created_at": a.created_at, "updated_at": a.updated_at,
-            "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings]}
+            "note": a.note,
+            "ratings": [{"skill_id": r.skill_id, "score": r.score, "note": r.note} for r in a.ratings]}
 
 
 def require_active_player(db: DbSession, team_id: int, player_id: int) -> Player:
@@ -116,13 +124,15 @@ def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession =
     a.primary_position = body.primary_position
     a.secondary_position = body.secondary_position
     a.secondary_position_frequency = body.secondary_position_frequency if body.secondary_position else None
+    a.note = clean_note(body.note)
     a.updated_by = user.id
     a.updated_at = utcnow()
-    for r in body.ratings:
-        db.add(Rating(assessment_id=a.id, skill_id=r.skill_id, score=r.score))
+    ratings = [{"skill_id": r.skill_id, "score": r.score, "note": clean_note(r.note)} for r in body.ratings]
+    for r in ratings:
+        db.add(Rating(assessment_id=a.id, **r))
     snapshot = {"position": position, "primary_position": a.primary_position,
                 "secondary_position": a.secondary_position, "secondary_position_frequency": a.secondary_position_frequency,
-                "ratings": [r.model_dump() for r in body.ratings]}
+                "note": a.note, "ratings": ratings}
     db.add(AssessmentRevision(assessment_id=a.id, version=a.version, editor_id=user.id, snapshot=snapshot))
     try:
         db.commit()
@@ -352,6 +362,7 @@ def submit_self(token: str, body: SelfAssessmentIn, db: DbSession = Depends(get_
     db.add(a)
     db.flush()
     for r in body.ratings:
+        # Notes are coach-only; anything a player sends in note is ignored.
         db.add(Rating(assessment_id=a.id, skill_id=r.skill_id, score=r.score))
     link.used_at = utcnow()
     try:

@@ -282,3 +282,33 @@ test('audit events read as plain sentences', async () => {
   assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
   assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
 })
+
+test('coach notes affect the unsaved-changes check and appear in the form and revision history', async () => {
+  const { assessmentSignature, formFromAssessment, formSignature } = await import('../src/dashboardModel.js')
+  const { revisionChanges } = await loadJsx('src/revisionModel.js')
+  const { default: SkillForm } = await loadJsx('src/SkillForm.jsx')
+  const saved = { primary_position: 'defender', note: 'Good week', ratings: [{ skill_id: 'touch', score: 3, note: 'Heavy touch' }, { skill_id: 'passing', score: 2, note: null }] }
+  const form = formFromAssessment(saved)
+  assert.deepEqual(form.notes, { touch: 'Heavy touch' })
+  const baseline = formSignature(form)
+  assert.equal(assessmentSignature('defender', '', 'sometimes', form.ratings, { ...form.notes, passing: '  ' }, 'Good week '), baseline)
+  assert.notEqual(assessmentSignature('defender', '', 'sometimes', form.ratings, { touch: 'Lighter touch' }, 'Good week'), baseline)
+  assert.notEqual(assessmentSignature('defender', '', 'sometimes', form.ratings, form.notes, ''), baseline)
+  assert.equal(formFromAssessment(null).note, '')
+
+  const labels = { touch: 'First touch', passing: 'Passing' }
+  const after = { ...saved, note: null, ratings: [{ skill_id: 'touch', score: 3, note: 'Better' }, { skill_id: 'passing', score: 2, note: 'Look up first' }] }
+  assert.deepEqual(revisionChanges(saved, after, labels), ['First touch note edited', 'Passing note added', 'Overall note removed'])
+
+  const matrix = { sections: [{ id: 'technical', label: 'Technical', applies_to: ['defender'], skills: [
+    { id: 'touch', label: 'First touch', descriptors: { 1: 'a', 3: 'b', 5: 'c' } }, { id: 'passing', label: 'Passing', descriptors: { 1: 'd', 3: 'e', 5: 'f' } },
+  ] }], meta: { scale: { points: [1, 2, 3, 4, 5], anchors: {} } } }
+  const base = { matrix, position: 'outfield', ratings: {}, onChange: () => {}, notes: { touch: 'Heavy touch' } }
+  const editable = renderToStaticMarkup(React.createElement(SkillForm, { ...base, onNoteChange: () => {} }))
+  assert.match(editable, /aria-label="Note on First touch"[^>]*>Heavy touch<\/textarea>/)
+  assert.match(editable, /Add note/)
+  const archived = renderToStaticMarkup(React.createElement(SkillForm, { ...base, onNoteChange: () => {}, readOnly: true }))
+  assert.match(archived, /Note: Heavy touch/)
+  assert.doesNotMatch(archived, /textarea|Add note/)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(SkillForm, base)), /Add note|textarea/)
+})
