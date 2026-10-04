@@ -213,26 +213,97 @@ def set_priorities(team_id: int, player_id: int, period_id: int, body: Prioritie
     return get_priorities(team_id, player_id, period_id, db, user)
 
 
+class SelfLinksIn(BaseModel):
+    player_ids: list[int] | None = None
+
+
+def ensure_self_assessment_open(db: DbSession, team_id: int, period: Period):
+    if not db.get(Team, team_id).self_assessment_enabled or not period.is_active:
+        raise HTTPException(409, "Self-assessment is unavailable")
+
+
+def issue_link(db: DbSession, player: Player, period: Period) -> dict:
+    """Create or replace the player's link for the period; the raw token is only returned here."""
+    raw = fresh_token()
+    now = utcnow()
+    row = db.query(SelfLink).filter_by(player_id=player.id, period_id=period.id).first()
+    if not row:
+        row = SelfLink(player_id=player.id, period_id=period.id)
+        db.add(row)
+    row.token_hash = digest(raw)
+    row.issued_at = now
+    row.expires_at = now + timedelta(days=7)
+    row.used_at = None
+    row.opened_at = None
+    return {"player_id": player.id, "player_name": player.name,
+            "url": f"{settings.public_base_url}/self/{raw}", "expires_at": row.expires_at}
+
+
+def link_status(link: SelfLink | None, submission: Assessment | None, now) -> str:
+    if submission:
+        return "submitted"
+    if not link:
+        return "not_sent"
+    if link.expires_at.replace(tzinfo=timezone.utc) <= now:
+        return "expired"
+    return "opened" if link.opened_at else "sent"
+
+
 @router.post("/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link")
 def issue_self_link(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     player = scoped_player(db, team_id, player_id)
     period = scoped_period(db, team_id, period_id)
-    if not db.get(Team, team_id).self_assessment_enabled or not period.is_active or not player.active:
+    ensure_self_assessment_open(db, team_id, period)
+    if not player.active:
         raise HTTPException(409, "Self-assessment is unavailable")
     if db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="player").first():
         raise HTTPException(409, "Player has already submitted")
-    raw = fresh_token()
-    row = db.query(SelfLink).filter_by(player_id=player_id, period_id=period_id).first()
-    if not row:
-        row = SelfLink(player_id=player_id, period_id=period_id, token_hash=digest(raw), expires_at=utcnow() + timedelta(days=7))
-        db.add(row)
-    else:
-        row.token_hash = digest(raw)
-        row.expires_at = utcnow() + timedelta(days=7)
-        row.used_at = None
+    issued = issue_link(db, player, period)
     db.commit()
-    return {"url": f"{settings.public_base_url}/self/{raw}", "expires_at": row.expires_at}
+    return {"url": issued["url"], "expires_at": issued["expires_at"]}
+
+
+@router.get("/teams/{team_id}/periods/{period_id}/self-links")
+def self_link_board(team_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    scoped_period(db, team_id, period_id)
+    players = db.query(Player).filter_by(team_id=team_id, active=True).order_by(Player.name).all()
+    ids = [p.id for p in players]
+    links = {l.player_id: l for l in db.query(SelfLink).filter(SelfLink.period_id == period_id, SelfLink.player_id.in_(ids))}
+    submissions = {a.player_id: a for a in db.query(Assessment).filter(
+        Assessment.period_id == period_id, Assessment.assessor == "player", Assessment.player_id.in_(ids))}
+    now = utcnow()
+    rows = []
+    for p in players:
+        link, submission = links.get(p.id), submissions.get(p.id)
+        rows.append({"player_id": p.id, "player_name": p.name, "status": link_status(link, submission, now),
+                     "issued_at": link.issued_at if link else None, "expires_at": link.expires_at if link else None,
+                     "opened_at": link.opened_at if link else None,
+                     "submitted_at": submission.created_at if submission else None})
+    return rows
+
+
+@router.post("/teams/{team_id}/periods/{period_id}/self-links")
+def issue_self_links(team_id: int, period_id: int, body: SelfLinksIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Issue links in bulk. Without player_ids, covers every active player who has neither submitted nor holds a live link."""
+    require_member(team_id, db, user)
+    period = scoped_period(db, team_id, period_id)
+    ensure_self_assessment_open(db, team_id, period)
+    board = {row["player_id"]: row for row in self_link_board(team_id, period_id, db, user)}
+    if body.player_ids is None:
+        targets = [pid for pid, row in board.items() if row["status"] in ("not_sent", "expired")]
+    else:
+        targets = list(dict.fromkeys(body.player_ids))
+        for pid in targets:
+            if pid not in board:
+                raise HTTPException(404, "Player not found or archived")
+            if board[pid]["status"] == "submitted":
+                raise HTTPException(409, f"{board[pid]['player_name']} has already submitted")
+    players = {p.id: p for p in db.query(Player).filter(Player.id.in_(targets))}
+    issued = [issue_link(db, players[pid], period) for pid in targets]
+    db.commit()
+    return {"links": issued}
 
 
 @router.delete("/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link")
@@ -262,6 +333,9 @@ def valid_self_link(db: DbSession, raw: str, lock: bool = False):
 @router.get("/self/{token}")
 def self_link_info(token: str, db: DbSession = Depends(get_db)):
     link, player, period, team = valid_self_link(db, token)
+    if not link.opened_at:
+        link.opened_at = utcnow()
+        db.commit()
     return {"team": team.name, "player": player.name, "period": period.label, "expires_at": link.expires_at}
 
 

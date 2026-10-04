@@ -67,5 +67,7 @@ export const getPriorities = (id, playerId, periodId) => data(api.get(`${team(id
 export const setPriorities = (id, playerId, periodId, priorities) => data(api.put(`${team(id)}/priorities`, { priorities }, { params: { player_id: playerId, period_id: periodId } }))
 export const issueSelfLink = (id, playerId, periodId) => data(api.post(`${team(id)}/players/${playerId}/periods/${periodId}/self-link`))
 export const revokeSelfLink = (id, playerId, periodId) => data(api.delete(`${team(id)}/players/${playerId}/periods/${periodId}/self-link`))
+export const getSelfLinkBoard = (id, periodId) => data(api.get(`${team(id)}/periods/${periodId}/self-links`))
+export const issueSelfLinks = (id, periodId, playerIds) => data(api.post(`${team(id)}/periods/${periodId}/self-links`, playerIds ? { player_ids: playerIds } : {}))
 export const getSelfLinkInfo = token => data(api.get(`/self/${token}`))
 export const submitSelfAssessment = (token, value) => data(api.post(`/self/${token}`, value))

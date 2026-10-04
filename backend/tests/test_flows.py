@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from app.database import Base, engine
 from app import main
 from app.main import app
@@ -136,6 +137,44 @@ def test_archived_players_are_read_only_until_restored(monkeypatch):
 
     assert coach.post(f"/teams/{team_id}/players/{player_id}/restore", headers=coach_headers).json()["active"] is True
     assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+
+
+def test_squad_self_assessment_links_and_status_board(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("squad-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Squad"}, headers=headers).json()["id"]
+    ids = {name: owner.post(f"/teams/{team_id}/players", json={"name": name}, headers=headers).json()["id"]
+           for name in ("Ana", "Ben", "Cal", "Dee")}
+    owner.post(f"/teams/{team_id}/players/{ids['Dee']}/archive", headers=headers)
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    links_url = f"/teams/{team_id}/periods/{period_id}/self-links"
+    assert owner.post(links_url, json={}, headers=headers).status_code == 409  # self-assessment disabled
+    owner.patch(f"/teams/{team_id}", json={"name": "Squad", "self_assessment_enabled": True}, headers=headers)
+
+    board = owner.get(links_url).json()
+    assert [(r["player_name"], r["status"]) for r in board] == [("Ana", "not_sent"), ("Ben", "not_sent"), ("Cal", "not_sent")]
+    issued = owner.post(links_url, json={}, headers=headers).json()["links"]
+    assert [link["player_name"] for link in issued] == ["Ana", "Ben", "Cal"]
+    tokens = {link["player_name"]: link["url"].split("/")[-1] for link in issued}
+    # A second bulk issue skips players who already hold a live link.
+    assert owner.post(links_url, json={}, headers=headers).json()["links"] == []
+
+    public = TestClient(app)
+    assert public.get(f"/self/{tokens['Ben']}").status_code == 200
+    assert public.post(f"/self/{tokens['Cal']}", json={"position": "outfield", "ratings": [{"skill_id": "first_touch_body_shape", "score": 2}]}).status_code == 201
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE self_links SET expires_at = now() - interval '1 day' WHERE player_id = :p"), {"p": ids["Ana"]})
+    statuses = {r["player_name"]: r["status"] for r in owner.get(links_url).json()}
+    assert statuses == {"Ana": "expired", "Ben": "opened", "Cal": "submitted"}
+
+    # Bulk issue now covers only the expired link; explicit reissue revokes the old token.
+    assert [link["player_name"] for link in owner.post(links_url, json={}, headers=headers).json()["links"]] == ["Ana"]
+    assert owner.post(links_url, json={"player_ids": [ids["Cal"]]}, headers=headers).status_code == 409
+    assert owner.post(links_url, json={"player_ids": [ids["Dee"]]}, headers=headers).status_code == 404
+    assert owner.post(links_url, json={"player_ids": [ids["Ben"]]}, headers=headers).status_code == 200
+    assert public.get(f"/self/{tokens['Ben']}").status_code == 404
+    assert {r["player_name"]: r["status"] for r in owner.get(links_url).json()}["Ben"] == "sent"
 
 
 def test_delete_team_requires_owner_and_exact_name(monkeypatch):

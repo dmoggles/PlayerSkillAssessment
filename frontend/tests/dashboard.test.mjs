@@ -227,3 +227,20 @@ test('archived players get a read-only assessment with a restore prompt', async 
   assert.match(notice, /Kai is archived\./)
   assert.match(notice, /Restore player/)
 })
+
+test('self-assessment board summarises statuses and copies new links as one list', async () => {
+  const { SELF_LINK_STATUS, copyAllText, needsLink, statusDetail, statusSummary } = await loadJsx('src/selfLinkModel.js')
+  const rows = [
+    { player_name: 'Ana', status: 'submitted', submitted_at: '2026-10-03T10:00:00Z' },
+    { player_name: 'Ben', status: 'opened', opened_at: '2026-10-02T10:00:00Z', expires_at: '2026-10-09T10:00:00Z' },
+    { player_name: 'Cal', status: 'expired', expires_at: '2026-09-30T10:00:00Z' },
+    { player_name: 'Dee', status: 'not_sent' },
+  ]
+  assert.equal(statusSummary(rows), '1 of 4 submitted · 1 opened · 1 expired · 1 not sent')
+  assert.deepEqual(rows.filter(needsLink).map(r => r.player_name), ['Cal', 'Dee'])
+  assert.match(statusDetail(rows[1]), /^Opened .+ · expires .+$/)
+  assert.equal(statusDetail(rows[3]), '')
+  assert.equal(statusDetail({ status: 'sent', issued_at: null, expires_at: null }), '')
+  for (const status of ['not_sent', 'sent', 'opened', 'submitted', 'expired']) assert.ok(SELF_LINK_STATUS[status].label)
+  assert.equal(copyAllText([{ player_name: 'Ana', url: 'https://x/self/a' }, { player_name: 'Ben', url: 'https://x/self/b' }]), 'Ana: https://x/self/a\nBen: https://x/self/b')
+})

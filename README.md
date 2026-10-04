@@ -17,7 +17,7 @@ Mailpit captures these development messages; they are not delivered to personal 
 
 To reach the app from another device on the same network, set `WEB_BIND_HOST=0.0.0.0` and `PUBLIC_BASE_URL=http://YOUR-LAN-IP:8080` in a root `.env` file, then rerun `bash deploy/start_local.sh`. This exposes only the web port; PostgreSQL and Mailpit remain bound to localhost. Use the HTTPS VPS deployment for internet access.
 
-Create an account, follow the verification email in Mailpit, sign in, create a team, add players, and create a period. Team owners may enable self-assessment in Team settings. When enabled, coaches can issue a one-use, seven-day link for a player in the active period; copy it when it appears. Issuing another link revokes the old one.
+Create an account, follow the verification email in Mailpit, sign in, create a team, add players, and create a period. Team owners may enable self-assessment in Team settings. When enabled, Settings → Player self-assessment shows each active player's status for the selected period (not sent, sent, opened, submitted, expired) and can create one-use, seven-day links for every player who still needs one. Links appear only once, so copy them individually or with Copy all and share them, for example in a team chat. Creating another link for a player revokes the old one.
 
 Backend tests against the local database:
 
