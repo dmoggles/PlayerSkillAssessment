@@ -69,6 +69,13 @@ def assessment_out(a: Assessment | None):
             "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings]}
 
 
+def require_active_player(db: DbSession, team_id: int, player_id: int) -> Player:
+    player = scoped_player(db, team_id, player_id)
+    if not player.active:
+        raise HTTPException(409, "Archived players are read-only. Restore the player to make changes")
+    return player
+
+
 def scoped_assessment(db: DbSession, team_id: int, player_id: int, period_id: int, assessor: str):
     scoped_player(db, team_id, player_id)
     scoped_period(db, team_id, period_id)
@@ -83,7 +90,7 @@ def skill_matrix():
 @router.put("/teams/{team_id}/assessments/coach")
 def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
-    scoped_player(db, team_id, body.player_id)
+    require_active_player(db, team_id, body.player_id)
     scoped_period(db, team_id, body.period_id)
     if body.primary_position not in POSITIONS or (body.secondary_position and body.secondary_position not in POSITIONS):
         raise HTTPException(422, "Invalid position")
@@ -190,7 +197,7 @@ def get_priorities(team_id: int, player_id: int, period_id: int, db: DbSession =
 @router.put("/teams/{team_id}/priorities")
 def set_priorities(team_id: int, player_id: int, period_id: int, body: PrioritiesIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
-    scoped_player(db, team_id, player_id)
+    require_active_player(db, team_id, player_id)
     scoped_period(db, team_id, period_id)
     coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
     if not coach or set(SKILLS[coach.position]) - {r.skill_id for r in coach.ratings if r.score is not None}:

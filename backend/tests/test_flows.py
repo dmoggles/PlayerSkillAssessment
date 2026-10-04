@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from app.database import Base, engine
 from app.main import app
-from app.routers import accounts, teams
+from app.routers import accounts, assessments, teams
 
 
 def clean_database():
@@ -46,6 +46,122 @@ def test_team_isolation_invite_and_role(monkeypatch):
     coach_user_id = next(m["user_id"] for m in owner.get(f"/teams/{team_id}/members").json() if m["role"] == "coach")
     assert owner.delete(f"/teams/{team_id}/members/{coach_user_id}", headers=headers).status_code == 200
     assert coach.get(f"/teams/{team_id}/players").status_code == 404
+
+
+def add_coach(owner, owner_csrf, team_id, coach, coach_csrf, email, monkeypatch):
+    invites = []
+    monkeypatch.setattr(teams, "send_email", lambda to, subject, body: invites.append(body))
+    assert owner.post(f"/teams/{team_id}/invites", json={"email": email}, headers={"x-csrf-token": owner_csrf}).status_code == 200
+    assert coach.post("/invites/accept", json={"token": invites[-1].split("/")[-1]}, headers={"x-csrf-token": coach_csrf}).status_code == 200
+    return next(m["user_id"] for m in owner.get(f"/teams/{team_id}/members").json() if m["email"] == email)
+
+
+def test_member_roles_keep_at_least_one_owner(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("roles-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("roles-coach@example.com", monkeypatch)
+    headers, coach_headers = {"x-csrf-token": csrf}, {"x-csrf-token": coach_csrf}
+    team_id = owner.post("/teams", json={"name": "Roles"}, headers=headers).json()["id"]
+    owner_id = owner.get(f"/teams/{team_id}/members").json()[0]["user_id"]
+    coach_id = add_coach(owner, csrf, team_id, coach, coach_csrf, "roles-coach@example.com", monkeypatch)
+    assert coach.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "owner"}, headers=coach_headers).status_code == 404
+    assert coach.delete(f"/teams/{team_id}/members/{owner_id}", headers=coach_headers).status_code == 404
+    # A coach can leave on their own, then be invited back.
+    assert coach.delete(f"/teams/{team_id}/members/{coach_id}", headers=coach_headers).status_code == 200
+    assert coach.get("/teams").json() == []
+    coach_id = add_coach(owner, csrf, team_id, coach, coach_csrf, "roles-coach@example.com", monkeypatch)
+    assert owner.patch(f"/teams/{team_id}/members/{owner_id}", json={"role": "coach"}, headers=headers).status_code == 409
+    assert owner.delete(f"/teams/{team_id}/members/{owner_id}", headers=headers).status_code == 409
+    assert owner.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "admin"}, headers=headers).status_code == 422
+    # Transfer ownership: promote the coach, then step down.
+    assert owner.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "owner"}, headers=headers).json()["role"] == "owner"
+    assert owner.patch(f"/teams/{team_id}/members/{owner_id}", json={"role": "coach"}, headers=headers).status_code == 200
+    assert owner.patch(f"/teams/{team_id}", json={"name": "Taken", "self_assessment_enabled": False}, headers=headers).status_code == 404
+    assert {t["role"] for t in coach.get("/teams").json()} == {"owner"}
+    assert coach.delete(f"/teams/{team_id}/members/{owner_id}", headers=coach_headers).status_code == 200
+    assert owner.get(f"/teams/{team_id}/players").status_code == 404
+
+
+def test_restore_players_and_manage_periods(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("periods-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("periods-coach@example.com", monkeypatch)
+    headers, coach_headers = {"x-csrf-token": csrf}, {"x-csrf-token": coach_csrf}
+    team_id = owner.post("/teams", json={"name": "Periods"}, headers=headers).json()["id"]
+    add_coach(owner, csrf, team_id, coach, coach_csrf, "periods-coach@example.com", monkeypatch)
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Kai"}, headers=headers).json()["id"]
+
+    autumn = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    winter = owner.post(f"/teams/{team_id}/periods", json={"label": "Winter"}, headers=headers).json()["id"]
+    assert coach.patch(f"/teams/{team_id}/periods/{winter}", json={"label": "Autumn"}, headers=coach_headers).status_code == 409
+    assert coach.patch(f"/teams/{team_id}/periods/{winter}", json={"label": "  "}, headers=coach_headers).status_code == 422
+    assert coach.patch(f"/teams/{team_id}/periods/{winter}", json={"label": "Winter term"}, headers=coach_headers).json()["label"] == "Winter term"
+
+    body = {"player_id": player_id, "period_id": winter, "version": 0, "primary_position": "defender",
+            "ratings": [{"skill_id": "first_touch_body_shape", "score": 3}]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    assert coach.delete(f"/teams/{team_id}/periods/{winter}", headers=coach_headers).status_code == 404
+    assert owner.delete(f"/teams/{team_id}/periods/{winter}", headers=headers).status_code == 200
+    periods = owner.get(f"/teams/{team_id}/periods").json()
+    assert [(p["id"], p["is_active"]) for p in periods] == [(autumn, True)]
+    assert owner.get(f"/teams/{team_id}/players/{player_id}/history").json() == []
+
+
+def test_archived_players_are_read_only_until_restored(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("archive-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("archive-coach@example.com", monkeypatch)
+    headers, coach_headers = {"x-csrf-token": csrf}, {"x-csrf-token": coach_csrf}
+    team_id = owner.post("/teams", json={"name": "Archive"}, headers=headers).json()["id"]
+    add_coach(owner, csrf, team_id, coach, coach_csrf, "archive-coach@example.com", monkeypatch)
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Kai"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skill_ids = sorted(assessments.SKILLS["outfield"])
+    body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
+            "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in skill_ids]}
+    priority_params = {"player_id": player_id, "period_id": period_id}
+    priorities = {"priorities": [{"skill_id": skill_ids[0], "rank": 1}]}
+    saved = owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).json()
+    assert owner.put(f"/teams/{team_id}/priorities", params=priority_params, json=priorities, headers=headers).status_code == 200
+
+    assert coach.post(f"/teams/{team_id}/players/{player_id}/archive", headers=coach_headers).json()["active"] is False
+    body["version"] = saved["version"]
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 409
+    assert owner.put(f"/teams/{team_id}/priorities", params=priority_params, json={"priorities": []}, headers=headers).status_code == 409
+    # History stays readable while archived.
+    assert owner.get(f"/teams/{team_id}/assessments/coach", params=priority_params).json()["version"] == saved["version"]
+    assert len(owner.get(f"/teams/{team_id}/priorities", params=priority_params).json()) == 1
+    assert len(owner.get(f"/teams/{team_id}/players/{player_id}/history").json()) == 1
+
+    assert coach.post(f"/teams/{team_id}/players/{player_id}/restore", headers=coach_headers).json()["active"] is True
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+
+
+def test_delete_team_requires_owner_and_exact_name(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("delete-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("delete-coach@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Doomed"}, headers=headers).json()["id"]
+    keep_id = owner.post("/teams", json={"name": "Kept"}, headers=headers).json()["id"]
+    add_coach(owner, csrf, team_id, coach, coach_csrf, "delete-coach@example.com", monkeypatch)
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Lee"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skill_ids = sorted(assessments.SKILLS["outfield"])
+    body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
+            "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in skill_ids]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    owner.patch(f"/teams/{team_id}", json={"name": "Doomed", "self_assessment_enabled": True}, headers=headers)
+    assert owner.post(f"/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link", headers=headers).status_code == 200
+    assert owner.put(f"/teams/{team_id}/priorities", params={"player_id": player_id, "period_id": period_id},
+                     json={"priorities": [{"skill_id": skill_ids[0], "rank": 1}]}, headers=headers).status_code == 200
+
+    assert coach.request("DELETE", f"/teams/{team_id}", json={"confirm_name": "Doomed"}, headers={"x-csrf-token": coach_csrf}).status_code == 404
+    assert owner.request("DELETE", f"/teams/{team_id}", json={"confirm_name": "doomed"}, headers=headers).status_code == 422
+    assert owner.request("DELETE", f"/teams/{team_id}", json={"confirm_name": "Doomed"}, headers=headers).status_code == 200
+    assert [t["id"] for t in owner.get("/teams").json()] == [keep_id]
+    assert coach.get("/teams").json() == []
+    assert owner.get(f"/teams/{team_id}/players").status_code == 404
 
 
 def test_assessment_versions_history_and_self_link(monkeypatch):

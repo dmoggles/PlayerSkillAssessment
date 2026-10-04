@@ -5,7 +5,7 @@ import { getPriorities, setPriorities } from './api'
 const fmt1 = (v) => (v == null ? '—' : v.toFixed(1))
 const noop = () => {}
 
-export default function PrioritiesView({ matrix, coach, player, teamId, periodId, playerId, onDirtyChange = noop }) {
+export default function PrioritiesView({ matrix, coach, player, teamId, periodId, playerId, onDirtyChange = noop, readOnly = false }) {
   const ranked = useMemo(() => priorityScores(matrix, coach, player), [matrix, coach, player])
   const suggested = useMemo(() => suggestedPriorities(matrix, coach, player), [matrix, coach, player])
   const byId = useMemo(() => Object.fromEntries(ranked.map(r => [r.skill_id, r])), [ranked])
@@ -92,6 +92,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
               <div className="priority-select-line">
                 <div className="priority-select-wrap"><select
                   aria-label={`Priority ${i + 1} skill`}
+                  disabled={readOnly}
                   value={row.skill_id}
                   onChange={e => updateRow(i, { skill_id: e.target.value })}
                 >
@@ -120,6 +121,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
                 type="text"
                 className="priority-note"
                 placeholder="Optional note on why this is a priority…"
+                readOnly={readOnly}
                 value={row.coach_note}
                 onChange={e => updateRow(i, { coach_note: e.target.value })}
               />
@@ -128,9 +130,9 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         )
       })}
 
-      <button type="button" className="submit-btn" onClick={save} disabled={status === 'saving'}>
+      {!readOnly && <button type="button" className="submit-btn" onClick={save} disabled={status === 'saving'}>
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
-      </button>
+      </button>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
       {status === 'error' && <p className="error">Could not save priorities.</p>}
     </div>

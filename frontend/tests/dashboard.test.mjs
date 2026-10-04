@@ -208,3 +208,21 @@ test('confirmed priorities show medal cards, saved notes, and other periods', as
   const empty = renderToStaticMarkup(React.createElement(ConfirmedPrioritiesView, { matrix, history: [], periodId: 2 }))
   assert.match(empty, /No confirmed priorities for this period yet/)
 })
+
+test('archived players get a read-only assessment with a restore prompt', async () => {
+  const { default: MobileAssessment } = await loadJsx('src/MobileAssessment.jsx')
+  const { ArchivedNotice } = await loadJsx('src/CoachDashboard.jsx')
+  const matrix = { sections: [{ id: 'technical', label: 'Technical', applies_to: ['defender'], skills: [
+    { id: 'touch', label: 'First touch', descriptors: { 1: 'Needs control', 3: 'Controls well', 5: 'Controls under pressure' } },
+  ] }], meta: { scale: { points: [1, 2, 3, 4, 5], anchors: {} } } }
+  const props = { matrix, position: 'outfield', ratings: { touch: 3 }, onChange: () => {} }
+  const editable = renderToStaticMarkup(React.createElement(MobileAssessment, props))
+  const archived = renderToStaticMarkup(React.createElement(MobileAssessment, { ...props, readOnly: true }))
+  assert.match(editable, /Save assessment/)
+  assert.doesNotMatch(archived, /Save assessment/)
+  assert.equal(archived.match(/class="option-btn[^"]*"/g)?.length, 5)
+  assert.equal(archived.match(/<button type="button" disabled="" class="option-btn/g)?.length, 5)
+  const notice = renderToStaticMarkup(React.createElement(ArchivedNotice, { player: { name: 'Kai' }, onRestore: () => {} }))
+  assert.match(notice, /Kai is archived\./)
+  assert.match(notice, /Restore player/)
+})

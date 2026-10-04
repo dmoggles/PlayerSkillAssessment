@@ -1,3 +1,4 @@
+from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.exc import IntegrityError
@@ -5,7 +6,7 @@ from sqlalchemy.orm import Session as DbSession
 from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import AuthToken, Membership, Period, Player, SelfLink, Team, User
+from ..models import Assessment, AssessmentRevision, AuthToken, Membership, Period, Player, PriorityConfirmation, Rating, SelfLink, Team, User
 from .accounts import delivery_message
 
 
@@ -19,6 +20,14 @@ class TeamCreate(BaseModel):
 class TeamSettings(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     self_assessment_enabled: bool
+
+
+class TeamDelete(BaseModel):
+    confirm_name: str
+
+
+class MemberRole(BaseModel):
+    role: Literal["owner", "coach"]
 
 
 class InviteBody(BaseModel):
@@ -36,6 +45,10 @@ class PlayerBody(BaseModel):
 class PeriodBody(BaseModel):
     label: str = Field(min_length=1, max_length=100)
     is_active: bool = True
+
+
+class PeriodRename(BaseModel):
+    label: str = Field(min_length=1, max_length=100)
 
 
 def team_out(team: Team, role: str):
@@ -71,6 +84,26 @@ def scoped_period(db: DbSession, team_id: int, period_id: int) -> Period:
     return period
 
 
+def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
+    """Delete assessments, ratings, revisions, priorities and self links for the given players or periods."""
+    def scoped(model):
+        query = db.query(model)
+        if player_ids is not None:
+            query = query.filter(model.player_id.in_(player_ids))
+        if period_ids is not None:
+            query = query.filter(model.period_id.in_(period_ids))
+        return query
+    assessment_ids = scoped(Assessment).with_entities(Assessment.id)
+    db.query(Rating).filter(Rating.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
+    db.query(AssessmentRevision).filter(AssessmentRevision.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
+    for model in (Assessment, PriorityConfirmation, SelfLink):
+        scoped(model).delete(synchronize_session=False)
+
+
+def owner_count(db: DbSession, team_id: int) -> int:
+    return db.query(Membership).filter_by(team_id=team_id, role="owner").count()
+
+
 @router.get("/teams")
 def list_teams(db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     rows = db.query(Team, Membership).join(Membership, Membership.team_id == Team.id).filter(Membership.user_id == user.id).order_by(Team.name).all()
@@ -100,6 +133,23 @@ def update_team(team_id: int, body: TeamSettings, db: DbSession = Depends(get_db
     return team_out(team, "owner")
 
 
+@router.delete("/teams/{team_id}")
+def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user, owner=True)
+    team = db.query(Team).filter_by(id=team_id).with_for_update().first()
+    if body.confirm_name.strip() != team.name:
+        raise HTTPException(422, "Type the team name exactly to confirm")
+    player_ids = db.query(Player.id).filter_by(team_id=team_id)
+    purge_assessment_data(db, player_ids=player_ids)
+    db.query(Player).filter_by(team_id=team_id).delete(synchronize_session=False)
+    db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
+    db.query(AuthToken).filter_by(team_id=team_id).delete(synchronize_session=False)
+    db.query(Membership).filter_by(team_id=team_id).delete(synchronize_session=False)
+    db.delete(team)
+    db.commit()
+    return {"message": "Team deleted"}
+
+
 @router.get("/teams/{team_id}/members")
 def members(team_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
@@ -107,17 +157,35 @@ def members(team_id: int, db: DbSession = Depends(get_db), user: User = Depends(
     return [{"user_id": u.id, "email": u.email, "role": m.role} for m, u in rows]
 
 
+@router.patch("/teams/{team_id}/members/{member_user_id}")
+def change_member_role(team_id: int, member_user_id: int, body: MemberRole, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user, owner=True)
+    db.query(Team).filter_by(id=team_id).with_for_update().first()
+    member = db.query(Membership).filter_by(team_id=team_id, user_id=member_user_id).first()
+    if not member:
+        raise HTTPException(404, "Member not found")
+    if member.role == "owner" and body.role == "coach" and owner_count(db, team_id) == 1:
+        raise HTTPException(409, "A team needs at least one owner")
+    member.role = body.role
+    db.commit()
+    return {"user_id": member_user_id, "email": db.get(User, member_user_id).email, "role": member.role}
+
+
 @router.delete("/teams/{team_id}/members/{member_user_id}")
 def remove_member(team_id: int, member_user_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    require_member(team_id, db, user, owner=True)
-    member = db.query(Membership).filter_by(team_id=team_id, user_id=member_user_id, role="coach").first()
+    # Any member may leave; only owners may remove someone else.
+    require_member(team_id, db, user, owner=member_user_id != user.id)
+    db.query(Team).filter_by(id=team_id).with_for_update().first()
+    member = db.query(Membership).filter_by(team_id=team_id, user_id=member_user_id).first()
     if not member:
-        raise HTTPException(404, "Coach not found")
-    coach = db.get(User, member_user_id)
-    db.query(AuthToken).filter_by(team_id=team_id, email=coach.email, purpose="invite").delete(synchronize_session=False)
+        raise HTTPException(404, "Member not found")
+    if member.role == "owner" and owner_count(db, team_id) == 1:
+        raise HTTPException(409, "A team needs at least one owner")
+    removed = db.get(User, member_user_id)
+    db.query(AuthToken).filter_by(team_id=team_id, email=removed.email, purpose="invite").delete(synchronize_session=False)
     db.delete(member)
     db.commit()
-    return {"message": "Coach removed"}
+    return {"message": "Member removed"}
 
 
 @router.post("/teams/{team_id}/invites")
@@ -190,6 +258,15 @@ def archive_player(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     return player_out(player)
 
 
+@router.post("/teams/{team_id}/players/{player_id}/restore")
+def restore_player(team_id: int, player_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    player.active = True
+    db.commit()
+    return player_out(player)
+
+
 @router.get("/teams/{team_id}/periods")
 def list_periods(team_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
@@ -221,3 +298,33 @@ def activate_period(team_id: int, period_id: int, db: DbSession = Depends(get_db
     period.is_active = True
     db.commit()
     return period_out(period)
+
+
+@router.patch("/teams/{team_id}/periods/{period_id}")
+def rename_period(team_id: int, period_id: int, body: PeriodRename, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    period = scoped_period(db, team_id, period_id)
+    period.label = nonblank(body.label)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Period label already exists in this team")
+    return period_out(period)
+
+
+@router.delete("/teams/{team_id}/periods/{period_id}")
+def delete_period(team_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user, owner=True)
+    db.query(Team).filter_by(id=team_id).with_for_update().first()
+    period = scoped_period(db, team_id, period_id)
+    was_active = period.is_active
+    purge_assessment_data(db, period_ids=[period_id])
+    db.delete(period)
+    db.flush()
+    if was_active:
+        latest = db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc()).first()
+        if latest:
+            latest.is_active = True
+    db.commit()
+    return {"message": "Period deleted"}

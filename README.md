@@ -37,10 +37,12 @@ Frontend checks: `cd frontend && npm ci && npm test && npm run lint && npm run b
 
 | Capability | Team owner | Team coach | Player link |
 | --- | --- | --- | --- |
-| Settings and invitations | Yes | No | No |
-| Roster, periods, assessments, priorities, and history | Yes | Yes | No |
+| Team settings, invitations, member roles, and deleting periods or the team | Yes | No | No |
+| Roster (including restoring archived players), creating and renaming periods, assessments, priorities, and history | Yes | Yes | No |
 | Issue/revoke self-assessment links when enabled | Yes | Yes | No |
 | Submit assigned self-assessment once | No | No | Yes |
+
+A team can have several owners but always keeps at least one; to transfer ownership, make another member an owner and then step down. Archiving a player marks them as having left the squad: their assessments, priorities and progress stay visible, but they are read-only and self-assessment links stop working until a coach restores them. Deleting a period permanently removes its assessments, self-assessment links and priorities. Deleting a team requires typing its name and removes all of its data and memberships.
 
 Every player and period belongs to a team; API requests resolve team membership before reading or writing data. Coach assessments are shared per player and period. Saves include a version number to prevent silent overwrites, and each revision records the editor and ratings. The app uses the supplied skill matrix as a common starter template. No source-app database records are imported.
 

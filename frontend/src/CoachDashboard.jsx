@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBlocker, useLocation, useNavigate } from 'react-router-dom'
-import { activatePeriod, addPlayer, archivePlayer, createPeriod, createTeam, errorMessage, getCoachAssessment, getComparison, getMembers, getPeriodAssessments, getPeriods, getPlayerHistory, getPlayers, getRevisions, getSkillMatrix, getTeams, inviteCoach, issueSelfLink, removeCoach, renamePlayer, revokeSelfLink, submitCoachAssessment, updateTeam } from './api'
+import { activatePeriod, addPlayer, archivePlayer, createPeriod, createTeam, deletePeriod, deleteTeam, errorMessage, getCoachAssessment, getComparison, getMembers, getPeriodAssessments, getPeriods, getPlayerHistory, getPlayers, getRevisions, getSkillMatrix, getTeams, inviteCoach, issueSelfLink, removeMember, renamePeriod, renamePlayer, restorePlayer, revokeSelfLink, setMemberRole, submitCoachAssessment, updateTeam } from './api'
 import SkillForm from './SkillForm'
 import MobileAssessment from './MobileAssessment'
 import ComparisonView from './ComparisonView'
@@ -45,6 +45,10 @@ export function ProgressView({ matrix, history }) {
 
 function Section({ title, description, children, className = '' }) {
   return <section className={`panel dashboard-panel ${className}`}><div className="panel-heading"><h2>{title}</h2>{description && <p>{description}</p>}</div>{children}</section>
+}
+
+export function ArchivedNotice({ player, onRestore }) {
+  return <div className="archived-notice" role="note"><span><strong>{player.name} is archived.</strong> Their records are read-only. Restore them to the squad to make changes.</span><button type="button" onClick={onRestore}>Restore player</button></div>
 }
 
 export default function CoachDashboard({ user, onLogout }) {
@@ -132,7 +136,9 @@ export default function CoachDashboard({ user, onLogout }) {
   }
 
   function chooseTeam(id) {
-    if (!confirmDiscard()) return
+    if (confirmDiscard()) selectTeam(id)
+  }
+  function selectTeam(id) {
     setTeamId(id); setPlayers([]); setPeriods([]); setPlayerId(''); setPeriodId('')
     setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setAssessmentBaseline(null)
   }
@@ -141,7 +147,9 @@ export default function CoachDashboard({ user, onLogout }) {
     setPlayerId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
   }
   function choosePeriod(id) {
-    if (!confirmDiscard()) return
+    if (confirmDiscard()) selectPeriod(id)
+  }
+  function selectPeriod(id) {
     setPeriodId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setLink(''); setRatings({}); setAssessmentBaseline(null)
   }
 
@@ -224,6 +232,60 @@ export default function CoachDashboard({ user, onLogout }) {
   async function makeLink() {
     try { const value = await issueSelfLink(teamId, playerId, periodId); setLink(value.url); setMessage('New link created. Copy it now; it will not be shown again.') } catch (e) { setMessage(fail(e)) }
   }
+  async function renamePeriodAction(period) {
+    const label = window.prompt('New period label', period.label)
+    if (!label?.trim() || label.trim() === period.label) return
+    try { const updated = await renamePeriod(teamId, period.id, label.trim()); setPeriods(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) }
+  }
+  async function deletePeriodAction(period) {
+    const selected = Number(periodId) === period.id
+    if (!window.confirm(`Delete ${period.label}? Every coach assessment, self-assessment and priority recorded in this period is permanently deleted.`)) return
+    if (selected && !confirmDiscard()) return
+    try {
+      await deletePeriod(teamId, period.id)
+      const rounds = await getPeriods(teamId)
+      setPeriods(rounds)
+      if (selected) selectPeriod(initialPeriodId(rounds))
+      setMessage('Period deleted.')
+    } catch (e) { setMessage(fail(e)) }
+  }
+  async function restorePlayerAction(player) {
+    try { const updated = await restorePlayer(teamId, player.id); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)); setMessage(`${updated.name} restored to the squad.`) } catch (e) { setMessage(fail(e)) }
+  }
+  function dropTeam(id) {
+    const remaining = teams.filter(t => t.id !== id)
+    setTeams(remaining)
+    setMembers([])
+    selectTeam(remaining.length ? String(remaining[0].id) : '')
+  }
+  async function changeRoleAction(member, role) {
+    const self = member.email === user.email
+    const question = role === 'owner'
+      ? `Make ${member.email} an owner? Owners can change team settings, manage members and delete the team.`
+      : self ? 'Step down to coach? You will no longer be able to manage this team.' : `Change ${member.email} to a coach?`
+    if (!window.confirm(question)) return
+    try {
+      const updated = await setMemberRole(teamId, member.user_id, role)
+      setMembers(previous => previous.map(m => m.user_id === updated.user_id ? updated : m))
+      if (self) setTeams(previous => previous.map(t => t.id === Number(teamId) ? { ...t, role } : t))
+    } catch (e) { setMessage(fail(e)) }
+  }
+  async function removeMemberAction(member) {
+    const self = member.email === user.email
+    if (!window.confirm(self ? `Leave ${selectedTeam.name}? You will lose access to it.` : `Remove ${member.email} from this team?`)) return
+    if (self && !confirmDiscard()) return
+    try {
+      await removeMember(teamId, member.user_id)
+      if (self) { dropTeam(Number(teamId)); setMessage(`You left ${selectedTeam.name}.`) } else setMembers(previous => previous.filter(row => row.user_id !== member.user_id))
+    } catch (e) { setMessage(fail(e)) }
+  }
+  async function deleteTeamAction() {
+    const name = window.prompt(`This permanently deletes ${selectedTeam.name} with all its players, periods, assessments and priorities, and removes every member's access. Type the team name to confirm.`)
+    if (name == null) return
+    if (name.trim() !== selectedTeam.name) { setMessage('Team name did not match. Nothing was deleted.'); return }
+    if (!confirmDiscard()) return
+    try { await deleteTeam(teamId, name.trim()); dropTeam(Number(teamId)); setMessage(`${selectedTeam.name} deleted.`) } catch (e) { setMessage(fail(e)) }
+  }
   async function revokeLink() { try { await revokeSelfLink(teamId, playerId, periodId); setLink(''); setMessage('Link revoked.') } catch (e) { setMessage(fail(e)) } }
 
   const context = <div className="context-controls">
@@ -245,19 +307,21 @@ export default function CoachDashboard({ user, onLogout }) {
       {currentArea.id === 'settings' && <div className="settings-grid">
         <Section title="Teams" description="Choose a team or create another coaching workspace"><form className="inline-row" onSubmit={createTeamAction}><input aria-label="New team name" placeholder="New team name" required maxLength={120} value={newTeam} onChange={e => setNewTeam(e.target.value)} /><button>Add team</button></form></Section>
         {selectedTeam && <>
-          <Section title="Periods" description="Organise assessments over time"><div className="settings-list">{periods.map(period => <div className="settings-item" key={period.id}><span>{period.label} {period.is_active && <span className="status-pill">Active</span>}</span>{!period.is_active && <button type="button" onClick={async () => { try { await activatePeriod(teamId, period.id); setPeriods(previous => previous.map(p => ({ ...p, is_active: p.id === period.id }))); setMessage('Active period updated.') } catch (e) { setMessage(fail(e)) } }}>Set active</button>}</div>)}</div><form className="inline-row" onSubmit={createPeriodAction}><input aria-label="New period label" placeholder="New period label" required maxLength={100} value={newPeriod} onChange={e => setNewPeriod(e.target.value)} /><button>Add period</button></form></Section>
-          <Section title="Squad" description="Players remain in your records after archiving"><div className="settings-list">{players.map(player => <div className="settings-item" key={player.id}><span>{player.name} {!player.active && <span className="status-pill muted-pill">Archived</span>}</span><div className="item-actions"><button type="button" onClick={async () => { const name = window.prompt('New player name', player.name); if (!name?.trim()) return; try { const updated = await renamePlayer(teamId, player.id, name.trim()); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Rename</button>{player.active && <button type="button" onClick={async () => { if (!window.confirm(`Archive ${player.name}? Assessment history stays available.`)) return; try { const updated = await archivePlayer(teamId, player.id); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Archive</button>}</div></div>)}</div><form className="inline-row" onSubmit={createPlayerAction}><input aria-label="New player name" placeholder="New player name" required maxLength={100} value={newPlayer} onChange={e => setNewPlayer(e.target.value)} /><button>Add player</button></form></Section>
-          {canManageTeam(selectedTeam) && <Section title="Team access" description="Only team owners can change these settings"><div className="settings-item"><span><strong>{selectedTeam.name}</strong><small>Team name</small></span><button type="button" onClick={async () => { const name = window.prompt('Team name', selectedTeam.name); if (!name?.trim()) return; try { const updated = await updateTeam(teamId, { name: name.trim(), self_assessment_enabled: selectedTeam.self_assessment_enabled }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (e) { setMessage(fail(e)) } }}>Rename</button></div><label className="checkbox"><input type="checkbox" checked={selectedTeam.self_assessment_enabled} onChange={async e => { try { const updated = await updateTeam(teamId, { name: selectedTeam.name, self_assessment_enabled: e.target.checked }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (error) { setMessage(fail(error)) } }} /> Allow player self-assessment</label><form className="inline-row" onSubmit={async e => { e.preventDefault(); try { const result = await inviteCoach(teamId, inviteEmail); setInviteEmail(''); setMessage(result.message) } catch (error) { setMessage(fail(error)) } }}><input type="email" aria-label="Coach email" placeholder="Coach email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} /><button>Invite coach</button></form><div className="members"><h3>Coaches</h3>{members.map(member => <div className="settings-item" key={member.user_id}><span>{member.email} <span className="status-pill muted-pill">{member.role}</span></span>{member.role === 'coach' && <button type="button" onClick={async () => { if (!window.confirm(`Remove ${member.email} from this team?`)) return; try { await removeCoach(teamId, member.user_id); setMembers(previous => previous.filter(row => row.user_id !== member.user_id)) } catch (error) { setMessage(fail(error)) } }}>Remove</button>}</div>)}</div></Section>}
+          <Section title="Periods" description="Organise assessments over time"><div className="settings-list">{periods.map(period => <div className="settings-item" key={period.id}><span>{period.label} {period.is_active && <span className="status-pill">Active</span>}</span><div className="item-actions">{!period.is_active && <button type="button" onClick={async () => { try { await activatePeriod(teamId, period.id); setPeriods(previous => previous.map(p => ({ ...p, is_active: p.id === period.id }))); setMessage('Active period updated.') } catch (e) { setMessage(fail(e)) } }}>Set active</button>}<button type="button" onClick={() => renamePeriodAction(period)}>Rename</button>{canManageTeam(selectedTeam) && <button type="button" onClick={() => deletePeriodAction(period)}>Delete</button>}</div></div>)}</div><form className="inline-row" onSubmit={createPeriodAction}><input aria-label="New period label" placeholder="New period label" required maxLength={100} value={newPeriod} onChange={e => setNewPeriod(e.target.value)} /><button>Add period</button></form></Section>
+          <Section title="Squad" description="Players remain in your records after archiving"><div className="settings-list">{players.map(player => <div className="settings-item" key={player.id}><span>{player.name} {!player.active && <span className="status-pill muted-pill">Archived</span>}</span><div className="item-actions"><button type="button" onClick={async () => { const name = window.prompt('New player name', player.name); if (!name?.trim()) return; try { const updated = await renamePlayer(teamId, player.id, name.trim()); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Rename</button>{player.active ? <button type="button" onClick={async () => { if (!window.confirm(`Archive ${player.name}? Assessment history stays available.`)) return; try { const updated = await archivePlayer(teamId, player.id); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)) } catch (e) { setMessage(fail(e)) } }}>Archive</button> : <button type="button" onClick={() => restorePlayerAction(player)}>Restore</button>}</div></div>)}</div><form className="inline-row" onSubmit={createPlayerAction}><input aria-label="New player name" placeholder="New player name" required maxLength={100} value={newPlayer} onChange={e => setNewPlayer(e.target.value)} /><button>Add player</button></form></Section>
+          {canManageTeam(selectedTeam) && <Section title="Team access" description="Only team owners can change these settings"><div className="settings-item"><span><strong>{selectedTeam.name}</strong><small>Team name</small></span><button type="button" onClick={async () => { const name = window.prompt('Team name', selectedTeam.name); if (!name?.trim()) return; try { const updated = await updateTeam(teamId, { name: name.trim(), self_assessment_enabled: selectedTeam.self_assessment_enabled }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (e) { setMessage(fail(e)) } }}>Rename</button></div><label className="checkbox"><input type="checkbox" checked={selectedTeam.self_assessment_enabled} onChange={async e => { try { const updated = await updateTeam(teamId, { name: selectedTeam.name, self_assessment_enabled: e.target.checked }); setTeams(previous => previous.map(t => t.id === updated.id ? updated : t)) } catch (error) { setMessage(fail(error)) } }} /> Allow player self-assessment</label><form className="inline-row" onSubmit={async e => { e.preventDefault(); try { const result = await inviteCoach(teamId, inviteEmail); setInviteEmail(''); setMessage(result.message) } catch (error) { setMessage(fail(error)) } }}><input type="email" aria-label="Coach email" placeholder="Coach email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} /><button>Invite coach</button></form><div className="members"><h3>Members</h3>{members.map(member => { const self = member.email === user.email; const soleOwner = member.role === 'owner' && members.filter(m => m.role === 'owner').length === 1; return <div className="settings-item" key={member.user_id}><span>{member.email}{self && ' (you)'} <span className="status-pill muted-pill">{member.role}</span>{soleOwner && <small>Make another member an owner before stepping down or leaving</small>}</span>{!soleOwner && <div className="item-actions"><button type="button" onClick={() => changeRoleAction(member, member.role === 'owner' ? 'coach' : 'owner')}>{member.role === 'coach' ? 'Make owner' : self ? 'Step down' : 'Make coach'}</button><button type="button" onClick={() => removeMemberAction(member)}>{self ? 'Leave' : 'Remove'}</button></div>}</div> })}</div><div className="danger-zone"><h3>Delete team</h3><p className="muted">Permanently deletes this team, its players, periods, assessments and priorities. This cannot be undone.</p><button type="button" className="danger-btn" onClick={deleteTeamAction}>Delete team</button></div></Section>}
+          {!canManageTeam(selectedTeam) && members.some(m => m.email === user.email) && <Section title="Team membership" description={`You are a coach on ${selectedTeam.name}`}><button type="button" className="danger-btn" onClick={() => removeMemberAction(members.find(m => m.email === user.email))}>Leave team</button></Section>}
         </>}
         <Section title="Account" className="settings-account"><p className="settings-account-email">{user.email}</p><ChangePasswordForm /><button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button></Section>
       </div>}
       {currentArea.id !== 'settings' && !selectedTeam && <Section title="Start with a team" description="Create your first team in Settings, then add a period and players."><button type="button" onClick={() => navigate('/app/settings')}>Open Settings</button></Section>}
       {selectedTeam && currentArea.id === 'assessment' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="Ready to assess"><p className="muted">Add a player and period in Settings to begin.</p></Section> : <>
-        <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Rate each skill, then save the coach assessment">
+        <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description={selectedPlayer.active ? 'Rate each skill, then save the coach assessment' : 'Coach assessment (read-only)'}>
+          {!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}
           <form onSubmit={save}>
-            <div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) setRatings({}); setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div>
-            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} /><button className="submit-btn">Save assessment</button></div>
-            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
+            <fieldset className="plain-fieldset" disabled={!selectedPlayer.active}><div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) setRatings({}); setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div></fieldset>
+            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
+            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
           </form>
           {revisions.length > 0 && <details className="revisions"><summary>Revision history ({revisions.length})</summary><ul>{revisions.map(revision => <li key={revision.version}>Version {revision.version} · {revision.editor} · {new Date(revision.created_at).toLocaleString()}</li>)}</ul></details>}
         </Section>
@@ -265,7 +329,7 @@ export default function CoachDashboard({ user, onLogout }) {
       </>)}
       {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Explore individual assessment results"><nav className="subtabs" aria-label="Player data views">{PLAYER_DATA_TABS.map(([id, label]) => <button aria-current={playerDataView === id ? 'page' : undefined} className={playerDataView === id ? 'active' : ''} key={id} type="button" onClick={() => setPlayerDataView(id)}>{label}</button>)}</nav>{playerDataView === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'progress' && <ProgressView matrix={matrix} history={history} />}{playerDataView === 'priorities' && <ConfirmedPrioritiesPanel key={`${teamId}-${playerId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} />}</Section>)}
       {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix ? <Section title="No team data yet"><p className="muted">Add a period in Settings to view team data.</p></Section> : <Section className="context-panel" title={`${selectedTeam.name} · ${selectedPeriod.label}`} description="Compare assessed skills across the squad"><HeatmapView matrix={matrix} assessments={heatmap} /></Section>)}
-      {selectedTeam && currentArea.id === 'development' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Review and confirm the three most important priorities"><PrioritiesView matrix={matrix} coach={comparison?.coach} player={comparison?.player} teamId={teamId} playerId={playerId} periodId={periodId} onDirtyChange={setPrioritiesDirty} /></Section>)}
+      {selectedTeam && currentArea.id === 'development' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description={selectedPlayer.active ? 'Review and confirm the three most important priorities' : 'Priorities (read-only)'}>{!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}<PrioritiesView matrix={matrix} coach={comparison?.coach} player={comparison?.player} teamId={teamId} playerId={playerId} periodId={periodId} onDirtyChange={setPrioritiesDirty} readOnly={!selectedPlayer.active} /></Section>)}
     </main>
     <nav className="bottom-nav" aria-label="Main navigation">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} aria-label={area.label} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.short}</span></button>)}</nav>
   </div>

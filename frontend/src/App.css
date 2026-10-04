@@ -449,6 +449,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .dashboard-panel .inline-row button, .dashboard-panel > button { padding: 10px 15px; border: 0; border-radius: 8px; background: var(--green); color: #fff; font-weight: 600; }
 .dashboard-panel .members { margin-top: 22px; }
 .dashboard-panel .members h3 { font-size: .9rem; }
+.archived-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #edf0f3; font-size: .88rem; }
+.archived-notice button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
+.plain-fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.dashboard-panel .danger-zone { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+.dashboard-panel .danger-zone h3 { font-size: .9rem; color: var(--error); }
+.dashboard-panel .danger-zone p { margin: 6px 0 12px; font-size: .85rem; }
+.danger-btn { padding: 8px 12px; border: 1px solid var(--error); border-radius: 8px; background: white; color: var(--error); font-weight: 600; }
 .dashboard-panel .checkbox { padding: 13px 0; font-weight: 600; }
 .dashboard-panel .checkbox input { width: 18px; height: 18px; accent-color: var(--accent); }
 .subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: -4px 0 24px; overflow-x: auto; }
