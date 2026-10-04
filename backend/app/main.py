@@ -31,4 +31,4 @@ async def protect_origin(request: Request, call_next):
 def health():
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
-    return {"status": "ok"}
+    return {"status": "ok", "version": settings.app_version}

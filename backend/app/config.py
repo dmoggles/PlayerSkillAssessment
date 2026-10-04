@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "assessment@localhost"
     session_days: int = 7
+    app_version: str = "local"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

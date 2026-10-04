@@ -77,9 +77,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Version
+        id: version
+        run: echo "value=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
+          build-args: APP_VERSION=${{ steps.version.outputs.value }}
           push: true
           tags: |
             ${{ matrix.image }}:dev

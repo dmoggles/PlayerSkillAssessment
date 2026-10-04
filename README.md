@@ -60,6 +60,10 @@ Development and production follow the same pattern as `football-data-collector` 
 
 If an older version of this app has already created production data on this VPS, preserve its Compose project name and volume when choosing the production directory. Do not switch to a new directory or remove an old volume until the data has been backed up and migrated. Stop any old Caddy container for this app before enabling the new host Nginx sites. Database migrations are forward-only operationally: inspect a migration and take a backup before applying one that removes or rewrites data. To roll back app code, set both image names in `.env.prod` to the desired release tag and run `docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml up -d --no-build api web`; a code rollback does not reverse database migrations.
 
+### Versions
+
+Each image carries the version it was built from. The app shows it in the sidebar and under Settings → Account, and `/api/health` returns it. Production uses the GitHub release tag (use semantic versions such as `v0.1.0`), development uses `dev-<short commit>`, and local builds use `git describe --tags --always --dirty` (for example `v0.1.0-3-gabc1234`, or a short commit with `-dirty` for uncommitted changes).
+
 ### Backups and restore checks
 
 Configure an off-host S3-compatible bucket with access limited to backups, versioning, and a 30-day retention policy. Generate an `age` key pair, keep the private key off the VPS, and set `BACKUP_AGE_RECIPIENT` and `BACKUP_S3_URI` in the backup job environment. Schedule `bash deploy/backup.sh` nightly using a timer or cron. The script streams a custom-format PostgreSQL dump through `age` encryption to the bucket; it does not write a plaintext dump to disk.

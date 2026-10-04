@@ -17,7 +17,10 @@ services:
     restart: unless-stopped
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        APP_VERSION: ${APP_VERSION:-local}
     image: ${API_IMAGE:-assessment-api:local}
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://assessment_app:local-app-only@db:5432/assessment}
@@ -34,7 +37,10 @@ services:
     restart: unless-stopped
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        APP_VERSION: ${APP_VERSION:-local}
     image: ${WEB_IMAGE:-assessment-web:local}
     depends_on:
       - api
@@ -45,7 +51,10 @@ services:
     profiles: ["local"]
 
   migrate:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        APP_VERSION: ${APP_VERSION:-local}
     image: ${API_IMAGE:-assessment-api:local}
     profiles: ["tools"]
     environment:

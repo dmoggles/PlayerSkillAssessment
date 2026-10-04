@@ -8,6 +8,8 @@ COPY app ./app
 COPY migrations ./migrations
 COPY alembic.ini bobtails_skill_matrix.json ./
 RUN useradd --create-home --uid 10001 appuser
+ARG APP_VERSION=local
+ENV APP_VERSION=$APP_VERSION
 USER appuser
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*", "--no-access-log"]

@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from app.database import Base, engine
+from app import main
 from app.main import app
 from app.routers import accounts, assessments, teams
 
@@ -267,3 +268,8 @@ def test_email_delivery_message_only_mentions_test_inbox_for_mailpit(monkeypatch
     assert "test inbox" in accounts.delivery_message("Check your email.")
     monkeypatch.setattr(accounts.settings, "smtp_host", "localhost")
     assert accounts.delivery_message("Check your email.") == "Check your email."
+
+
+def test_health_reports_build_version(monkeypatch):
+    monkeypatch.setattr(main.settings, "app_version", "v1.2.3")
+    assert TestClient(app).get("/health").json() == {"status": "ok", "version": "v1.2.3"}

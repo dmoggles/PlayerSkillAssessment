@@ -138,6 +138,7 @@ test('mobile Settings has an account sign-out control', async () => {
   const router = createMemoryRouter([{ path: '*', element: React.createElement(CoachDashboard, { user: { email: 'coach@example.com' }, onLogout: () => {} }) }], { initialEntries: ['/app/settings'] })
   const html = renderToStaticMarkup(React.createElement(RouterProvider, { router }))
   assert.match(html, /Change password/)
+  assert.match(html, /<p class="app-version">Version local<\/p>/)
   assert.match(html, /<section class="panel dashboard-panel settings-account">[\s\S]*?coach@example\.com[\s\S]*?<button type="button">Sign out<\/button>/)
 })
 

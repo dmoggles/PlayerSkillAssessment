@@ -413,6 +413,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .side-nav button:hover, .side-nav button.active { color: #fff; background: #30485e; }
 .side-nav svg { width: 21px; height: 21px; flex: none; }
 .sidebar-account { margin-top: auto; padding: 16px 12px 0; border-top: 1px solid #3a4a5a; display: grid; gap: 8px; overflow-wrap: anywhere; font-size: .78rem; color: #bac9d5; }
+.app-version { color: var(--muted); font-size: .72rem; }
+.sidebar-account .app-version { color: #8fa1b0; }
 .sidebar-account button { justify-self: start; color: #fff; border: 0; background: none; text-decoration: underline; padding: 4px 0; }
 .dashboard-main { width: min(100%, 1450px); padding: 36px clamp(20px, 3vw, 48px) 70px; min-width: 0; }
 .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 26px; }
