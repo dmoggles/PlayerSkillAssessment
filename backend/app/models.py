@@ -148,3 +148,15 @@ class SelfLink(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AuditEvent(Base):
+    """Membership and destructive team changes. No foreign keys, so events outlive deleted teams and players."""
+    __tablename__ = "audit_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(Integer, index=True)
+    actor_email: Mapped[str] = mapped_column(String(255))
+    action: Mapped[str] = mapped_column(String(40))
+    target_email: Mapped[str | None] = mapped_column(String(255))
+    details: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

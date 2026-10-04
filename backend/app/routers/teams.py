@@ -3,10 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
+from ..audit import record
 from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, AuthToken, Membership, Period, Player, PriorityConfirmation, Rating, SelfLink, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, Membership, Period, Player, PriorityConfirmation, Rating, SelfLink, Team, User
 from .accounts import delivery_message
 
 
@@ -116,6 +117,7 @@ def create_team(body: TeamCreate, db: DbSession = Depends(get_db), user: User = 
     db.add(team)
     db.flush()
     db.add(Membership(team_id=team.id, user_id=user.id, role="owner"))
+    record(db, team.id, user, "team_created", name=team.name)
     db.commit()
     return team_out(team, "owner")
 
@@ -124,7 +126,12 @@ def create_team(body: TeamCreate, db: DbSession = Depends(get_db), user: User = 
 def update_team(team_id: int, body: TeamSettings, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user, owner=True)
     team = db.get(Team, team_id)
-    team.name = nonblank(body.name)
+    name = nonblank(body.name)
+    if name != team.name:
+        record(db, team_id, user, "team_renamed", **{"from": team.name, "to": name})
+    if body.self_assessment_enabled != team.self_assessment_enabled:
+        record(db, team_id, user, "self_assessment_" + ("enabled" if body.self_assessment_enabled else "disabled"))
+    team.name = name
     team.self_assessment_enabled = body.self_assessment_enabled
     if not body.self_assessment_enabled:
         player_ids = db.query(Player.id).filter_by(team_id=team_id)
@@ -145,6 +152,7 @@ def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db),
     db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(AuthToken).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Membership).filter_by(team_id=team_id).delete(synchronize_session=False)
+    record(db, team_id, user, "team_deleted", name=team.name)
     db.delete(team)
     db.commit()
     return {"message": "Team deleted"}
@@ -166,9 +174,12 @@ def change_member_role(team_id: int, member_user_id: int, body: MemberRole, db: 
         raise HTTPException(404, "Member not found")
     if member.role == "owner" and body.role == "coach" and owner_count(db, team_id) == 1:
         raise HTTPException(409, "A team needs at least one owner")
+    target = db.get(User, member_user_id)
+    if member.role != body.role:
+        record(db, team_id, user, "role_changed", target.email, **{"from": member.role, "to": body.role})
     member.role = body.role
     db.commit()
-    return {"user_id": member_user_id, "email": db.get(User, member_user_id).email, "role": member.role}
+    return {"user_id": member_user_id, "email": target.email, "role": member.role}
 
 
 @router.delete("/teams/{team_id}/members/{member_user_id}")
@@ -183,9 +194,21 @@ def remove_member(team_id: int, member_user_id: int, db: DbSession = Depends(get
         raise HTTPException(409, "A team needs at least one owner")
     removed = db.get(User, member_user_id)
     db.query(AuthToken).filter_by(team_id=team_id, email=removed.email, purpose="invite").delete(synchronize_session=False)
+    if member_user_id == user.id:
+        record(db, team_id, user, "member_left", role=member.role)
+    else:
+        record(db, team_id, user, "member_removed", removed.email, role=member.role)
     db.delete(member)
     db.commit()
     return {"message": "Member removed"}
+
+
+@router.get("/teams/{team_id}/audit")
+def audit_log(team_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user, owner=True)
+    rows = db.query(AuditEvent).filter_by(team_id=team_id).order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc()).limit(100).all()
+    return [{"id": e.id, "action": e.action, "actor_email": e.actor_email, "target_email": e.target_email,
+             "details": e.details or {}, "created_at": e.created_at} for e in rows]
 
 
 @router.post("/teams/{team_id}/invites")
@@ -195,6 +218,7 @@ def invite(team_id: int, body: InviteBody, db: DbSession = Depends(get_db), user
     if db.query(Membership).join(User).filter(Membership.team_id == team_id, User.email == email).first():
         raise HTTPException(409, "Coach is already a member")
     token = issue_auth_token(db, email, "invite", team_id=team_id)
+    record(db, team_id, user, "invite_sent", email)
     try:
         send_email(email, "Team invitation", f"You have been invited to join a team. Open this link after signing in or registering:\n{settings.public_base_url}/invite/{token}")
     except Exception:
@@ -211,6 +235,7 @@ def accept_invite(body: AcceptBody, db: DbSession = Depends(get_db), user: User 
         raise HTTPException(403, "Invitation is for another account")
     if not db.query(Membership).filter_by(team_id=token.team_id, user_id=user.id).first():
         db.add(Membership(team_id=token.team_id, user_id=user.id, role="coach"))
+        record(db, token.team_id, user, "invite_accepted")
     db.commit()
     return {"team_id": token.team_id}
 
@@ -319,6 +344,7 @@ def delete_period(team_id: int, period_id: int, db: DbSession = Depends(get_db),
     db.query(Team).filter_by(id=team_id).with_for_update().first()
     period = scoped_period(db, team_id, period_id)
     was_active = period.is_active
+    record(db, team_id, user, "period_deleted", label=period.label)
     purge_assessment_data(db, period_ids=[period_id])
     db.delete(period)
     db.flush()

@@ -272,3 +272,13 @@ test('revision history lists what each saved version changed, newest first', asy
   assert.match(html, /First touch: 3 → 4/)
   assert.equal(renderToStaticMarkup(React.createElement(RevisionHistory, { matrix, revisions: [] })), '')
 })
+
+test('audit events read as plain sentences', async () => {
+  const { auditText } = await loadJsx('src/auditModel.js')
+  const event = (action, details = {}, target_email = 'coach@example.com') => ({ action, actor_email: 'owner@example.com', target_email, details })
+  assert.equal(auditText(event('role_changed', { from: 'coach', to: 'owner' })), 'owner@example.com made coach@example.com an owner')
+  assert.equal(auditText(event('role_changed', { from: 'owner', to: 'coach' })), 'owner@example.com changed coach@example.com to a coach')
+  assert.equal(auditText(event('period_deleted', { label: 'Autumn' }, null)), 'owner@example.com deleted the period Autumn')
+  assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
+  assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
+})

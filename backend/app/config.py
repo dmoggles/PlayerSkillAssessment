@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     smtp_from: str = "assessment@localhost"
     session_days: int = 7
     app_version: str = "local"
+    cleanup_interval_hours: float = 6
+    api_docs_enabled: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

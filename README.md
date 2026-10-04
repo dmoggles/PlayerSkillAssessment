@@ -60,6 +60,12 @@ Development and production follow the same pattern as `football-data-collector` 
 
 If an older version of this app has already created production data on this VPS, preserve its Compose project name and volume when choosing the production directory. Do not switch to a new directory or remove an old volume until the data has been backed up and migrated. Stop any old Caddy container for this app before enabling the new host Nginx sites. Database migrations are forward-only operationally: inspect a migration and take a backup before applying one that removes or rewrites data. To roll back app code, set both image names in `.env.prod` to the desired release tag and run `docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml up -d --no-build api web`; a code rollback does not reverse database migrations.
 
+### Maintenance and audit log
+
+The API removes expired sessions, email links and stale sign-in throttle records every 6 hours (`CLEANUP_INTERVAL_HOURS`); run `python -m app.maintenance` in the API container to do it on demand. Expired self-assessment links are kept so the squad board can show them. Team owners can see an Activity list under Team access: invitations, joins, role changes, removals, period and team deletions, and team setting changes. Audit events keep the email addresses involved and are retained after a team is deleted.
+
+The interactive API docs (`/api/docs`) and schema (`/api/openapi.json`) are served only when `API_DOCS_ENABLED=true`, which the local Compose override sets. Development and production deployments do not expose them unless you add that setting to their env file.
+
 ### Versions
 
 Each image carries the version it was built from. The app shows it in the sidebar and under Settings → Account, and `/api/health` returns it. Production uses the GitHub release tag (use semantic versions such as `v0.1.0`), development uses `dev-<short commit>`, and local builds use `git describe --tags --always --dirty` (for example `v0.1.0-3-gabc1234`, or a short commit with `-dirty` for uncommitted changes).

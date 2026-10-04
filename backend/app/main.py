@@ -1,13 +1,25 @@
+import asyncio
+from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from .config import settings
 from .database import engine
+from .maintenance import cleanup_loop
 from .routers import accounts, assessments, teams
 
 
-app = FastAPI(title="Player Skill Assessment API", redirect_slashes=False)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(cleanup_loop())
+    yield
+    task.cancel()
+
+
+# Interactive API docs and the schema are only served where explicitly enabled (local development).
+docs = {} if settings.api_docs_enabled else {"docs_url": None, "redoc_url": None, "openapi_url": None}
+app = FastAPI(title="Player Skill Assessment API", redirect_slashes=False, lifespan=lifespan, **docs)
 app.include_router(accounts.router)
 app.include_router(teams.router)
 app.include_router(assessments.router)

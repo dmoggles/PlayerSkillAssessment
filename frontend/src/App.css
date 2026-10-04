@@ -463,6 +463,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .archived-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #edf0f3; font-size: .88rem; }
 .archived-notice button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
 .plain-fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.audit-log { margin-top: 22px; }
+.audit-log summary { cursor: pointer; font-weight: 700; font-size: .9rem; }
+.audit-log ol { list-style: none; margin: 10px 0 0; padding: 0; max-height: 320px; overflow-y: auto; }
+.audit-log li { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .85rem; overflow-wrap: anywhere; }
+.audit-log small { color: var(--muted); font-size: .75rem; }
 .dashboard-panel .danger-zone { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
 .dashboard-panel .danger-zone h3 { font-size: .9rem; color: var(--error); }
 .dashboard-panel .danger-zone p { margin: 6px 0 12px; font-size: .85rem; }

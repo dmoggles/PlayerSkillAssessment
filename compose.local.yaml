@@ -2,6 +2,9 @@ services:
   db:
     ports:
       - "127.0.0.1:5433:5432"
+  api:
+    environment:
+      API_DOCS_ENABLED: "true"
   web:
     ports:
       - "${WEB_BIND_HOST:-127.0.0.1}:8080:80"

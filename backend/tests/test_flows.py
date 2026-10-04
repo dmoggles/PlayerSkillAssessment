@@ -312,3 +312,45 @@ def test_email_delivery_message_only_mentions_test_inbox_for_mailpit(monkeypatch
 def test_health_reports_build_version(monkeypatch):
     monkeypatch.setattr(main.settings, "app_version", "v1.2.3")
     assert TestClient(app).get("/health").json() == {"status": "ok", "version": "v1.2.3"}
+
+
+def test_membership_changes_are_audited_for_owners(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("audit-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("audit-coach@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Audit"}, headers=headers).json()["id"]
+    coach_id = add_coach(owner, csrf, team_id, coach, coach_csrf, "audit-coach@example.com", monkeypatch)
+    owner.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "owner"}, headers=headers)
+    owner.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "coach"}, headers=headers)
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    owner.delete(f"/teams/{team_id}/periods/{period_id}", headers=headers)
+    assert coach.get(f"/teams/{team_id}/audit").status_code == 404
+    coach.delete(f"/teams/{team_id}/members/{coach_id}", headers={"x-csrf-token": coach_csrf})
+    events = [(e["action"], e["actor_email"], e["target_email"], e["details"]) for e in reversed(owner.get(f"/teams/{team_id}/audit").json())]
+    assert events == [
+        ("team_created", "audit-owner@example.com", None, {"name": "Audit"}),
+        ("invite_sent", "audit-owner@example.com", "audit-coach@example.com", {}),
+        ("invite_accepted", "audit-coach@example.com", None, {}),
+        ("role_changed", "audit-owner@example.com", "audit-coach@example.com", {"from": "coach", "to": "owner"}),
+        ("role_changed", "audit-owner@example.com", "audit-coach@example.com", {"from": "owner", "to": "coach"}),
+        ("period_deleted", "audit-owner@example.com", None, {"label": "Autumn"}),
+        ("member_left", "audit-coach@example.com", None, {"role": "coach"}),
+    ]
+
+
+def test_cleanup_removes_only_expired_auth_records(monkeypatch):
+    clean_database()
+    client, csrf = signed_in("cleanup@example.com", monkeypatch)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO sessions (user_id, token_hash, csrf_token, expires_at) SELECT id, 'old', 'x', now() - interval '1 day' FROM users"))
+        conn.execute(text("INSERT INTO auth_tokens (email, purpose, token_hash, expires_at) VALUES ('a@example.com', 'reset', 'expired', now() - interval '1 hour'), ('a@example.com', 'reset', 'live', now() + interval '1 hour')"))
+        conn.execute(text("INSERT INTO login_attempts (key, failures, window_started) VALUES ('stale', 3, now() - interval '2 days'), ('recent', 3, now())"))
+    from app.database import SessionLocal
+    from app.maintenance import purge_expired
+    with SessionLocal() as db:
+        assert purge_expired(db) == {"sessions": 1, "auth_tokens": 1, "login_attempts": 1}
+    assert client.get("/auth/me").status_code == 200
+    with engine.begin() as conn:
+        assert conn.execute(text("SELECT token_hash FROM auth_tokens")).scalars().all() == ["live"]
+        assert "recent" in conn.execute(text("SELECT key FROM login_attempts")).scalars().all()
