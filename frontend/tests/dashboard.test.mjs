@@ -244,3 +244,31 @@ test('self-assessment board summarises statuses and copies new links as one list
   for (const status of ['not_sent', 'sent', 'opened', 'submitted', 'expired']) assert.ok(SELF_LINK_STATUS[status].label)
   assert.equal(copyAllText([{ player_name: 'Ana', url: 'https://x/self/a' }, { player_name: 'Ben', url: 'https://x/self/b' }]), 'Ana: https://x/self/a\nBen: https://x/self/b')
 })
+
+test('revision history lists what each saved version changed, newest first', async () => {
+  const { revisionTimeline, revisionChanges } = await loadJsx('src/revisionModel.js')
+  const { default: RevisionHistory } = await loadJsx('src/RevisionHistory.jsx')
+  const labels = { touch: 'First touch', passing: 'Passing' }
+  const v1 = { primary_position: 'defender', secondary_position: null, ratings: [{ skill_id: 'touch', score: 3 }, { skill_id: 'passing', score: null }] }
+  const v2 = { primary_position: 'midfielder', secondary_position: 'winger', secondary_position_frequency: 'often', ratings: [{ skill_id: 'touch', score: 4 }, { skill_id: 'passing', score: 2 }] }
+  assert.deepEqual(revisionChanges(null, v1, labels), ['Created as Defender with 1 skill rated'])
+  assert.deepEqual(revisionChanges(v1, v2, labels), [
+    'Primary position: Defender → Midfielder',
+    'Secondary position: None → Winger (often)',
+    'First touch: 3 → 4',
+    'Passing: — → 2',
+  ])
+  assert.deepEqual(revisionChanges(v2, v2, labels), [])
+  const revisions = [
+    { version: 1, editor: 'a@example.com', created_at: '2026-10-01T10:00:00Z', snapshot: v1 },
+    { version: 3, editor: 'b@example.com', created_at: '2026-10-03T10:00:00Z', snapshot: v2 },
+    { version: 2, editor: 'b@example.com', created_at: '2026-10-02T10:00:00Z', snapshot: v2 },
+  ]
+  assert.deepEqual(revisionTimeline(revisions, labels).map(r => [r.version, r.changes.length]), [[3, 0], [2, 4], [1, 1]])
+  const matrix = { sections: [{ id: 'technical', skills: [{ id: 'touch', label: 'First touch' }, { id: 'passing', label: 'Passing' }] }] }
+  const html = renderToStaticMarkup(React.createElement(RevisionHistory, { matrix, revisions }))
+  assert.match(html, /Revision history \(3\)/)
+  assert.match(html, /Saved with no changes/)
+  assert.match(html, /First touch: 3 → 4/)
+  assert.equal(renderToStaticMarkup(React.createElement(RevisionHistory, { matrix, revisions: [] })), '')
+})

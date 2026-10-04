@@ -474,7 +474,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .subtabs button.active { color: var(--text); border-bottom-color: var(--accent); }
 .revisions { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px; color: var(--muted); }
 .revisions summary { cursor: pointer; font-weight: 700; }
-.revisions ul { margin: 12px 0 0 24px; }
+.revision-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
+.revision-list > li { padding-left: 12px; border-left: 2px solid var(--border); }
+.revision-heading { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; color: var(--text); font-size: .88rem; }
+.revision-heading span { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+.revision-list ul { margin: 6px 0 0 18px; padding: 0; font-size: .85rem; }
+.revision-list p { margin: 6px 0 0; font-size: .85rem; }
 .link-field { margin-top: 16px; }
 .link-field button { margin-top: 8px; align-self: start; padding: 8px 12px; background: var(--green); color: white; border: 0; border-radius: 8px; }
 .confirmed-priorities > h3, .other-priorities h3 { font-size: 1rem; margin: 0 0 14px; color: var(--text); }

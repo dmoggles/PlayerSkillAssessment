@@ -10,6 +10,7 @@ import PrioritiesView from './PrioritiesView'
 import HeatmapView from './HeatmapView'
 import ChangePasswordForm from './ChangePasswordForm'
 import SelfAssessmentBoard from './SelfAssessmentBoard'
+import RevisionHistory from './RevisionHistory'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
 import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, initialPeriodId, initialPlayerId } from './dashboardModel'
@@ -326,7 +327,7 @@ export default function CoachDashboard({ user, onLogout }) {
             <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
             <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
           </form>
-          {revisions.length > 0 && <details className="revisions"><summary>Revision history ({revisions.length})</summary><ul>{revisions.map(revision => <li key={revision.version}>Version {revision.version} · {revision.editor} · {new Date(revision.created_at).toLocaleString()}</li>)}</ul></details>}
+          <RevisionHistory matrix={matrix} revisions={revisions} />
         </Section>
         {selectedTeam.self_assessment_enabled && selectedPeriod.is_active && selectedPlayer.active && <Section title="Player self-assessment" description="Share a one-time link for this player and period"><div className="inline-row"><button type="button" onClick={makeLink}>Create link</button><button type="button" onClick={revokeLink}>Revoke link</button></div>{link && <div className="field link-field"><label>Copy this link now; it will not be shown again</label><input readOnly value={link} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button></div>}</Section>}
       </>)}
