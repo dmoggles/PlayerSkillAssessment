@@ -454,3 +454,48 @@ def test_player_report_is_player_safe_and_limited_to_earlier_periods(monkeypatch
     assert owner.get(url).status_code == 200
     owner.post(f"/teams/{team_id}/players/{player_id}/restore", headers=headers)
     assert owner.delete(f"/teams/{team_id}/periods/{period_ids[1]}", headers=headers).status_code == 200
+
+
+def test_report_share_link_is_read_only_expiring_and_revocable(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("share-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Share"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Max"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    base = f"/teams/{team_id}/players/{player_id}/periods/{period_id}/report"
+    owner.put(base, json={"message": "Well played"}, headers=headers)
+    assert owner.get(base).json()["share"] is None
+
+    first = owner.post(f"{base}/share", headers=headers).json()
+    assert first["url"].startswith("http://testserver/report/")
+    public = TestClient(app)
+    shared = public.get("/report/" + first["url"].split("/")[-1])
+    assert shared.status_code == 200
+    assert shared.json()["message"] == "Well played" and "share" not in shared.json()
+    status = owner.get(base).json()["share"]
+    assert status["opened_at"] is not None and status["expired"] is False
+
+    # A new link replaces the old one and resets the opened time.
+    second = owner.post(f"{base}/share", headers=headers).json()
+    assert public.get("/report/" + first["url"].split("/")[-1]).status_code == 404
+    assert owner.get(base).json()["share"]["opened_at"] is None
+    token = second["url"].split("/")[-1]
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE player_reports SET share_expires_at = now() - interval '1 minute'"))
+    assert public.get(f"/report/{token}").status_code == 410
+    assert owner.get(base).json()["share"]["expired"] is True
+
+    third = owner.post(f"{base}/share", headers=headers).json()["url"].split("/")[-1]
+    assert owner.delete(f"{base}/share", headers=headers).status_code == 200
+    assert public.get(f"/report/{third}").status_code == 404
+    assert owner.get(base).json()["share"] is None
+    events = owner.get(f"/teams/{team_id}/audit").json()
+    actions = [e["action"] for e in events]
+    assert actions.count("report_shared") == 3 and actions.count("report_share_revoked") == 1
+    # Only the second link replaced a live one; the third followed an expired link.
+    assert [e["details"].get("replaced", False) for e in reversed(events) if e["action"] == "report_shared"] == [False, True, False]
+    # Deleting the period removes the report and its link.
+    fourth = owner.post(f"{base}/share", headers=headers).json()["url"].split("/")[-1]
+    owner.delete(f"/teams/{team_id}/periods/{period_id}", headers=headers)
+    assert public.get(f"/report/{fourth}").status_code == 404

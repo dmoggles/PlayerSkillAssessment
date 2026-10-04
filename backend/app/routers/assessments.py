@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
+from ..audit import record
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
@@ -215,12 +216,26 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
             "message": report.message if report else None, "history": history}
 
 
+def share_status(report: PlayerReport | None) -> dict | None:
+    if not report or not report.share_token_hash:
+        return None
+    expired = report.share_expires_at.replace(tzinfo=timezone.utc) <= utcnow()
+    return {"issued_at": report.share_issued_at, "expires_at": report.share_expires_at,
+            "opened_at": report.share_opened_at, "expired": expired}
+
+
+def coach_report(db: DbSession, team: Team, player: Player, period: Period) -> dict:
+    """The report as coaches see it: the player-safe payload plus the share link status."""
+    report = db.query(PlayerReport).filter_by(player_id=player.id, period_id=period.id).first()
+    return {**report_payload(db, team, player, period), "share": share_status(report)}
+
+
 @router.get("/teams/{team_id}/players/{player_id}/periods/{period_id}/report")
 def get_report(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     player = scoped_player(db, team_id, player_id)
     period = scoped_period(db, team_id, period_id)
-    return report_payload(db, db.get(Team, team_id), player, period)
+    return coach_report(db, db.get(Team, team_id), player, period)
 
 
 @router.put("/teams/{team_id}/players/{player_id}/periods/{period_id}/report")
@@ -240,7 +255,58 @@ def save_report(team_id: int, player_id: int, period_id: int, body: ReportIn, db
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "Report changed. Reload before saving")
-    return report_payload(db, db.get(Team, team_id), player, period)
+    return coach_report(db, db.get(Team, team_id), player, period)
+
+
+@router.post("/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share")
+def share_report(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Create a read-only link to the report, replacing any earlier one. The raw link is only returned here."""
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    report = db.query(PlayerReport).filter_by(player_id=player_id, period_id=period_id).first()
+    if not report:
+        report = PlayerReport(player_id=player_id, period_id=period_id)
+        db.add(report)
+    raw = fresh_token()
+    now = utcnow()
+    replaced = bool(report.share_token_hash) and report.share_expires_at.replace(tzinfo=timezone.utc) > now
+    report.share_token_hash = digest(raw)
+    report.share_issued_at = now
+    report.share_expires_at = now + timedelta(days=30)
+    report.share_opened_at = None
+    record(db, team_id, user, "report_shared", player=player.name, period=period.label, **({"replaced": True} if replaced else {}))
+    db.commit()
+    return {"url": f"{settings.public_base_url}/report/{raw}", "expires_at": report.share_expires_at}
+
+
+@router.delete("/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share")
+def revoke_report_share(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    report = db.query(PlayerReport).filter_by(player_id=player_id, period_id=period_id).first()
+    if report and report.share_token_hash:
+        report.share_token_hash = report.share_issued_at = report.share_expires_at = report.share_opened_at = None
+        record(db, team_id, user, "report_share_revoked", player=player.name, period=period.label)
+        db.commit()
+    return {"message": "Link revoked"}
+
+
+@router.get("/report/{token}")
+def shared_report(token: str, db: DbSession = Depends(get_db)):
+    found = db.query(PlayerReport, Player, Period, Team).join(Player, Player.id == PlayerReport.player_id).join(
+        Period, Period.id == PlayerReport.period_id).join(Team, Team.id == Player.team_id).filter(
+        PlayerReport.share_token_hash == digest(token)).first()
+    if not found:
+        raise HTTPException(404, "Link unavailable")
+    report, player, period, team = found
+    if report.share_expires_at.replace(tzinfo=timezone.utc) <= utcnow():
+        raise HTTPException(410, "This link has expired. Ask the coach for a new one")
+    if not report.share_opened_at:
+        report.share_opened_at = utcnow()
+        db.commit()
+    return report_payload(db, team, player, period)
 
 
 @router.get("/teams/{team_id}/assessments/{assessment_id}/revisions")

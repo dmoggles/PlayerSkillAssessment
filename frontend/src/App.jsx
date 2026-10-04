@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, useNavigate, useParams } from 'react-router-dom'
 import CoachDashboard from './CoachDashboard'
 import PlayerPage from './PlayerPage'
+import SharedReportPage from './SharedReportPage'
 import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
 
@@ -76,6 +77,7 @@ function Shell() {
   if (loading) return <div className="page">Loading…</div>
   return <Routes>
     <Route path="/self/:token" element={<PlayerPage />} />
+    <Route path="/report/:token" element={<SharedReportPage />} />
     <Route path="/verify/:token" element={<VerifyPage />} />
     <Route path="/reset/:token" element={<ResetPage />} />
     <Route path="/invite/:token" element={<InvitePage user={user} onSignedIn={setUser} />} />

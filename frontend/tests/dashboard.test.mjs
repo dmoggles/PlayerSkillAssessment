@@ -380,3 +380,16 @@ test('player report shows coach-only section scores, strengths, focus, follow-up
   assert.equal(empty.assessed, false)
   assert.match(renderToStaticMarkup(React.createElement(PlayerReport, { report: empty })), /no coach assessment for this period yet/)
 })
+
+test('report share status reads clearly and share events appear in the activity log', async () => {
+  const { shareSummary } = await loadJsx('src/reportModel.js')
+  const { auditText } = await loadJsx('src/auditModel.js')
+  assert.match(shareSummary(null), /^Not shared/)
+  assert.match(shareSummary({ issued_at: '2026-10-01T10:00:00Z', expires_at: '2026-10-31T10:00:00Z', opened_at: null, expired: false }), /^Shared .+ · expires .+ · not opened yet$/)
+  assert.match(shareSummary({ issued_at: '2026-10-01T10:00:00Z', expires_at: '2026-10-31T10:00:00Z', opened_at: '2026-10-02T10:00:00Z', expired: false }), / · opened /)
+  assert.match(shareSummary({ issued_at: '2026-09-01T10:00:00Z', expires_at: '2026-10-01T10:00:00Z', opened_at: null, expired: true }), /^The link expired on /)
+  const event = { action: 'report_shared', actor_email: 'coach@example.com', details: { player: 'Max', period: 'Autumn' } }
+  assert.equal(auditText(event), 'coach@example.com shared the report for Max (Autumn)')
+  assert.equal(auditText({ ...event, details: { ...event.details, replaced: true } }), 'coach@example.com created a new report link for Max (Autumn), replacing the previous one')
+  assert.equal(auditText({ ...event, action: 'report_share_revoked' }), 'coach@example.com revoked the report link for Max (Autumn)')
+})

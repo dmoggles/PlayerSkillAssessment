@@ -19,6 +19,7 @@ ACCESS = {
     ("GET", "/skill-matrix"): (PUBLIC, None, None),
     ("GET", "/health"): (PUBLIC, None, None),
     ("GET", "/self/{token}"): (PUBLIC, None, None),
+    ("GET", "/report/{token}"): (PUBLIC, None, None),
     ("POST", "/self/{token}"): (PUBLIC, None, None),
     ("GET", "/auth/me"): (SIGNED_IN, None, None),
     ("POST", "/auth/logout"): (SIGNED_IN, None, None),
@@ -57,6 +58,8 @@ ACCESS = {
     ("GET", "/teams/{team_id}/periods/{period_id}/self-links"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report"): (MEMBER, {"message": "Well done"}, None),
+    ("POST", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share"): (MEMBER, None, None),
+    ("DELETE", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/periods/{period_id}/self-links"): (MEMBER, {}, None),
 }
 

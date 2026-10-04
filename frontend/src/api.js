@@ -72,5 +72,8 @@ export const getSelfLinkBoard = (id, periodId) => data(api.get(`${team(id)}/peri
 export const issueSelfLinks = (id, periodId, playerIds) => data(api.post(`${team(id)}/periods/${periodId}/self-links`, playerIds ? { player_ids: playerIds } : {}))
 export const getPlayerReport = (id, playerId, periodId) => data(api.get(`${team(id)}/players/${playerId}/periods/${periodId}/report`))
 export const savePlayerReport = (id, playerId, periodId, message) => data(api.put(`${team(id)}/players/${playerId}/periods/${periodId}/report`, { message: message.trim() || null }))
+export const shareReport = (id, playerId, periodId) => data(api.post(`${team(id)}/players/${playerId}/periods/${periodId}/report/share`))
+export const revokeReportShare = (id, playerId, periodId) => data(api.delete(`${team(id)}/players/${playerId}/periods/${periodId}/report/share`))
+export const getSharedReport = token => data(api.get(`/report/${token}`))
 export const getSelfLinkInfo = token => data(api.get(`/self/${token}`))
 export const submitSelfAssessment = (token, value) => data(api.post(`/self/${token}`, value))

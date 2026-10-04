@@ -15,6 +15,10 @@ export function auditText(event) {
     case 'member_left': return `${actor} left the team`
     case 'period_deleted': return `${actor} deleted the period ${d.label}`
     case 'team_deleted': return `${actor} deleted the team`
+    case 'report_shared': return d.replaced
+      ? `${actor} created a new report link for ${d.player} (${d.period}), replacing the previous one`
+      : `${actor} shared the report for ${d.player} (${d.period})`
+    case 'report_share_revoked': return `${actor} revoked the report link for ${d.player} (${d.period})`
     default: return `${actor}: ${event.action}`
   }
 }

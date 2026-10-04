@@ -658,6 +658,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 /* Player report */
+.report-share { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
+.report-share h3 { margin: 0; font-size: .9rem; }
+.report-share p { margin: 0; font-size: .85rem; }
+.shared-report-page { max-width: 820px; }
+.shared-report-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.shared-report-actions button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; }
 .report-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .report-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .report-controls textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .88rem; resize: vertical; }

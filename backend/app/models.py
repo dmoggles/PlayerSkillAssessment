@@ -173,3 +173,7 @@ class PlayerReport(Base):
     message: Mapped[str | None] = mapped_column(String(1000))
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    share_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    share_issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    share_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    share_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
