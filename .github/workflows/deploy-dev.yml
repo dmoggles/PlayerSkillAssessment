@@ -139,4 +139,4 @@ jobs:
             docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local up -d db mailpit
             docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local run --rm migrate
             docker compose --env-file .env.dev -f compose.yaml -f compose.dev.yaml --profile local up -d --no-build api web
-            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-connrefused http://127.0.0.1:8083/api/health
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors http://127.0.0.1:8083/api/health
