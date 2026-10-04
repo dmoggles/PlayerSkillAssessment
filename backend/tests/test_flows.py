@@ -415,3 +415,42 @@ def test_dev_seed_varies_players_and_demos_priority_follow_up(capsys):
     seed_dev.seed()
     assert snapshot() == (ratings, priorities), "reruns should regenerate the same demo data"
     assert "dev-owner@example.com" in capsys.readouterr().out
+
+
+def test_player_report_is_player_safe_and_limited_to_earlier_periods(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("report-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Reports"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Rae"}, headers=headers).json()["id"]
+    skill_ids = sorted(assessments.SKILLS["outfield"])
+    period_ids = [owner.post(f"/teams/{team_id}/periods", json={"label": label}, headers=headers).json()["id"]
+                  for label in ("Autumn", "Spring", "Summer")]
+    for period_id in period_ids:
+        body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "winger",
+                "note": "Private overall note",
+                "ratings": [{"skill_id": s, "score": 3, "note": "Private rating note"} for s in skill_ids]}
+        assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    params = {"player_id": player_id, "period_id": period_ids[0]}
+    owner.put(f"/teams/{team_id}/priorities", params=params, headers=headers,
+              json={"priorities": [{"skill_id": skill_ids[0], "rank": 1, "coach_note": "Shared priority note"}]})
+    owner.patch(f"/teams/{team_id}", json={"name": "Reports", "self_assessment_enabled": True}, headers=headers)
+    owner.post(f"/teams/{team_id}/periods/{period_ids[1]}/activate", headers=headers)  # links need the active period
+    token = owner.post(f"/teams/{team_id}/players/{player_id}/periods/{period_ids[1]}/self-link", headers=headers).json()["url"].split("/")[-1]
+    TestClient(app).post(f"/self/{token}", json={"position": "outfield", "ratings": [{"skill_id": skill_ids[0], "score": 5}]})
+
+    url = f"/teams/{team_id}/players/{player_id}/periods/{period_ids[1]}/report"
+    assert owner.put(url, json={"message": "  Great season, keep going  "}, headers=headers).json()["message"] == "Great season, keep going"
+    report = owner.get(url).json()
+    assert (report["player"], report["team"], report["period"]) == ("Rae", "Reports", "Spring")
+    assert [row["label"] for row in report["history"]] == ["Autumn", "Spring"]  # nothing after the report's period
+    assert report["history"][0]["priorities"] == [{"skill_id": skill_ids[0], "rank": 1, "coach_note": "Shared priority note"}]
+    assert list(report["history"][1]["assessments"]) == ["coach"]  # self-assessment excluded
+    text_dump = str(report)
+    assert "Private" not in text_dump
+    assert owner.put(url, json={"message": "x" * 1001}, headers=headers).status_code == 422
+    owner.post(f"/teams/{team_id}/players/{player_id}/archive", headers=headers)
+    assert owner.put(url, json={"message": "Changed"}, headers=headers).status_code == 409
+    assert owner.get(url).status_code == 200
+    owner.post(f"/teams/{team_id}/players/{player_id}/restore", headers=headers)
+    assert owner.delete(f"/teams/{team_id}/periods/{period_ids[1]}", headers=headers).status_code == 200

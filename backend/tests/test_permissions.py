@@ -55,6 +55,8 @@ ACCESS = {
     ("POST", "/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link"): (MEMBER, None, None),
     ("DELETE", "/teams/{team_id}/players/{player_id}/periods/{period_id}/self-link"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/periods/{period_id}/self-links"): (MEMBER, None, None),
+    ("GET", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report"): (MEMBER, None, None),
+    ("PUT", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report"): (MEMBER, {"message": "Well done"}, None),
     ("POST", "/teams/{team_id}/periods/{period_id}/self-links"): (MEMBER, {}, None),
 }
 

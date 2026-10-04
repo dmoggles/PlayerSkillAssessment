@@ -162,3 +162,14 @@ class AuditEvent(Base):
     target_email: Mapped[str | None] = mapped_column(String(255))
     details: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class PlayerReport(Base):
+    __tablename__ = "player_reports"
+    __table_args__ = (UniqueConstraint("player_id", "period_id"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
+    period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    message: Mapped[str | None] = mapped_column(String(1000))
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -123,8 +123,8 @@ export const suggestedPriorities = (matrix, coach, player) =>
   priorityScores(matrix, coach, player).slice(0, matrix.priority?.top_n ?? 3)
 
 export const CONVERSATION_FRAMING = {
-  overestimation: "She thinks she's doing this well — show her what the higher level looks like before discussing it.",
-  underestimation: "She's better at this than she thinks — a confidence conversation, not a development one.",
+  overestimation: "The player rates this higher than you do. Show them what the higher level looks like before discussing it.",
+  underestimation: "The player is better at this than they think. This is a confidence conversation, not a development one.",
 }
 
 // Layer 3: per-skill disagreement (only where both coach and player are present).

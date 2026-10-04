@@ -11,6 +11,7 @@ export const PLAYER_DATA_TABS = [
   ['comparison', 'Comparison'],
   ['progress', 'Progress'],
   ['priorities', 'Confirmed priorities'],
+  ['report', 'Report'],
 ]
 
 const filledNotes = notes => Object.fromEntries(Object.entries(notes).filter(([, note]) => note?.trim()).map(([id, note]) => [id, note.trim()]))

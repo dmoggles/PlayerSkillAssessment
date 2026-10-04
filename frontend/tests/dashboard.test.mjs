@@ -28,8 +28,8 @@ test('API validation errors become readable text without exposing submitted valu
   assert.equal(errorMessage({}), 'Request failed. Please try again.')
 })
 
-test('player data exposes all four sub-tabs, including confirmed priorities', () => {
-  assert.deepEqual(PLAYER_DATA_TABS.map(([id]) => id), ['summary', 'comparison', 'progress', 'priorities'])
+test('player data exposes all sub-tabs, including confirmed priorities and the report', () => {
+  assert.deepEqual(PLAYER_DATA_TABS.map(([id]) => id), ['summary', 'comparison', 'progress', 'priorities', 'report'])
 })
 
 test('shared context chooses an active player and period, or a valid fallback', () => {
@@ -351,4 +351,32 @@ test('priority follow-up compares last confirmed priorities with this period by 
   assert.equal(priorityTag('scan', 'scan', ['scan']), 'suggested')
   assert.equal(priorityTag('scan', 'touch', ['scan']), 'carried')
   assert.equal(priorityTag('head', 'touch', ['scan']), 'override')
+})
+
+test('player report shows coach-only section scores, strengths, focus, follow-up and progress', async () => {
+  const { buildReport } = await loadJsx('src/reportModel.js')
+  const { default: PlayerReport } = await loadJsx('src/PlayerReport.jsx')
+  const matrix = { meta: { scale: { anchors: { 1: 'Developing', 3: 'Achieving', 5: 'Excelling' } } }, sections: [
+    { id: 'technical', label: 'Technical', applies_to: ['winger'], skills: [{ id: 'touch', label: 'First touch' }, { id: 'pass', label: 'Passing' }] },
+    { id: 'tactical', label: 'Tactical', applies_to: ['winger'], skills: [{ id: 'scan', label: 'Scanning' }] },
+  ] }
+  const coach = (scores, extra = {}) => ({ position: 'outfield', primary_position: 'winger', ratings: Object.entries(scores).map(([skill_id, score]) => ({ skill_id, score })), ...extra })
+  const payload = { player: 'Rae', team: 'Reports', period: 'Spring', period_id: 2, message: 'Great season', history: [
+    { period_id: 1, label: 'Autumn', assessments: { coach: coach({ touch: 2, pass: 3, scan: 2 }) }, priorities: [{ skill_id: 'scan', rank: 1, coach_note: 'Look up' }] },
+    { period_id: 2, label: 'Spring', assessments: { coach: coach({ touch: 4, pass: 3, scan: 3 }, { secondary_position: 'striker' }) }, priorities: [{ skill_id: 'pass', rank: 1, coach_note: 'Weight of pass' }] },
+  ] }
+  const report = buildReport(matrix, payload)
+  assert.equal(report.position, 'Winger, also Striker')
+  assert.deepEqual(report.sections.map(s => [s.label, s.score]), [['Technical', 3.5], ['Tactical', 3]])
+  assert.equal(report.strengths[0].label, 'First touch')
+  assert.deepEqual(report.priorities, [{ rank: 1, label: 'Passing', note: 'Weight of pass' }])
+  assert.deepEqual(report.followUp.items.map(i => [i.label, i.trend]), [['Scanning', 'improved']])
+  assert.deepEqual(report.trend.rows.map(r => r.values), [[2.5, 3.5], [2, 3]])
+  const html = renderToStaticMarkup(React.createElement(PlayerReport, { report }))
+  for (const text of ['From your coach', 'Great season', 'Focus for next period', 'Weight of pass', 'Last period&#x27;s focus', 'Improved', 'Progress', '1 Developing, 3 Achieving, 5 Excelling'])
+    assert.ok(html.includes(text), text)
+  assert.doesNotMatch(html, /\b(she|her|he|his)\b/i)
+  const empty = buildReport(matrix, { ...payload, message: null, history: [{ ...payload.history[0], period_id: 2, assessments: {} }] })
+  assert.equal(empty.assessed, false)
+  assert.match(renderToStaticMarkup(React.createElement(PlayerReport, { report: empty })), /no coach assessment for this period yet/)
 })

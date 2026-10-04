@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, Period, Player, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from .teams import scoped_period, scoped_player
 
 
@@ -47,6 +47,10 @@ class PriorityIn(BaseModel):
     rank: int = Field(ge=1, le=3)
     algorithm_suggested: bool = True
     coach_note: str | None = Field(default=None, max_length=500)
+
+
+class ReportIn(BaseModel):
+    message: str | None = Field(default=None, max_length=1000)
 
 
 class PrioritiesIn(BaseModel):
@@ -182,6 +186,61 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
         if priority.period_id in by_period:
             by_period[priority.period_id]["priorities"].append({"skill_id": priority.skill_id, "rank": priority.rank, "coach_note": priority.coach_note})
     return list(by_period.values())
+
+
+def report_payload(db: DbSession, team: Team, player: Player, period: Period) -> dict:
+    """Player-safe report data: coach ratings and confirmed priorities for this period and earlier ones,
+    plus the coach's message. Coach rating notes, overall notes and self-ratings are deliberately excluded."""
+    periods = db.query(Period).filter(Period.team_id == team.id, Period.created_at <= period.created_at).order_by(
+        Period.created_at, Period.id).all()
+    periods = [p for p in periods if p.created_at < period.created_at or p.id <= period.id]
+    ids = [p.id for p in periods]
+    coach = {a.period_id: a for a in db.query(Assessment).filter(
+        Assessment.player_id == player.id, Assessment.assessor == "coach", Assessment.period_id.in_(ids))}
+    priorities = {}
+    for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.player_id == player.id,
+                                                     PriorityConfirmation.period_id.in_(ids)).order_by(PriorityConfirmation.rank):
+        priorities.setdefault(row.period_id, []).append({"skill_id": row.skill_id, "rank": row.rank, "coach_note": row.coach_note})
+    report = db.query(PlayerReport).filter_by(player_id=player.id, period_id=period.id).first()
+    history = []
+    for p in periods:
+        a = coach.get(p.id)
+        history.append({"period_id": p.id, "label": p.label, "priorities": priorities.get(p.id, []),
+                        "assessments": {"coach": {
+                            "position": a.position, "primary_position": a.primary_position,
+                            "secondary_position": a.secondary_position,
+                            "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings],
+                        }} if a else {}})
+    return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
+            "message": report.message if report else None, "history": history}
+
+
+@router.get("/teams/{team_id}/players/{player_id}/periods/{period_id}/report")
+def get_report(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    return report_payload(db, db.get(Team, team_id), player, period)
+
+
+@router.put("/teams/{team_id}/players/{player_id}/periods/{period_id}/report")
+def save_report(team_id: int, player_id: int, period_id: int, body: ReportIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    player = require_active_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    report = db.query(PlayerReport).filter_by(player_id=player_id, period_id=period_id).first()
+    if not report:
+        report = PlayerReport(player_id=player_id, period_id=period_id)
+        db.add(report)
+    report.message = clean_note(body.message)
+    report.updated_by = user.id
+    report.updated_at = utcnow()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Report changed. Reload before saving")
+    return report_payload(db, db.get(Team, team_id), player, period)
 
 
 @router.get("/teams/{team_id}/assessments/{assessment_id}/revisions")

@@ -11,6 +11,7 @@ import HeatmapView from './HeatmapView'
 import ChangePasswordForm from './ChangePasswordForm'
 import SelfAssessmentBoard from './SelfAssessmentBoard'
 import RevisionHistory from './RevisionHistory'
+import ReportPanel from './ReportPanel'
 import { auditText } from './auditModel'
 import { priorityFollowUp } from './followUpModel'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
@@ -89,12 +90,13 @@ export default function CoachDashboard({ user, onLogout }) {
   const [assessmentNote, setAssessmentNote] = useState('')
   const [assessmentBaseline, setAssessmentBaseline] = useState(null)
   const [prioritiesDirty, setPrioritiesDirty] = useState(false)
+  const [reportDirty, setReportDirty] = useState(false)
 
   const selectedTeam = teams.find(t => t.id === Number(teamId))
   const selectedPlayer = players.find(p => p.id === Number(playerId))
   const selectedPeriod = periods.find(p => p.id === Number(periodId))
   const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings, notes, assessmentNote) !== assessmentBaseline
-  const dirty = assessmentDirty || prioritiesDirty
+  const dirty = assessmentDirty || prioritiesDirty || reportDirty
   const blocker = useBlocker(dirty)
   const blockerPrompted = useRef(false)
   const contextDialogRef = useRef(null)
@@ -114,7 +116,7 @@ export default function CoachDashboard({ user, onLogout }) {
     queueMicrotask(() => {
       if (window.confirm('Discard unsaved changes?')) {
         restoreAssessment()
-        setPrioritiesDirty(false)
+        setPrioritiesDirty(false); setReportDirty(false)
         blocker.proceed()
       } else blocker.reset()
     })
@@ -138,7 +140,7 @@ export default function CoachDashboard({ user, onLogout }) {
     if (!dirty) return true
     if (!window.confirm('Discard unsaved changes?')) return false
     restoreAssessment()
-    setPrioritiesDirty(false)
+    setPrioritiesDirty(false); setReportDirty(false)
     return true
   }
 
@@ -330,7 +332,7 @@ export default function CoachDashboard({ user, onLogout }) {
         </Section>
         {selectedTeam.self_assessment_enabled && selectedPeriod.is_active && selectedPlayer.active && <Section title="Player self-assessment" description="Share a one-time link for this player and period"><div className="inline-row"><button type="button" onClick={makeLink}>Create link</button><button type="button" onClick={revokeLink}>Revoke link</button></div>{link && <div className="field link-field"><label>Copy this link now; it will not be shown again</label><input readOnly value={link} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button></div>}</Section>}
       </>)}
-      {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Explore individual assessment results"><nav className="subtabs" aria-label="Player data views">{PLAYER_DATA_TABS.map(([id, label]) => <button aria-current={playerDataView === id ? 'page' : undefined} className={playerDataView === id ? 'active' : ''} key={id} type="button" onClick={() => setPlayerDataView(id)}>{label}</button>)}</nav>{playerDataView === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'progress' && <ProgressView matrix={matrix} history={history} />}{playerDataView === 'priorities' && <ConfirmedPrioritiesPanel key={`${teamId}-${playerId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} periods={periods} />}</Section>)}
+      {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Explore individual assessment results"><nav className="subtabs" aria-label="Player data views">{PLAYER_DATA_TABS.map(([id, label]) => <button aria-current={playerDataView === id ? 'page' : undefined} className={playerDataView === id ? 'active' : ''} key={id} type="button" onClick={() => { if (id !== playerDataView && confirmDiscard()) setPlayerDataView(id) }}>{label}</button>)}</nav>{playerDataView === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'progress' && <ProgressView matrix={matrix} history={history} />}{playerDataView === 'priorities' && <ConfirmedPrioritiesPanel key={`${teamId}-${playerId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} periods={periods} />}{playerDataView === 'report' && <ReportPanel key={`${teamId}-${playerId}-${periodId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} readOnly={!selectedPlayer.active} onMessage={setMessage} onDirtyChange={setReportDirty} />}</Section>)}
       {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix ? <Section title="No team data yet"><p className="muted">Add a period in Settings to view team data.</p></Section> : <Section className="context-panel" title={`${selectedTeam.name} · ${selectedPeriod.label}`} description="Compare assessed skills across the squad"><HeatmapView matrix={matrix} assessments={heatmap} /></Section>)}
       {selectedTeam && currentArea.id === 'development' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description={selectedPlayer.active ? 'Review and confirm the three most important priorities' : 'Priorities (read-only)'}>{!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}<PrioritiesView matrix={matrix} coach={comparison?.coach} player={comparison?.player} teamId={teamId} playerId={playerId} periodId={periodId} followUp={priorityFollowUp(periods, history, periodId, comparison?.coach)} onDirtyChange={setPrioritiesDirty} readOnly={!selectedPlayer.active} /></Section>)}
     </main>
