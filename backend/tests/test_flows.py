@@ -385,3 +385,33 @@ def test_coach_notes_are_saved_trimmed_and_versioned(monkeypatch):
     submitted = TestClient(app).post(f"/self/{token}", json={"position": "outfield", "ratings": [
         {"skill_id": "first_touch_body_shape", "score": 4, "note": "players cannot leave notes"}]}).json()
     assert submitted["ratings"][0]["note"] is None
+
+
+def test_dev_seed_varies_players_and_demos_priority_follow_up(capsys):
+    from app import seed_dev
+    clean_database()
+
+    def snapshot():
+        with engine.begin() as conn:
+            ratings = conn.execute(text(
+                "SELECT pl.name, pe.label, r.skill_id, r.score FROM ratings r JOIN assessments a ON a.id = r.assessment_id "
+                "JOIN players pl ON pl.id = a.player_id JOIN periods pe ON pe.id = a.period_id WHERE a.assessor = 'coach' "
+                "ORDER BY 1, 2, 3")).all()
+            priorities = conn.execute(text(
+                "SELECT pe.label, count(*) FROM priority_confirmations pc JOIN periods pe ON pe.id = pc.period_id GROUP BY 1")).all()
+        return ratings, dict(priorities)
+
+    seed_dev.seed()
+    ratings, priorities = snapshot()
+    by_player = {}
+    for name, label, skill_id, score in ratings:
+        if label == "Autumn 2026":
+            by_player.setdefault(name, []).append(score)
+    outfield = [scores for name, scores in by_player.items() if len(scores) == len(assessments.SKILLS["outfield"])]
+    assert len({tuple(scores) for scores in outfield}) == len(outfield), "demo players should not share identical ratings"
+    # Earlier periods have priorities for every assessed player; the current period only for some.
+    assert priorities["Autumn 2025"] == 10 * 3
+    assert 0 < priorities["Autumn 2026"] < 10 * 3
+    seed_dev.seed()
+    assert snapshot() == (ratings, priorities), "reruns should regenerate the same demo data"
+    assert "dev-owner@example.com" in capsys.readouterr().out

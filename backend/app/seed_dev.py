@@ -1,5 +1,6 @@
 """Populate a development deployment with repeatable, synthetic demo data."""
 
+import random
 import secrets
 from urllib.parse import urlparse
 
@@ -13,6 +14,7 @@ from .models import (
     PriorityConfirmation, Rating, Session, Team, User, utcnow,
 )
 from .routers.assessments import MATRIX, SKILLS
+from .routers.teams import purge_assessment_data
 
 
 USERS = ("dev-owner@example.com", "dev-coach@example.com")
@@ -37,41 +39,67 @@ def get_or_create(db, model, lookup, **values):
     return row
 
 
-def scores(position, player_index, period_index, self_assessment=False):
-    skill_ids = sorted(SKILLS["goalkeeper" if position == "goalkeeper" else "outfield"])
-    result = {}
-    for skill_index, skill_id in enumerate(skill_ids):
-        base = 2 + ((player_index * 3 + skill_index) % 3)
-        progress = 1 if period_index == 2 and skill_index % 3 == 0 else 0
-        offset = (1 if (player_index + skill_index) % 5 == 0 else -1) if self_assessment else 0
-        result[skill_id] = max(1, min(5, base + progress + offset))
-    return result
+PRIORITY_NOTES = (
+    "Work on this in every session.",
+    "Quick wins here with a few focused drills.",
+    "Talked through this together after the last match.",
+)
+RATING_NOTES = (
+    "Rushes this under pressure.",
+    "Big improvement in recent sessions.",
+    "Good in drills, less so in matches.",
+)
 
 
-def add_assessment(db, player, period, assessor, position, user, player_index, period_index):
-    existing = db.execute(select(Assessment).filter_by(
-        player_id=player.id, period_id=period.id, assessor=assessor
-    )).scalar_one_or_none()
-    if existing:
-        return existing
+def skill_ids_for(position):
+    return sorted(SKILLS["goalkeeper" if position == "goalkeeper" else "outfield"])
+
+
+def clamp(score):
+    return max(1, min(5, score))
+
+
+def coach_scores_by_period(rng, position, period_count):
+    """Per-period coach scores: each player has their own strengths and weaknesses, then drifts."""
+    talent = rng.choice((-1, 0, 0, 1))
+    current = {skill_id: clamp(rng.choice((1, 2, 2, 3, 3, 3, 4, 4, 5)) + talent) for skill_id in skill_ids_for(position)}
+    periods = [dict(current)]
+    for _ in range(1, period_count):
+        current = {skill_id: clamp(score + rng.choices((-1, 0, 1), weights=(1, 6, 3))[0]) for skill_id, score in current.items()}
+        periods.append(dict(current))
+    return periods
+
+
+def self_scores(rng, coach_scores):
+    """Players mostly agree with the coach; a few skills are notably over- or under-rated."""
+    return {skill_id: clamp(score + rng.choices((-2, -1, 0, 1, 2), weights=(1, 3, 6, 3, 1))[0])
+            for skill_id, score in coach_scores.items()}
+
+
+def weakest(rng, scores, count=3):
+    return sorted(scores, key=lambda skill_id: (scores[skill_id], rng.random()))[:count]
+
+
+def add_assessment(db, player, period, assessor, position, user, ratings, notes=None, note=None):
     kind = "goalkeeper" if position == "goalkeeper" else "outfield"
-    ratings = scores(position, player_index, period_index, assessor == "player")
+    notes = notes or {}
     assessment = Assessment(
         player_id=player.id, period_id=period.id, assessor=assessor,
-        position=kind, primary_position=position,
+        position=kind, primary_position=position, note=note,
         matrix_version=MATRIX["meta"]["version"], version=1,
         updated_by=user.id if assessor == "coach" else None,
     )
     db.add(assessment)
     db.flush()
-    for skill_id, score in ratings.items():
-        db.add(Rating(assessment_id=assessment.id, skill_id=skill_id, score=score))
+    rows = [{"skill_id": skill_id, "score": score, "note": notes.get(skill_id)} for skill_id, score in ratings.items()]
+    for row in rows:
+        db.add(Rating(assessment_id=assessment.id, **row))
     if assessor == "coach":
         db.add(AssessmentRevision(
             assessment_id=assessment.id, version=1, editor_id=user.id,
             snapshot={"position": kind, "primary_position": position,
                       "secondary_position": None, "secondary_position_frequency": None,
-                      "ratings": [{"skill_id": key, "score": value} for key, value in ratings.items()]},
+                      "note": note, "ratings": rows},
         ))
     return assessment
 
@@ -131,28 +159,42 @@ def seed():
                 period.is_active = period_index == 2
                 periods.append(period)
 
-            for player_index, (player_name, position) in enumerate(roster):
-                player = get_or_create(db, Player,
-                                       {"team_id": team.id, "name_key": player_name.casefold()},
-                                       name=player_name, active=True)
+            # Demo assessments are regenerated on every run from a fixed seed, so reruns give the same data.
+            players = []
+            for player_name, position in roster:
+                players.append((get_or_create(db, Player, {"team_id": team.id, "name_key": player_name.casefold()},
+                                              name=player_name, active=True), position))
+            purge_assessment_data(db, player_ids=[player.id for player, _ in players])
+            db.flush()
+
+            for player_index, (player, position) in enumerate(players):
+                rng = random.Random(f"{team.name}/{player.name}")
+                coach_periods = coach_scores_by_period(rng, position, len(periods))
+                previous_priorities = []
                 for period_index, period in enumerate(periods):
-                    # A few missing coach assessments make the team views realistic.
-                    if period_index == 1 and player_index == len(roster) - 1:
+                    # A missing coach assessment shows how follow-up skips back to an older period.
+                    if period_index == 1 and player_index == len(players) - 1:
                         continue
-                    add_assessment(db, player, period, "coach", position,
-                                   users[team_index], player_index, period_index)
+                    ratings = dict(coach_periods[period_index])
+                    # Last period's priorities move in a visible way: mostly improve, some hold or drop.
+                    for skill_id in previous_priorities:
+                        before = coach_periods[period_index - 1][skill_id] if period_index else ratings[skill_id]
+                        ratings[skill_id] = clamp(before + rng.choices((-1, 0, 1), weights=(2, 3, 5))[0])
+                    coach_periods[period_index] = ratings
+                    notes = {skill_id: rng.choice(RATING_NOTES) for skill_id in rng.sample(sorted(ratings), 2)}
+                    note = "Settled well into the team this period." if period_index == len(periods) - 1 and player_index % 2 == 0 else None
+                    add_assessment(db, player, period, "coach", position, users[team_index], ratings, notes, note)
                     # Only some players have submitted; the second team disables self-assessment.
                     if team_index == 0 and (player_index + period_index) % 3 != 0:
-                        add_assessment(db, player, period, "player", position,
-                                       users[team_index], player_index, period_index)
-                    if period_index == 2 and player_index < 3:
-                        for rank, skill_id in enumerate(sorted(
-                            SKILLS["goalkeeper" if position == "goalkeeper" else "outfield"]
-                        )[:3], start=1):
-                            get_or_create(db, PriorityConfirmation,
-                                          {"player_id": player.id, "period_id": period.id, "rank": rank},
-                                          skill_id=skill_id, algorithm_suggested=rank != 2,
-                                          coach_note="Focus on this in training." if rank == 1 else None)
+                        add_assessment(db, player, period, "player", position, users[team_index], self_scores(rng, ratings))
+                    # Earlier periods all have confirmed priorities; in the current period only some players do,
+                    # so others show last period's priorities with Keep buttons.
+                    if period_index < len(periods) - 1 or player_index % 3 == 0:
+                        previous_priorities = weakest(rng, ratings)
+                        for rank, skill_id in enumerate(previous_priorities, start=1):
+                            db.add(PriorityConfirmation(player_id=player.id, period_id=period.id, rank=rank,
+                                                        skill_id=skill_id, algorithm_suggested=rank != 2,
+                                                        coach_note=PRIORITY_NOTES[rank - 1] if rank != 3 else None))
 
     print("Development demo data is ready. Passwords were rotated; previous sessions were revoked.")
     for email, password in zip(USERS, passwords):
