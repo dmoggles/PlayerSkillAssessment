@@ -281,6 +281,7 @@ test('audit events read as plain sentences', async () => {
   assert.equal(auditText(event('period_deleted', { label: 'Autumn' }, null)), 'owner@example.com deleted the period Autumn')
   assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
   assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
+  assert.equal(auditText(event('matrix_published', { version: 2, applied_to: 'Summer' }, null)), 'owner@example.com published skill matrix version 2 (also used for Summer)')
   assert.equal(auditText(event('player_gender_changed', { from: 'mixed', to: 'girls' }, null)), 'owner@example.com changed player wording from mixed to girls')
 })
 
@@ -393,4 +394,44 @@ test('report share status reads clearly and share events appear in the activity 
   assert.equal(auditText(event), 'coach@example.com shared the report for Max (Autumn)')
   assert.equal(auditText({ ...event, details: { ...event.details, replaced: true } }), 'coach@example.com created a new report link for Max (Autumn), replacing the previous one')
   assert.equal(auditText({ ...event, action: 'report_share_revoked' }), 'coach@example.com revoked the report link for Max (Autumn)')
+})
+
+test('matrix editor helpers add, move, retire and tag skills without touching other data', async () => {
+  const m = await loadJsx('src/matrixEditorModel.js')
+  const doc = {
+    positions: ['goalkeeper', 'defender', 'midfielder', 'winger', 'striker'].map(id => ({ id })),
+    dependency_map: { touch: ['scan', 'pass'] },
+    sections: [
+      { id: 'technical', label: 'Technical', applies_to: m.OUTFIELD, skills: [{ id: 'touch', label: 'Touch', tags: { first_touch: 1 } }, { id: 'pass', label: 'Pass', tags: {} }] },
+      { id: 'tactical', label: 'Tactical', applies_to: m.OUTFIELD, skills: [{ id: 'scan', label: 'Scan', tags: {} }] },
+      { id: 'goalkeeper', label: 'Keeping', applies_to: m.GOALKEEPER, skills: [{ id: 'hands', label: 'Hands', tags: {} }] },
+    ],
+  }
+  const [added, key] = m.addSkill(doc, 'tactical')
+  const created = m.findSkill(added, key).skill
+  assert.equal(created.id, null)
+  assert.deepEqual(Object.keys(created.position_weights), ['goalkeeper', 'defender', 'midfielder', 'winger', 'striker'])
+  const [withKeeperSkill, keeperKey] = m.addSkill(doc, 'goalkeeper')
+  assert.deepEqual(Object.keys(m.findSkill(withKeeperSkill, keeperKey).skill.position_weights), ['goalkeeper'])
+  assert.equal(doc.sections[1].skills.length, 1, 'original document untouched')
+
+  assert.deepEqual(m.moveSkill(doc, 'pass', -1).sections[0].skills.map(s => s.id), ['pass', 'touch'])
+  assert.deepEqual(m.moveSkillToSection(doc, 'pass', 'tactical').sections.map(s => s.skills.map(k => k.id)), [['touch'], ['scan', 'pass'], ['hands']])
+  assert.equal(m.moveSkillToSection(doc, 'pass', 'goalkeeper'), doc, 'outfield skills cannot move into a goalkeeper section')
+  const retired = m.removeSkill(doc, 'scan')
+  assert.deepEqual(retired.dependency_map, { touch: ['pass'] })
+  assert.deepEqual(m.removeSkill(doc, 'touch').dependency_map, {})
+  assert.deepEqual(m.setTag(m.setTag(doc, 'pass', 'passing_short', 1), 'touch', 'first_touch', null).sections[0].skills.map(s => s.tags), [{}, { passing_short: 1 }])
+  assert.deepEqual(m.setFoundationFor(doc, 'touch', []).dependency_map, {})
+  assert.equal(m.removeSection(doc, 'technical').sections.length, 3, 'sections with skills are not removed')
+
+  const server = { sections: added.sections.map(s => ({ ...s, skills: s.skills.map(k => k._key ? { ...k, id: 'new_skill' } : k) })) }
+  const local = m.updateSkill(added, key, { label: 'Weak foot' })
+  const adopted = m.adoptServerIds(local, server)
+  assert.equal(m.findSkill(adopted, key).skill.id, 'new_skill', 'takes the server id')
+  assert.equal(m.findSkill(adopted, key).skill.label, 'Weak foot', 'keeps local edits and the same selection key')
+
+  assert.deepEqual(m.literalPronouns('Organises her teammates; where {they} {is|are} and their zone'), ['her', 'their'])
+  assert.deepEqual(m.literalPronouns('Sets {their} position'), [])
+  assert.equal(m.changeCount({ addition: ['a'], wording: ['b', 'c'], breaking: [] }), 3)
 })

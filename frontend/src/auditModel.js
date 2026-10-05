@@ -15,6 +15,7 @@ export function auditText(event) {
     case 'member_left': return `${actor} left the team`
     case 'period_deleted': return `${actor} deleted the period ${d.label}`
     case 'team_deleted': return `${actor} deleted the team`
+    case 'matrix_published': return `${actor} published skill matrix version ${d.version}${d.applied_to ? ` (also used for ${d.applied_to})` : ''}`
     case 'player_gender_changed': return `${actor} changed player wording from ${d.from} to ${d.to}`
     case 'report_shared': return d.replaced
       ? `${actor} created a new report link for ${d.player} (${d.period}), replacing the previous one`

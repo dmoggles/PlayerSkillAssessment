@@ -38,6 +38,10 @@ export const resetPassword = (token, password) => data(api.post('/auth/reset-pas
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
+export const getSkillTags = () => data(api.get('/skill-tags'))
+export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))
+export const saveMatrixDraft = (id, revision, document) => data(api.put(`${team(id)}/matrix/draft`, { revision, document }))
+export const discardMatrixDraft = id => data(api.delete(`${team(id)}/matrix/draft`))
 export const getMatrixVersion = (id, versionId) => data(api.get(`${team(id)}/matrix-versions/${versionId}`))
 export const getTeams = () => data(api.get('/teams'))
 export const createTeam = name => data(api.post('/teams', { name }))

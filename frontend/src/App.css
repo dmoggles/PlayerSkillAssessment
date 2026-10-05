@@ -700,3 +700,60 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .player-report { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; padding: 0; }
   .report-bar-track, .report-bar-fill, .report-trend, .report-message { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Skill matrix editor */
+.matrix-card p { margin: 0 0 8px; font-size: .88rem; }
+.matrix-card button, .matrix-editor button:not(.link-btn):not(.danger-btn) { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; font-weight: 600; }
+.matrix-card button:disabled, .matrix-editor button:disabled { opacity: .45; cursor: default; }
+.matrix-editor { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.matrix-editor-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; }
+.matrix-editor-header > .link-btn { grid-column: 1 / -1; justify-self: start; }
+.matrix-editor-header h2 { margin: 0; }
+.matrix-editor-header p { margin: 4px 0 0; font-size: .85rem; }
+.matrix-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.save-status { font-size: .8rem; color: var(--muted); }
+.save-status-problem { color: var(--error); font-weight: 700; }
+.matrix-summary { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: .86rem; }
+.matrix-summary p { margin: 0; }
+.matrix-summary summary { margin-top: 6px; cursor: pointer; color: var(--accent); }
+.matrix-summary-group h4 { margin: 12px 0 4px; font-size: .85rem; }
+.matrix-summary-group h4 small { margin-left: 6px; color: var(--muted); font-weight: 400; }
+.matrix-summary-group ul { margin: 0; padding-left: 18px; }
+.matrix-summary-group.problem h4, .change-breaking h4 { color: var(--error); }
+.matrix-summary-group.warning h4, .change-wording h4 { color: #8a5300; }
+.matrix-editor-body { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.matrix-outline { display: grid; gap: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.matrix-outline-section-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.matrix-outline-section-head input { flex: 1 1 140px; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-weight: 700; }
+.matrix-outline-section-head .item-actions button { padding: 3px 8px; }
+.matrix-outline ul { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 2px; }
+.matrix-outline li button { width: 100%; display: flex; gap: 6px; align-items: center; padding: 6px 8px !important; border: 0 !important; border-radius: 6px; background: none !important; text-align: left; font-weight: 400 !important; }
+.matrix-outline li button.active { background: #e3edf7 !important; font-weight: 700 !important; }
+.matrix-outline li button span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.matrix-skill { min-width: 0; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.skill-editor { display: grid; gap: 14px; }
+.skill-editor input, .skill-editor textarea, .skill-editor select { padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: .88rem; }
+.skill-editor textarea { width: 100%; resize: vertical; }
+.skill-editor-back { display: none; justify-self: start; }
+.skill-editor-place { align-items: flex-end; }
+.skill-editor-group { margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 10px; min-width: 0; }
+.skill-editor-group legend { padding: 0 6px; font-weight: 700; font-size: .9rem; }
+.hint { margin: 0; font-size: .8rem; }
+.level-row { display: grid; gap: 4px; }
+.warning-text { margin: 0; color: #8a5300; font-size: .8rem; }
+.tag-guide { margin: 0; padding: 6px 8px; border-radius: 6px; background: #f6f9fb; color: var(--muted); font-size: .8rem; }
+.tag-guide span { font-weight: 700; }
+.tag-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tag-list li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tag-list li span { flex: 1 1 140px; }
+.importance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.foundation-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 12px; font-size: .86rem; }
+.skill-editor-danger { display: flex; justify-content: flex-end; }
+@media (max-width: 760px) {
+  .matrix-editor-header { grid-template-columns: minmax(0, 1fr); }
+  .matrix-editor-actions { justify-content: flex-start; }
+  .matrix-editor-body { grid-template-columns: minmax(0, 1fr); }
+  .matrix-editor.has-selection .matrix-outline { display: none; }
+  .matrix-editor:not(.has-selection) .matrix-skill { display: none; }
+  .skill-editor-back { display: inline-block; }
+}
