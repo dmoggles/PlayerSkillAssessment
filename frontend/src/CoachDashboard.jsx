@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBlocker, useLocation, useNavigate } from 'react-router-dom'
-import { activatePeriod, addPlayer, archivePlayer, createPeriod, createTeam, deletePeriod, deleteTeam, errorMessage, getAuditLog, getCoachAssessment, getComparison, getMembers, getPeriodAssessments, getPeriods, getPlayerHistory, getPlayers, getRevisions, getSkillMatrix, getTeams, inviteCoach, issueSelfLink, removeMember, renamePeriod, renamePlayer, restorePlayer, revokeSelfLink, setMemberRole, submitCoachAssessment, updateTeam } from './api'
+import { activatePeriod, addPlayer, archivePlayer, createPeriod, createTeam, deletePeriod, deleteTeam, errorMessage, getAuditLog, getCoachAssessment, getComparison, getMembers, getPeriodAssessments, getPeriods, getPlayerHistory, getPlayers, getMatrixVersion, getRevisions, getTeams, inviteCoach, issueSelfLink, removeMember, renamePeriod, renamePlayer, restorePlayer, revokeSelfLink, setMemberRole, submitCoachAssessment, updateTeam } from './api'
 import SkillForm from './SkillForm'
 import MobileAssessment from './MobileAssessment'
 import ComparisonView from './ComparisonView'
@@ -61,7 +61,8 @@ export default function CoachDashboard({ user, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
   const currentArea = AREAS.find(area => location.pathname === `/app/${area.id}`) ?? AREAS[0]
-  const [matrix, setMatrix] = useState(null)
+  // Matrix documents by version id; each period is rated on its own version.
+  const [matrices, setMatrices] = useState({})
   const [teams, setTeams] = useState([])
   const [teamId, setTeamId] = useState('')
   const [players, setPlayers] = useState([])
@@ -95,6 +96,8 @@ export default function CoachDashboard({ user, onLogout }) {
   const selectedTeam = teams.find(t => t.id === Number(teamId))
   const selectedPlayer = players.find(p => p.id === Number(playerId))
   const selectedPeriod = periods.find(p => p.id === Number(periodId))
+  const versionId = selectedPeriod?.matrix_version_id
+  const matrix = versionId ? matrices[versionId] ?? null : null
   const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings, notes, assessmentNote) !== assessmentBaseline
   const dirty = assessmentDirty || prioritiesDirty || reportDirty
   const blocker = useBlocker(dirty)
@@ -164,8 +167,15 @@ export default function CoachDashboard({ user, onLogout }) {
   }
 
   useEffect(() => {
-    Promise.all([getSkillMatrix(), getTeams()]).then(([skills, rows]) => { setMatrix(skills); setTeams(rows); if (rows.length) setTeamId(String(rows[0].id)) }).catch(e => setMessage(fail(e)))
+    getTeams().then(rows => { setTeams(rows); if (rows.length) setTeamId(String(rows[0].id)) }).catch(e => setMessage(fail(e)))
   }, [])
+
+  useEffect(() => {
+    if (!teamId || !versionId || matrices[versionId]) return
+    let live = true
+    getMatrixVersion(teamId, versionId).then(doc => { if (live) setMatrices(previous => ({ ...previous, [versionId]: doc })) }).catch(e => { if (live) setMessage(fail(e)) })
+    return () => { live = false }
+  }, [teamId, versionId, matrices])
 
   useEffect(() => {
     if (!teamId) return

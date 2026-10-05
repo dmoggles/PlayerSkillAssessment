@@ -6,7 +6,7 @@ COPY pyproject.toml uv.lock ./
 RUN pip install --no-cache-dir uv==0.9.8 && uv sync --frozen --no-dev --no-install-project
 COPY app ./app
 COPY migrations ./migrations
-COPY alembic.ini bobtails_skill_matrix.json ./
+COPY alembic.ini ./
 RUN useradd --create-home --uid 10001 appuser
 ARG APP_VERSION=local
 ENV APP_VERSION=$APP_VERSION

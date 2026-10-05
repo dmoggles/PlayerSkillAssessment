@@ -2,8 +2,8 @@
 coaches are checked against that declaration. Adding a route without listing it here fails."""
 from fastapi.testclient import TestClient
 from app.main import app
-from app.routers import assessments, teams
-from test_flows import add_coach, clean_database, signed_in
+from app.routers import teams
+from test_flows import add_coach, clean_database, signed_in, starter_skills
 
 PUBLIC, SIGNED_IN, MEMBER, OWNER = "public", "signed_in", "member", "owner"
 PP = {"player_id": "{player_id}", "period_id": "{period_id}"}
@@ -17,6 +17,7 @@ ACCESS = {
     ("POST", "/auth/forgot-password"): (PUBLIC, None, None),
     ("POST", "/auth/reset-password"): (PUBLIC, None, None),
     ("GET", "/skill-matrix"): (PUBLIC, None, None),
+    ("GET", "/teams/{team_id}/matrix-versions/{version_id}"): (MEMBER, None, None),
     ("GET", "/health"): (PUBLIC, None, None),
     ("GET", "/self/{token}"): (PUBLIC, None, None),
     ("GET", "/report/{token}"): (PUBLIC, None, None),
@@ -88,10 +89,11 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
     owner.patch(f"/teams/{team_id}", json={"name": "Perms", "self_assessment_enabled": True}, headers=headers)
     assessment = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
-                  "ratings": [{"skill_id": s, "score": 3} for s in sorted(assessments.SKILLS["outfield"])]}
+                  "ratings": [{"skill_id": s, "score": 3} for s in starter_skills()]}
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
     ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id,
-           "assessment_id": assessment_id, "member_user_id": owner_id}
+           "assessment_id": assessment_id, "member_user_id": owner_id,
+           "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"]}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

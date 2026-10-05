@@ -38,7 +38,7 @@ export const resetPassword = (token, password) => data(api.post('/auth/reset-pas
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
-export const getSkillMatrix = () => data(api.get('/skill-matrix'))
+export const getMatrixVersion = (id, versionId) => data(api.get(`${team(id)}/matrix-versions/${versionId}`))
 export const getTeams = () => data(api.get('/teams'))
 export const createTeam = name => data(api.post('/teams', { name }))
 export const updateTeam = (id, value) => data(api.patch(team(id), value))

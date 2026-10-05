@@ -1,6 +1,4 @@
-import json
 from datetime import timedelta, timezone
-from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
@@ -9,16 +7,12 @@ from ..audit import record
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
+from ..matrix import document, period_document, position_ids, skill_set, starter_version, version_visible_to_team
 from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from .teams import scoped_period, scoped_player
 
 
 router = APIRouter(tags=["assessments"])
-MATRIX = json.loads((Path(__file__).parents[2] / "bobtails_skill_matrix.json").read_text())
-SKILLS = {kind: {skill["id"] for section in MATRIX["sections"]
-                 if ("goalkeeper" in section["applies_to"] if kind == "goalkeeper" else any(p in section["applies_to"] for p in ("defender", "midfielder", "winger", "striker")))
-                 for skill in section["skills"]} for kind in ("outfield", "goalkeeper")}
-POSITIONS = {p["id"] for p in MATRIX["positions"]}
 
 
 class RatingIn(BaseModel):
@@ -63,9 +57,9 @@ def clean_note(value: str | None) -> str | None:
     return value or None
 
 
-def validate_ratings(ratings: list[RatingIn], position: str):
+def validate_ratings(ratings: list[RatingIn], skills: set[str]):
     ids = [r.skill_id for r in ratings]
-    if len(ids) != len(set(ids)) or not set(ids).issubset(SKILLS[position]):
+    if len(ids) != len(set(ids)) or not set(ids).issubset(skills):
         raise HTTPException(422, "Invalid or repeated skill ID")
 
 
@@ -96,29 +90,39 @@ def scoped_assessment(db: DbSession, team_id: int, player_id: int, period_id: in
 
 
 @router.get("/skill-matrix")
-def skill_matrix():
-    return {**MATRIX, "meta": {**MATRIX["meta"], "team": "Starter skill matrix", "season": "", "age_group": ""}}
+def skill_matrix(db: DbSession = Depends(get_db)):
+    """The starter template's latest version."""
+    return document(db, starter_version(db).id)
+
+
+@router.get("/teams/{team_id}/matrix-versions/{version_id}")
+def matrix_version(team_id: int, version_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    if not version_visible_to_team(db, team_id, version_id):
+        raise HTTPException(404, "Matrix version not found")
+    return {**document(db, version_id), "version_id": version_id}
 
 
 @router.put("/teams/{team_id}/assessments/coach")
 def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     require_active_player(db, team_id, body.player_id)
-    scoped_period(db, team_id, body.period_id)
-    if body.primary_position not in POSITIONS or (body.secondary_position and body.secondary_position not in POSITIONS):
+    doc = period_document(db, scoped_period(db, team_id, body.period_id))
+    positions = position_ids(doc)
+    if body.primary_position not in positions or (body.secondary_position and body.secondary_position not in positions):
         raise HTTPException(422, "Invalid position")
     if body.secondary_position == body.primary_position:
         raise HTTPException(422, "Secondary position must differ")
     if body.secondary_position and body.secondary_position_frequency not in ("rarely", "sometimes", "often"):
         raise HTTPException(422, "Invalid secondary position frequency")
     position = "goalkeeper" if body.primary_position == "goalkeeper" else "outfield"
-    validate_ratings(body.ratings, position)
+    validate_ratings(body.ratings, skill_set(doc, position))
     a = db.query(Assessment).filter_by(player_id=body.player_id, period_id=body.period_id, assessor="coach").with_for_update(of=Assessment).first()
     if a and a.version != body.version or not a and body.version != 0:
         raise HTTPException(409, "Assessment changed. Reload before saving")
     if not a:
         a = Assessment(player_id=body.player_id, period_id=body.period_id, assessor="coach", position=position,
-                       version=1, updated_by=user.id, matrix_version=MATRIX["meta"]["version"])
+                       version=1, updated_by=user.id, matrix_version=doc["meta"]["version"])
         db.add(a)
         db.flush()
     else:
@@ -213,7 +217,8 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                             "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings],
                         }} if a else {}})
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
-            "message": report.message if report else None, "history": history}
+            "message": report.message if report else None, "history": history,
+            "matrix": period_document(db, period)}
 
 
 def share_status(report: PlayerReport | None) -> dict | None:
@@ -333,13 +338,14 @@ def get_priorities(team_id: int, player_id: int, period_id: int, db: DbSession =
 def set_priorities(team_id: int, player_id: int, period_id: int, body: PrioritiesIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     require_active_player(db, team_id, player_id)
-    scoped_period(db, team_id, period_id)
+    doc = period_document(db, scoped_period(db, team_id, period_id))
     coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
-    if not coach or set(SKILLS[coach.position]) - {r.skill_id for r in coach.ratings if r.score is not None}:
+    skills = skill_set(doc, coach.position) if coach else set()
+    if not coach or skills - {r.skill_id for r in coach.ratings if r.score is not None}:
         raise HTTPException(409, "Complete the coach assessment first")
     ids = [p.skill_id for p in body.priorities]
     ranks = [p.rank for p in body.priorities]
-    if len(ids) > 3 or len(ids) != len(set(ids)) or sorted(ranks) != list(range(1, len(ranks) + 1)) or not set(ids).issubset(SKILLS[coach.position]):
+    if len(ids) > 3 or len(ids) != len(set(ids)) or sorted(ranks) != list(range(1, len(ranks) + 1)) or not set(ids).issubset(skills):
         raise HTTPException(422, "Invalid priorities")
     db.query(PriorityConfirmation).filter_by(player_id=player_id, period_id=period_id).delete()
     for p in body.priorities:
@@ -471,7 +477,8 @@ def self_link_info(token: str, db: DbSession = Depends(get_db)):
     if not link.opened_at:
         link.opened_at = utcnow()
         db.commit()
-    return {"team": team.name, "player": player.name, "period": period.label, "expires_at": link.expires_at}
+    return {"team": team.name, "player": player.name, "period": period.label, "expires_at": link.expires_at,
+            "matrix": period_document(db, period)}
 
 
 @router.post("/self/{token}", status_code=201)
@@ -479,11 +486,12 @@ def submit_self(token: str, body: SelfAssessmentIn, db: DbSession = Depends(get_
     link, player, period, _ = valid_self_link(db, token, lock=True)
     if body.position not in ("outfield", "goalkeeper"):
         raise HTTPException(422, "Invalid position")
-    validate_ratings(body.ratings, body.position)
+    doc = period_document(db, period)
+    validate_ratings(body.ratings, skill_set(doc, body.position))
     if db.query(Assessment).filter_by(player_id=player.id, period_id=period.id, assessor="player").first():
         raise HTTPException(409, "Already submitted")
     a = Assessment(player_id=player.id, period_id=period.id, assessor="player", position=body.position,
-                   matrix_version=MATRIX["meta"]["version"])
+                   matrix_version=doc["meta"]["version"])
     db.add(a)
     db.flush()
     for r in body.ratings:

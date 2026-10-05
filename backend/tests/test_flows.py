@@ -3,15 +3,33 @@ from sqlalchemy import text
 from app.database import Base, engine
 from app import main
 from app.main import app
-from app.routers import accounts, assessments, teams
+from app.routers import accounts, teams
+
+
+# Reference data loaded by migrations: kept between tests (team-owned matrices are removed).
+REFERENCE_TABLES = {"skill_tags", "skill_matrices", "matrix_versions", "matrix_skill_tags"}
 
 
 def clean_database():
     if not engine.url.database or not engine.url.database.endswith("_test"):
         raise RuntimeError("Refusing to clear a database without a _test suffix")
     with engine.begin() as conn:
+        conn.execute(text("DELETE FROM matrix_skill_tags WHERE matrix_version_id IN (SELECT v.id FROM matrix_versions v JOIN skill_matrices m ON m.id = v.matrix_id WHERE m.team_id IS NOT NULL)"))
         for table in reversed(Base.metadata.sorted_tables):
-            conn.execute(table.delete())
+            if table.name == "matrix_versions":
+                conn.execute(text("DELETE FROM matrix_versions WHERE matrix_id IN (SELECT id FROM skill_matrices WHERE team_id IS NOT NULL)"))
+            elif table.name == "skill_matrices":
+                conn.execute(text("DELETE FROM skill_matrices WHERE team_id IS NOT NULL"))
+            elif table.name not in REFERENCE_TABLES:
+                conn.execute(table.delete())
+
+
+def starter_skills(kind="outfield"):
+    """Skill ids of the starter matrix for 'outfield' or 'goalkeeper' players, sorted."""
+    from app.database import SessionLocal
+    from app.matrix import document, skill_set, starter_version
+    with SessionLocal() as db:
+        return sorted(skill_set(document(db, starter_version(db).id), kind))
 
 
 def signed_in(email, monkeypatch):
@@ -118,7 +136,7 @@ def test_archived_players_are_read_only_until_restored(monkeypatch):
     add_coach(owner, csrf, team_id, coach, coach_csrf, "archive-coach@example.com", monkeypatch)
     player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Kai"}, headers=headers).json()["id"]
     period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
-    skill_ids = sorted(assessments.SKILLS["outfield"])
+    skill_ids = starter_skills()
     body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
             "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in skill_ids]}
     priority_params = {"player_id": player_id, "period_id": period_id}
@@ -187,7 +205,7 @@ def test_delete_team_requires_owner_and_exact_name(monkeypatch):
     add_coach(owner, csrf, team_id, coach, coach_csrf, "delete-coach@example.com", monkeypatch)
     player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Lee"}, headers=headers).json()["id"]
     period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
-    skill_ids = sorted(assessments.SKILLS["outfield"])
+    skill_ids = starter_skills()
     body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
             "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in skill_ids]}
     assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
@@ -407,7 +425,7 @@ def test_dev_seed_varies_players_and_demos_priority_follow_up(capsys):
     for name, label, skill_id, score in ratings:
         if label == "Autumn 2026":
             by_player.setdefault(name, []).append(score)
-    outfield = [scores for name, scores in by_player.items() if len(scores) == len(assessments.SKILLS["outfield"])]
+    outfield = [scores for name, scores in by_player.items() if len(scores) == len(starter_skills())]
     assert len({tuple(scores) for scores in outfield}) == len(outfield), "demo players should not share identical ratings"
     # Earlier periods have priorities for every assessed player; the current period only for some.
     assert priorities["Autumn 2025"] == 10 * 3
@@ -423,7 +441,7 @@ def test_player_report_is_player_safe_and_limited_to_earlier_periods(monkeypatch
     headers = {"x-csrf-token": csrf}
     team_id = owner.post("/teams", json={"name": "Reports"}, headers=headers).json()["id"]
     player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Rae"}, headers=headers).json()["id"]
-    skill_ids = sorted(assessments.SKILLS["outfield"])
+    skill_ids = starter_skills()
     period_ids = [owner.post(f"/teams/{team_id}/periods", json={"label": label}, headers=headers).json()["id"]
                   for label in ("Autumn", "Spring", "Summer")]
     for period_id in period_ids:
@@ -499,3 +517,49 @@ def test_report_share_link_is_read_only_expiring_and_revocable(monkeypatch):
     fourth = owner.post(f"{base}/share", headers=headers).json()["url"].split("/")[-1]
     owner.delete(f"/teams/{team_id}/periods/{period_id}", headers=headers)
     assert public.get(f"/report/{fourth}").status_code == 404
+
+
+def test_periods_pin_matrix_versions_and_tag_levels_follow_the_mapping(monkeypatch):
+    from app.database import SessionLocal
+    from app.matrix import tag_levels
+    clean_database()
+    owner, csrf = signed_in("matrix-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Matrix"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Ivy"}, headers=headers).json()["id"]
+    period = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()
+    version_id = period["matrix_version_id"]
+    doc = owner.get(f"/teams/{team_id}/matrix-versions/{version_id}").json()
+    assert doc["version_id"] == version_id and doc["meta"]["scale"]["points"] == [1, 2, 3, 4, 5]
+    assert {s["id"] for section in doc["sections"] for s in section["skills"] if "goalkeeper" not in section["applies_to"]} == set(starter_skills())
+    assert owner.get(f"/teams/{team_id}/matrix-versions/999999").status_code == 404
+    assert TestClient(app).get("/skill-matrix").json()["sections"] == doc["sections"]
+
+    scores = {skill_id: 3 for skill_id in starter_skills()}
+    scores.update(first_touch_body_shape=1, shape_awareness=4, pressing_unit=2)
+    body = {"player_id": player_id, "period_id": period["id"], "version": 0, "primary_position": "defender",
+            "ratings": [{"skill_id": s, "score": v} for s, v in scores.items()]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    with SessionLocal() as db:
+        levels = tag_levels(db, player_id, period["id"])
+    assert levels["first_touch"] == 1.0
+    assert levels["scanning"] == 2.5             # first touch 1 (weight 0.5) and shape awareness 4 (weight 0.5)
+    assert levels["team_shape"] == round((4 * 1.0 + 2 * 0.5) / 1.5, 2)
+    assert "gk_shot_stopping" not in levels      # goalkeeper skills were not rated
+
+    owner.patch(f"/teams/{team_id}", json={"name": "Matrix", "self_assessment_enabled": True}, headers=headers)
+    token = owner.post(f"/teams/{team_id}/players/{player_id}/periods/{period['id']}/self-link", headers=headers).json()["url"].split("/")[-1]
+    assert TestClient(app).get(f"/self/{token}").json()["matrix"]["sections"] == doc["sections"]
+    report = owner.get(f"/teams/{team_id}/players/{player_id}/periods/{period['id']}/report").json()
+    assert report["matrix"]["sections"] == doc["sections"]
+    unknown = {**body, "version": 1, "ratings": [{"skill_id": "not_a_skill", "score": 3}]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=unknown, headers=headers).status_code == 422
+
+
+def test_every_starter_skill_maps_to_known_tags():
+    with engine.begin() as conn:
+        mapped = set(conn.execute(text("SELECT DISTINCT skill_id FROM matrix_skill_tags WHERE matrix_version_id = 1")).scalars())
+        unknown = conn.execute(text("SELECT count(*) FROM matrix_skill_tags m LEFT JOIN skill_tags t ON t.id = m.tag_id WHERE t.id IS NULL")).scalar()
+        tag_count = conn.execute(text("SELECT count(*) FROM skill_tags WHERE level_1 <> '' AND level_3 <> '' AND level_5 <> ''")).scalar()
+    assert mapped == set(starter_skills("outfield")) | set(starter_skills("goalkeeper"))
+    assert unknown == 0 and tag_count == 30

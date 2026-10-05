@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { errorMessage, getSelfLinkInfo, getSkillMatrix, submitSelfAssessment } from './api'
+import { errorMessage, getSelfLinkInfo, submitSelfAssessment } from './api'
 import SkillForm from './SkillForm'
 import { sectionsFor } from './matrix'
 
@@ -14,8 +14,8 @@ export default function PlayerPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getSelfLinkInfo(token), getSkillMatrix()])
-      .then(([link, skills]) => { setInfo(link); setMatrix(skills); setStatus('ready') })
+    getSelfLinkInfo(token)
+      .then(link => { setInfo(link); setMatrix(link.matrix); setStatus('ready') })
       .catch(e => { setError(errorMessage(e, 'This link is unavailable.')); setStatus('error') })
   }, [token])
 

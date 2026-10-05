@@ -13,7 +13,7 @@ from .models import (
     Assessment, AssessmentRevision, Membership, Period, Player,
     PriorityConfirmation, Rating, Session, Team, User, utcnow,
 )
-from .routers.assessments import MATRIX, SKILLS
+from .matrix import document, skill_set, starter_version
 from .routers.teams import purge_assessment_data
 
 
@@ -51,18 +51,18 @@ RATING_NOTES = (
 )
 
 
-def skill_ids_for(position):
-    return sorted(SKILLS["goalkeeper" if position == "goalkeeper" else "outfield"])
+def skill_ids_for(doc, position):
+    return sorted(skill_set(doc, "goalkeeper" if position == "goalkeeper" else "outfield"))
 
 
 def clamp(score):
     return max(1, min(5, score))
 
 
-def coach_scores_by_period(rng, position, period_count):
+def coach_scores_by_period(rng, doc, position, period_count):
     """Per-period coach scores: each player has their own strengths and weaknesses, then drifts."""
     talent = rng.choice((-1, 0, 0, 1))
-    current = {skill_id: clamp(rng.choice((1, 2, 2, 3, 3, 3, 4, 4, 5)) + talent) for skill_id in skill_ids_for(position)}
+    current = {skill_id: clamp(rng.choice((1, 2, 2, 3, 3, 3, 4, 4, 5)) + talent) for skill_id in skill_ids_for(doc, position)}
     periods = [dict(current)]
     for _ in range(1, period_count):
         current = {skill_id: clamp(score + rng.choices((-1, 0, 1), weights=(1, 6, 3))[0]) for skill_id, score in current.items()}
@@ -86,7 +86,7 @@ def add_assessment(db, player, period, assessor, position, user, ratings, notes=
     assessment = Assessment(
         player_id=player.id, period_id=period.id, assessor=assessor,
         position=kind, primary_position=position, note=note,
-        matrix_version=MATRIX["meta"]["version"], version=1,
+        matrix_version=document(db, period.matrix_version_id)["meta"]["version"], version=1,
         updated_by=user.id if assessor == "coach" else None,
     )
     db.add(assessment)
@@ -111,6 +111,7 @@ def seed():
 
     passwords = [secrets.token_urlsafe(20) for _ in USERS]
     with SessionLocal.begin() as db:
+        starter = starter_version(db)
         users = []
         for email, legacy_email, password in zip(USERS, LEGACY_USERS, passwords):
             user = db.execute(select(User).filter_by(email=email)).scalar_one_or_none()
@@ -155,7 +156,7 @@ def seed():
             periods = []
             for period_index, label in enumerate(PERIODS):
                 period = get_or_create(db, Period, {"team_id": team.id, "label": label},
-                                       is_active=period_index == 2)
+                                       is_active=period_index == 2, matrix_version_id=starter.id)
                 period.is_active = period_index == 2
                 periods.append(period)
 
@@ -169,7 +170,7 @@ def seed():
 
             for player_index, (player, position) in enumerate(players):
                 rng = random.Random(f"{team.name}/{player.name}")
-                coach_periods = coach_scores_by_period(rng, position, len(periods))
+                coach_periods = coach_scores_by_period(rng, starter.document, position, len(periods))
                 previous_priorities = []
                 for period_index, period in enumerate(periods):
                     # A missing coach assessment shows how follow-up skips back to an older period.

@@ -1,13 +1,17 @@
 {
   "meta": {
-    "team": "Bob-Tails",
-    "season": "2026/27",
     "age_group": "U12",
     "format": "7-a-side",
     "formation": "2-3-1",
     "version": "1.0.0",
     "scale": {
-      "points": [1, 2, 3, 4, 5],
+      "points": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "anchors": {
         "1": "Developing",
         "3": "Achieving",
@@ -16,32 +20,57 @@
       "notes": "2 and 4 are intermediate points with no descriptor. Use when a player clearly exceeds one anchor but has not fully reached the next."
     }
   },
-
   "positions": [
-    { "id": "goalkeeper", "label": "Goalkeeper" },
-    { "id": "defender",   "label": "Defender" },
-    { "id": "midfielder", "label": "Midfielder" },
-    { "id": "winger",     "label": "Winger" },
-    { "id": "striker",    "label": "Striker" }
+    {
+      "id": "goalkeeper",
+      "label": "Goalkeeper"
+    },
+    {
+      "id": "defender",
+      "label": "Defender"
+    },
+    {
+      "id": "midfielder",
+      "label": "Midfielder"
+    },
+    {
+      "id": "winger",
+      "label": "Winger"
+    },
+    {
+      "id": "striker",
+      "label": "Striker"
+    }
   ],
-
   "position_weight_values": {
     "HIGH": 1.5,
-    "MED":  1.0,
-    "LOW":  0.5
+    "MED": 1.0,
+    "LOW": 0.5
   },
-
   "secondary_position_blend": {
-    "rarely":    { "primary": 1.0,  "secondary": 0.0  },
-    "sometimes": { "primary": 0.7,  "secondary": 0.3  },
-    "often":     { "primary": 0.55, "secondary": 0.45 }
+    "rarely": {
+      "primary": 1.0,
+      "secondary": 0.0
+    },
+    "sometimes": {
+      "primary": 0.7,
+      "secondary": 0.3
+    },
+    "often": {
+      "primary": 0.55,
+      "secondary": 0.45
+    }
   },
-
   "sections": [
     {
       "id": "technical",
       "label": "Technical Skills",
-      "applies_to": ["defender", "midfielder", "winger", "striker"],
+      "applies_to": [
+        "defender",
+        "midfielder",
+        "winger",
+        "striker"
+      ],
       "skills": [
         {
           "id": "first_touch_body_shape",
@@ -53,10 +82,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": true
         },
@@ -70,10 +99,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "MED",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": false
         },
@@ -87,10 +116,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "LOW",
+            "defender": "LOW",
             "midfielder": "MED",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": false
         },
@@ -104,10 +133,10 @@
           },
           "position_weights": {
             "goalkeeper": "MED",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "MED"
+            "winger": "MED",
+            "striker": "MED"
           },
           "is_dependency_root": false
         },
@@ -121,10 +150,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "HIGH",
-            "winger":     "LOW",
-            "striker":    "LOW"
+            "winger": "LOW",
+            "striker": "LOW"
           },
           "is_dependency_root": false
         },
@@ -138,10 +167,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "LOW",
+            "defender": "LOW",
             "midfielder": "LOW",
-            "winger":     "MED",
-            "striker":    "HIGH"
+            "winger": "MED",
+            "striker": "HIGH"
           },
           "is_dependency_root": false
         },
@@ -155,10 +184,10 @@
           },
           "position_weights": {
             "goalkeeper": "MED",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "MED",
-            "winger":     "MED",
-            "striker":    "LOW"
+            "winger": "MED",
+            "striker": "LOW"
           },
           "is_dependency_root": false
         },
@@ -172,20 +201,24 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "LOW"
+            "winger": "MED",
+            "striker": "LOW"
           },
           "is_dependency_root": false
         }
       ]
     },
-
     {
       "id": "tactical",
       "label": "Tactical Skills",
-      "applies_to": ["defender", "midfielder", "winger", "striker"],
+      "applies_to": [
+        "defender",
+        "midfielder",
+        "winger",
+        "striker"
+      ],
       "skills": [
         {
           "id": "receiving_movement",
@@ -197,10 +230,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": true
         },
@@ -214,10 +247,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "MED"
+            "winger": "MED",
+            "striker": "MED"
           },
           "is_dependency_root": false
         },
@@ -231,10 +264,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "MED"
+            "winger": "MED",
+            "striker": "MED"
           },
           "is_dependency_root": false
         },
@@ -248,10 +281,10 @@
           },
           "position_weights": {
             "goalkeeper": "HIGH",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "MED"
+            "winger": "MED",
+            "striker": "MED"
           },
           "is_dependency_root": false
         },
@@ -265,10 +298,10 @@
           },
           "position_weights": {
             "goalkeeper": "HIGH",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "MED",
-            "striker":    "MED"
+            "winger": "MED",
+            "striker": "MED"
           },
           "is_dependency_root": true
         },
@@ -282,10 +315,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": false
         },
@@ -299,10 +332,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "MED"
+            "winger": "HIGH",
+            "striker": "MED"
           },
           "is_dependency_root": false
         },
@@ -316,10 +349,10 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "MED",
+            "defender": "MED",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "HIGH"
+            "winger": "HIGH",
+            "striker": "HIGH"
           },
           "is_dependency_root": false
         },
@@ -333,20 +366,21 @@
           },
           "position_weights": {
             "goalkeeper": "LOW",
-            "defender":   "HIGH",
+            "defender": "HIGH",
             "midfielder": "HIGH",
-            "winger":     "HIGH",
-            "striker":    "MED"
+            "winger": "HIGH",
+            "striker": "MED"
           },
           "is_dependency_root": false
         }
       ]
     },
-
     {
       "id": "goalkeeper",
       "label": "Goalkeeper Skills",
-      "applies_to": ["goalkeeper"],
+      "applies_to": [
+        "goalkeeper"
+      ],
       "skills": [
         {
           "id": "handling_shot_stopping",
@@ -416,17 +450,27 @@
       ]
     }
   ],
-
   "dependency_map": {
-    "first_touch_body_shape":   ["decision_making_open_play", "switching_play"],
-    "receiving_movement":       ["supporting_ball_carrier"],
-    "supporting_ball_carrier":  ["pressing_unit"],
-    "composure_under_pressure": ["transition_losing", "transition_winning"],
-    "handling_shot_stopping":   ["positioning_angles", "commanding_area"]
+    "first_touch_body_shape": [
+      "decision_making_open_play",
+      "switching_play"
+    ],
+    "receiving_movement": [
+      "supporting_ball_carrier"
+    ],
+    "supporting_ball_carrier": [
+      "pressing_unit"
+    ],
+    "composure_under_pressure": [
+      "transition_losing",
+      "transition_winning"
+    ],
+    "handling_shot_stopping": [
+      "positioning_angles",
+      "commanding_area"
+    ]
   },
-
   "dependency_bonus": 1.0,
-
   "priority": {
     "top_n": 3,
     "low_score_threshold": 2,

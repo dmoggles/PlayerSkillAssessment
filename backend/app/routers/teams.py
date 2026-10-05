@@ -7,7 +7,8 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User
+from ..matrix import team_version
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SkillMatrix, Team, User
 from .accounts import delivery_message
 
 
@@ -61,7 +62,8 @@ def player_out(player: Player):
 
 
 def period_out(period: Period):
-    return {"id": period.id, "label": period.label, "is_active": period.is_active, "created_at": period.created_at}
+    return {"id": period.id, "label": period.label, "is_active": period.is_active, "created_at": period.created_at,
+            "matrix_version_id": period.matrix_version_id}
 
 
 def nonblank(value: str) -> str:
@@ -150,6 +152,11 @@ def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db),
     purge_assessment_data(db, player_ids=player_ids)
     db.query(Player).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
+    own_matrices = db.query(SkillMatrix.id).filter_by(team_id=team_id)
+    own_versions = db.query(MatrixVersion.id).filter(MatrixVersion.matrix_id.in_(own_matrices))
+    db.query(MatrixSkillTag).filter(MatrixSkillTag.matrix_version_id.in_(own_versions)).delete(synchronize_session=False)
+    db.query(MatrixVersion).filter(MatrixVersion.matrix_id.in_(own_matrices)).delete(synchronize_session=False)
+    db.query(SkillMatrix).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(AuthToken).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Membership).filter_by(team_id=team_id).delete(synchronize_session=False)
     record(db, team_id, user, "team_deleted", name=team.name)
@@ -304,7 +311,8 @@ def create_period(team_id: int, body: PeriodBody, db: DbSession = Depends(get_db
     db.query(Team).filter_by(id=team_id).with_for_update().first()
     if body.is_active:
         db.query(Period).filter_by(team_id=team_id).update({"is_active": False})
-    period = Period(team_id=team_id, label=nonblank(body.label), is_active=body.is_active)
+    period = Period(team_id=team_id, label=nonblank(body.label), is_active=body.is_active,
+                    matrix_version_id=team_version(db, db.get(Team, team_id)).id)
     db.add(period)
     try:
         db.commit()

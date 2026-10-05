@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, SmallInteger, String, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, JSON, SmallInteger, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -80,6 +81,8 @@ class Period(Base):
     label: Mapped[str] = mapped_column(String(100))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # The skill matrix version everyone in this period is rated on.
+    matrix_version_id: Mapped[int] = mapped_column(ForeignKey("matrix_versions.id"), index=True)
 
 
 class Assessment(Base):
@@ -177,3 +180,49 @@ class PlayerReport(Base):
     share_issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     share_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     share_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SkillTag(Base):
+    """Global taxonomy that skills, drills and training plans share. level_1/3/5 describe Developing, Achieving
+    and Excelling on the common scale, relative to the player's age group."""
+    __tablename__ = "skill_tags"
+    __table_args__ = (CheckConstraint("area IN ('technical', 'tactical', 'mental', 'goalkeeping', 'physical')", name="ck_skill_tags_area"),)
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    area: Mapped[str] = mapped_column(String(20))
+    label: Mapped[str] = mapped_column(String(80))
+    level_1: Mapped[str] = mapped_column(String(200))
+    level_3: Mapped[str] = mapped_column(String(200))
+    level_5: Mapped[str] = mapped_column(String(200))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class SkillMatrix(Base):
+    """A starter template (team_id is null) or a team's own matrix."""
+    __tablename__ = "skill_matrices"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MatrixVersion(Base):
+    """An immutable published version of a matrix: labels, descriptors, weights and dependencies."""
+    __tablename__ = "matrix_versions"
+    __table_args__ = (UniqueConstraint("matrix_id", "version"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    matrix_id: Mapped[int] = mapped_column(ForeignKey("skill_matrices.id"), index=True)
+    version: Mapped[int] = mapped_column(Integer)
+    document: Mapped[dict] = mapped_column(JSONB)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MatrixSkillTag(Base):
+    """Which tags a skill in a given matrix version feeds, and how strongly."""
+    __tablename__ = "matrix_skill_tags"
+    __table_args__ = (UniqueConstraint("matrix_version_id", "skill_id", "tag_id"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    matrix_version_id: Mapped[int] = mapped_column(ForeignKey("matrix_versions.id"), index=True)
+    skill_id: Mapped[str] = mapped_column(String(80))
+    tag_id: Mapped[str] = mapped_column(ForeignKey("skill_tags.id"), index=True)
+    weight: Mapped[float] = mapped_column(Float)

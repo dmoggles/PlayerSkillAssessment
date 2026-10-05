@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { errorMessage, getSharedReport, getSkillMatrix } from './api'
+import { errorMessage, getSharedReport } from './api'
 import PlayerReport from './PlayerReport'
 import { buildReport } from './reportModel'
 
@@ -11,8 +11,8 @@ export default function SharedReportPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getSharedReport(token), getSkillMatrix()])
-      .then(([value, matrix]) => setReport(buildReport(matrix, value)))
+    getSharedReport(token)
+      .then(value => setReport(buildReport(value.matrix, value)))
       .catch(e => setError(errorMessage(e, 'This link is unavailable.')))
   }, [token])
 
