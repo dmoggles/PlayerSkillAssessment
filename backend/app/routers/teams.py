@@ -8,7 +8,7 @@ from ..auth import consume_auth_token, current_user, issue_auth_token, require_m
 from ..config import settings
 from ..database import get_db
 from ..matrix import team_version
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SkillMatrix, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SkillMatrix, Team, User
 from .accounts import delivery_message
 
 
@@ -157,6 +157,7 @@ def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db),
     purge_assessment_data(db, player_ids=player_ids)
     db.query(Player).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
+    db.query(MatrixDraft).filter_by(team_id=team_id).delete(synchronize_session=False)
     own_matrices = db.query(SkillMatrix.id).filter_by(team_id=team_id)
     own_versions = db.query(MatrixVersion.id).filter(MatrixVersion.matrix_id.in_(own_matrices))
     db.query(MatrixSkillTag).filter(MatrixSkillTag.matrix_version_id.in_(own_versions)).delete(synchronize_session=False)

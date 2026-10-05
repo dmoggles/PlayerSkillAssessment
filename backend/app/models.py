@@ -228,3 +228,15 @@ class MatrixSkillTag(Base):
     skill_id: Mapped[str] = mapped_column(String(80))
     tag_id: Mapped[str] = mapped_column(ForeignKey("skill_tags.id"), index=True)
     weight: Mapped[float] = mapped_column(Float)
+
+
+class MatrixDraft(Base):
+    """A team's work-in-progress matrix, autosaved. Skills carry their tags inside the document until publish."""
+    __tablename__ = "matrix_drafts"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), unique=True)
+    base_version_id: Mapped[int] = mapped_column(ForeignKey("matrix_versions.id"))
+    document: Mapped[dict] = mapped_column(JSONB)
+    revision: Mapped[int] = mapped_column(Integer)
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

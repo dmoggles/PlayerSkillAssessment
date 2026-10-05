@@ -616,3 +616,110 @@ def test_starter_matrix_has_no_hard_coded_gendered_words():
     literal = re.compile(r"\b(they|them|their|theirs|themselves|themself)\b", re.IGNORECASE)
     assert [t for t in texts if literal.search(re.sub(r"\{[^{}]*\}", "", t))] == []
     assert TestClient(app).get("/skill-matrix").json()["sections"][2]["skills"][0]["descriptors"]["3"] == "Holds most shots at their body cleanly; diving stops still developing"
+
+
+def test_matrix_editor_drafts_classify_changes_and_publish_new_versions(monkeypatch):
+    import copy
+    clean_database()
+    owner, csrf = signed_in("editor-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Editors"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Lou"}, headers=headers).json()["id"]
+    autumn = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()
+    starter_id = autumn["matrix_version_id"]
+    url = f"/teams/{team_id}/matrix/draft"
+
+    state = owner.get(url).json()
+    assert state["draft"] is False and state["revision"] == 0 and state["problems"] == [] and not any(state["changes"].values())
+    assert state["current"] == {"name": "Starter: U12 7-a-side", "version": 1, "own": False} and "restarts" in state["base_skill_ids"]
+    doc = state["document"]
+    technical = next(s for s in doc["sections"] if s["id"] == "technical")
+    assert next(k for k in technical["skills"] if k["id"] == "passing_short")["tags"] == {"passing_short": 1.0}
+    assert "{they}" in str(doc)  # editors work on raw text with placeholders
+
+    # Add a skill without an id: the server assigns a permanent one.
+    weights = {p: "MED" for p in ("goalkeeper", "defender", "midfielder", "winger", "striker")}
+    technical["skills"].append({"_key": "tmp-1", "label": "Weak foot", "descriptors": {"1": "Avoids it", "3": "Uses it when unpressed", "5": "Two-footed"},
+                                "position_weights": weights, "tags": {}})
+    state = owner.put(url, json={"revision": 0, "document": doc}, headers=headers).json()
+    assert state["revision"] == 1 and state["changes"]["addition"] == ["Added Weak foot to Technical Skills"]
+    assert "Weak foot needs at least one skill tag" in state["problems"]
+    doc = state["document"]
+    weak = next(k for s in doc["sections"] for k in s["skills"] if k["label"] == "Weak foot")
+    assert weak["id"] == "weak_foot"
+    assert owner.put(url, json={"revision": 0, "document": doc}, headers=headers).status_code == 409  # stale autosave
+    fixed = copy.deepcopy(doc); fixed["priority"]["top_n"] = 5
+    assert owner.put(url, json={"revision": 1, "document": fixed}, headers=headers).status_code == 422
+    flipped = copy.deepcopy(doc); flipped["sections"][0]["applies_to"] = ["goalkeeper"]
+    assert owner.put(url, json={"revision": 1, "document": flipped}, headers=headers).status_code == 422
+
+    # Tag the new skill, reword one, retire one, and write a plain pronoun.
+    weak["tags"] = {"passing_short": 1.0, "first_touch": 0.5}
+    for section in doc["sections"]:
+        section["skills"] = [k for k in section["skills"] if k["id"] != "restarts"]
+        for k in section["skills"]:
+            if k["id"] == "communication":
+                k["descriptors"]["5"] = "Organises her teammates constantly"
+    state = owner.put(url, json={"revision": 1, "document": doc}, headers=headers).json()
+    assert state["problems"] == []
+    assert state["warnings"] == ['Communication, level 5: use placeholders instead of "her"']
+    assert state["changes"]["wording"] == ["Changed the level 5 description of Communication"]
+    assert state["changes"]["breaking"] == ["Retired Restarts (Throw-ins / Kick-ins & Free Kicks)"]
+
+    publish = f"/teams/{team_id}/matrix/publish"
+    refused = owner.post(publish, json={"revision": 2}, headers=headers)
+    assert refused.status_code == 409 and "Confirm" in refused.json()["detail"]
+    published = owner.post(publish, json={"revision": 2, "acknowledge": True}, headers=headers).json()
+    assert published["version"] == 1 and published["applied_to_period"] is None
+    assert owner.get(url).json()["draft"] is False
+
+    # Existing periods keep the starter; new periods use the team's version.
+    periods = {p["label"]: p for p in owner.get(f"/teams/{team_id}/periods").json()}
+    assert periods["Autumn"]["matrix_version_id"] == starter_id
+    spring = owner.post(f"/teams/{team_id}/periods", json={"label": "Spring"}, headers=headers).json()
+    assert spring["matrix_version_id"] == published["version_id"]
+    new_doc = owner.get(f"/teams/{team_id}/matrix-versions/{published['version_id']}").json()
+    skill_ids = {k["id"] for s in new_doc["sections"] for k in s["skills"]}
+    assert "weak_foot" in skill_ids and "restarts" not in skill_ids
+    assert "tags" not in str(new_doc["sections"])  # tags live in matrix_skill_tags, not the document
+    assert "_key" not in str(new_doc)  # editor-only keys are not published
+    with engine.begin() as conn:
+        rows = conn.execute(text("SELECT tag_id, weight FROM matrix_skill_tags WHERE matrix_version_id = :v AND skill_id = 'weak_foot' ORDER BY tag_id"),
+                            {"v": published["version_id"]}).all()
+    assert [tuple(r) for r in rows] == [("first_touch", 0.5), ("passing_short", 1.0)]
+    ratings = [{"skill_id": s, "score": 3} for s in sorted(skill_ids - {"handling_shot_stopping", "distribution_short", "distribution_long", "commanding_area", "positioning_angles"})]
+    body = {"player_id": player_id, "period_id": spring["id"], "version": 0, "primary_position": "winger", "ratings": ratings}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    retired = {**body, "version": 1, "ratings": [{"skill_id": "restarts", "score": 3}]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=retired, headers=headers).status_code == 422
+
+    # A retired id is never reused; reordering alone needs no confirmation; the unassessed current period can adopt a new version.
+    state = owner.get(url).json()
+    doc = state["document"]
+    doc["sections"][0]["skills"].append({**copy.deepcopy(weak), "id": None, "label": "Restarts", "tags": {"set_pieces": 1.0}})
+    doc["sections"][0]["skills"] = [k for k in doc["sections"][0]["skills"] if k["id"] != "weak_foot"]
+    state = owner.put(url, json={"revision": 0, "document": doc}, headers=headers).json()
+    assert any(k["id"] == "restarts_2" for s in state["document"]["sections"] for k in s["skills"])
+    owner.delete(url, headers=headers)
+    doc = owner.get(url).json()["document"]
+    doc["sections"] = list(reversed(doc["sections"]))
+    state = owner.put(url, json={"revision": 0, "document": doc}, headers=headers).json()
+    assert state["changes"]["layout"] == ["Changed the order of sections or skills"] and not state["changes"]["breaking"]
+    summer = owner.post(f"/teams/{team_id}/periods", json={"label": "Summer"}, headers=headers).json()
+    applied = owner.post(publish, json={"revision": 1, "apply_to_current_period": True}, headers=headers).json()
+    assert applied["version"] == 2 and applied["applied_to_period"] == "Summer"
+    assert next(p for p in owner.get(f"/teams/{team_id}/periods").json() if p["id"] == summer["id"])["matrix_version_id"] == applied["version_id"]
+    events = [e for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "matrix_published"]
+    assert [e["details"]["version"] for e in events] == [2, 1]
+    assert owner.request("DELETE", f"/teams/{team_id}", json={"confirm_name": "Editors"}, headers=headers).status_code == 200
+
+
+def test_skill_tag_ids_are_never_removed():
+    """Tag ids are permanent: they can be retired (active = false) but not deleted or renamed. See TAXONOMY.md."""
+    import json
+    from pathlib import Path
+    files = sorted((Path(__file__).parents[1] / "migrations" / "data").glob("skill_tags_v*.json"))
+    ever_defined = {row["id"] for f in files for row in json.loads(f.read_text())}
+    with engine.begin() as conn:
+        in_database = set(conn.execute(text("SELECT id FROM skill_tags")).scalars())
+    assert ever_defined - in_database == set()

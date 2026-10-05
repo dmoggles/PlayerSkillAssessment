@@ -38,3 +38,11 @@ def render_document(value, gender: str):
 def gendered_words(text: str) -> list[str]:
     """Gendered words written directly instead of placeholders (for warnings in the matrix editor)."""
     return [m.group(0) for m in GENDERED_WORD.finditer(text)]
+
+
+LITERAL_PRONOUN = re.compile(r"\b(she|her|hers|herself|he|him|his|himself|they|them|their|theirs|themselves|themself|they're|she's|he's)\b", re.IGNORECASE)
+
+
+def literal_pronouns(text: str) -> list[str]:
+    """Pronouns written as plain words rather than placeholders, so they would not follow the team's setting."""
+    return [m.group(0) for m in LITERAL_PRONOUN.finditer(PLACEHOLDER.sub("", text))]
