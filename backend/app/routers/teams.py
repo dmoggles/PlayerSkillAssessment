@@ -22,6 +22,7 @@ class TeamCreate(BaseModel):
 class TeamSettings(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     self_assessment_enabled: bool
+    player_gender: Literal["girls", "boys", "mixed"] | None = None
 
 
 class TeamDelete(BaseModel):
@@ -54,7 +55,8 @@ class PeriodRename(BaseModel):
 
 
 def team_out(team: Team, role: str):
-    return {"id": team.id, "name": team.name, "self_assessment_enabled": team.self_assessment_enabled, "role": role}
+    return {"id": team.id, "name": team.name, "self_assessment_enabled": team.self_assessment_enabled,
+            "player_gender": team.player_gender, "role": role}
 
 
 def player_out(player: Player):
@@ -133,6 +135,9 @@ def update_team(team_id: int, body: TeamSettings, db: DbSession = Depends(get_db
         record(db, team_id, user, "team_renamed", **{"from": team.name, "to": name})
     if body.self_assessment_enabled != team.self_assessment_enabled:
         record(db, team_id, user, "self_assessment_" + ("enabled" if body.self_assessment_enabled else "disabled"))
+    if body.player_gender and body.player_gender != team.player_gender:
+        record(db, team_id, user, "player_gender_changed", **{"from": team.player_gender, "to": body.player_gender})
+        team.player_gender = body.player_gender
     team.name = name
     team.self_assessment_enabled = body.self_assessment_enabled
     if not body.self_assessment_enabled:

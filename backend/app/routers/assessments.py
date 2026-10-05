@@ -7,7 +7,7 @@ from ..audit import record
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
-from ..matrix import document, period_document, position_ids, skill_set, starter_version, version_visible_to_team
+from ..matrix import period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
 from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from .teams import scoped_period, scoped_player
 
@@ -91,8 +91,8 @@ def scoped_assessment(db: DbSession, team_id: int, player_id: int, period_id: in
 
 @router.get("/skill-matrix")
 def skill_matrix(db: DbSession = Depends(get_db)):
-    """The starter template's latest version."""
-    return document(db, starter_version(db).id)
+    """The starter template's latest version, with neutral (mixed) wording."""
+    return rendered(db, starter_version(db).id, "mixed")
 
 
 @router.get("/teams/{team_id}/matrix-versions/{version_id}")
@@ -100,7 +100,7 @@ def matrix_version(team_id: int, version_id: int, db: DbSession = Depends(get_db
     require_member(team_id, db, user)
     if not version_visible_to_team(db, team_id, version_id):
         raise HTTPException(404, "Matrix version not found")
-    return {**document(db, version_id), "version_id": version_id}
+    return {**rendered(db, version_id, db.get(Team, team_id).player_gender), "version_id": version_id}
 
 
 @router.put("/teams/{team_id}/assessments/coach")
@@ -218,7 +218,7 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                         }} if a else {}})
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
-            "matrix": period_document(db, period)}
+            "matrix": rendered(db, period.matrix_version_id, team.player_gender)}
 
 
 def share_status(report: PlayerReport | None) -> dict | None:
@@ -478,7 +478,7 @@ def self_link_info(token: str, db: DbSession = Depends(get_db)):
         link.opened_at = utcnow()
         db.commit()
     return {"team": team.name, "player": player.name, "period": period.label, "expires_at": link.expires_at,
-            "matrix": period_document(db, period)}
+            "matrix": rendered(db, period.matrix_version_id, team.player_gender)}
 
 
 @router.post("/self/{token}", status_code=201)

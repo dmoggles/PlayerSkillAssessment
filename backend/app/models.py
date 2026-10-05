@@ -50,6 +50,8 @@ class Team(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
     self_assessment_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Fills pronoun placeholders in skill descriptions: girls, boys or mixed (they/their).
+    player_gender: Mapped[str] = mapped_column(String(10), default="mixed")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

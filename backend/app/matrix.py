@@ -2,6 +2,7 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
 from .models import MatrixVersion, Period, SkillMatrix, Team
+from .wording import render_document
 
 # Published versions never change, so their documents can be cached for the life of the process.
 _documents: dict[int, dict] = {}
@@ -14,6 +15,11 @@ def document(db: DbSession, version_id: int) -> dict:
             raise LookupError(f"Matrix version {version_id} not found")
         _documents[version_id] = version.document
     return _documents[version_id]
+
+
+def rendered(db: DbSession, version_id: int, gender: str) -> dict:
+    """The document with pronoun placeholders filled in for a team's player gender."""
+    return render_document(document(db, version_id), gender)
 
 
 def skill_set(doc: dict, kind: str) -> set[str]:

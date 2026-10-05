@@ -1,3 +1,4 @@
+import re
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from app.database import Base, engine
@@ -563,3 +564,55 @@ def test_every_starter_skill_maps_to_known_tags():
         tag_count = conn.execute(text("SELECT count(*) FROM skill_tags WHERE level_1 <> '' AND level_3 <> '' AND level_5 <> ''")).scalar()
     assert mapped == set(starter_skills("outfield")) | set(starter_skills("goalkeeper"))
     assert unknown == 0 and tag_count == 30
+
+
+def test_pronoun_placeholders_render_for_each_team_gender(monkeypatch):
+    from app.wording import gendered_words, render
+    assert render("where {they} {is|are} or what {they} {wants|want}", "girls") == "where she is or what she wants"
+    assert render("where {they} {is|are} or what {they} {wants|want}", "mixed") == "where they are or what they want"
+    assert render("{They} set {their} position, making {themself} big", "boys") == "He set his position, making himself big"
+    assert render("making {themself} big", "mixed") == "making themselves big"
+    assert render("so {they}{'s|'re} free", "boys") == "so he's free" and render("so {they}{'s|'re} free", "mixed") == "so they're free"
+    assert gendered_words("She sets her position") == ["She", "her"] and gendered_words("Theirs, not hers") == ["hers"]
+
+    clean_database()
+    owner, csrf = signed_in("gender-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("gender-coach@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team = owner.post("/teams", json={"name": "Wording"}, headers=headers).json()
+    assert team["player_gender"] == "mixed"
+    add_coach(owner, csrf, team["id"], coach, coach_csrf, "gender-coach@example.com", monkeypatch)
+    period = owner.post(f"/teams/{team['id']}/periods", json={"label": "Autumn"}, headers=headers).json()
+    url = f"/teams/{team['id']}/matrix-versions/{period['matrix_version_id']}"
+
+    def communication_level_1(client):
+        doc = client.get(url).json()
+        return next(s for section in doc["sections"] for s in section["skills"] if s["id"] == "communication")["descriptors"]["1"]
+
+    assert communication_level_1(owner).endswith("where they are or what they want")
+    settings = {"name": "Wording", "self_assessment_enabled": False}
+    assert coach.patch(f"/teams/{team['id']}", json={**settings, "player_gender": "girls"}, headers={"x-csrf-token": coach_csrf}).status_code == 404
+    assert owner.patch(f"/teams/{team['id']}", json={**settings, "player_gender": "other"}, headers=headers).status_code == 422
+    assert owner.patch(f"/teams/{team['id']}", json={**settings, "player_gender": "girls"}, headers=headers).json()["player_gender"] == "girls"
+    assert communication_level_1(coach).endswith("where she is or what she wants")
+    # Omitting the field leaves the setting unchanged.
+    assert owner.patch(f"/teams/{team['id']}", json=settings, headers=headers).json()["player_gender"] == "girls"
+    owner.patch(f"/teams/{team['id']}", json={**settings, "player_gender": "boys"}, headers=headers)
+    assert communication_level_1(owner).endswith("where he is or what he wants")
+    gender_events = [e["details"] for e in owner.get(f"/teams/{team['id']}/audit").json() if e["action"] == "player_gender_changed"]
+    assert gender_events == [{"from": "girls", "to": "boys"}, {"from": "mixed", "to": "girls"}]
+
+
+def test_starter_matrix_has_no_hard_coded_gendered_words():
+    from app.database import SessionLocal
+    from app.matrix import document, starter_version
+    from app.wording import gendered_words
+    with SessionLocal() as db:
+        doc = document(db, starter_version(db).id)
+    texts = [skill["label"] for section in doc["sections"] for skill in section["skills"]]
+    texts += [text for section in doc["sections"] for skill in section["skills"] for text in skill["descriptors"].values()]
+    assert [t for t in texts if gendered_words(t)] == []
+    # Neutral pronouns must be placeholders too, or they would not follow the team's setting.
+    literal = re.compile(r"\b(they|them|their|theirs|themselves|themself)\b", re.IGNORECASE)
+    assert [t for t in texts if literal.search(re.sub(r"\{[^{}]*\}", "", t))] == []
+    assert TestClient(app).get("/skill-matrix").json()["sections"][2]["skills"][0]["descriptors"]["3"] == "Holds most shots at their body cleanly; diving stops still developing"

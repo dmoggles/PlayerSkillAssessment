@@ -6,6 +6,12 @@ export const AREAS = [
   { id: 'settings', label: 'Settings', short: 'Settings', icon: 'settings', subtitle: 'Teams, periods and squad' },
 ]
 
+export const PLAYER_GENDERS = [
+  ['girls', 'Girls (she / her)'],
+  ['boys', 'Boys (he / him)'],
+  ['mixed', 'Mixed (they / them)'],
+]
+
 export const PLAYER_DATA_TABS = [
   ['summary', 'Summary'],
   ['comparison', 'Comparison'],

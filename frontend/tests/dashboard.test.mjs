@@ -281,6 +281,7 @@ test('audit events read as plain sentences', async () => {
   assert.equal(auditText(event('period_deleted', { label: 'Autumn' }, null)), 'owner@example.com deleted the period Autumn')
   assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
   assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
+  assert.equal(auditText(event('player_gender_changed', { from: 'mixed', to: 'girls' }, null)), 'owner@example.com changed player wording from mixed to girls')
 })
 
 test('coach notes affect the unsaved-changes check and appear in the form and revision history', async () => {

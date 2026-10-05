@@ -464,6 +464,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .archived-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #edf0f3; font-size: .88rem; }
 .archived-notice button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
 .plain-fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.team-gender { margin: 8px 0 12px; max-width: 320px; }
+.team-gender small { display: block; margin-top: 4px; color: var(--muted); font-size: .75rem; font-weight: 400; }
 .audit-log { margin-top: 22px; }
 .audit-log summary { cursor: pointer; font-weight: 700; font-size: .9rem; }
 .audit-log ol { list-style: none; margin: 10px 0 0; padding: 0; max-height: 320px; overflow-y: auto; }
