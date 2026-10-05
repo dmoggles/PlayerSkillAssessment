@@ -7,6 +7,7 @@ from ..audit import record
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
+from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
 from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from .teams import scoped_period, scoped_player
@@ -314,6 +315,16 @@ def shared_report(token: str, db: DbSession = Depends(get_db)):
         report.share_opened_at = utcnow()
         db.commit()
     return report_payload(db, team, player, period)
+
+
+@router.get("/teams/{team_id}/insights")
+def insights(team_id: int, period_id: int | None = None, position: str | None = None, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Squad trends across periods, plus common priorities and position groups for the given period.
+    position limits trends and priorities to one primary position."""
+    require_member(team_id, db, user)
+    if position is not None and position not in POSITION_ORDER:
+        raise HTTPException(422, "Unknown position")
+    return team_insights(db, team_id, scoped_period(db, team_id, period_id) if period_id else None, position)
 
 
 @router.get("/teams/{team_id}/assessments/{assessment_id}/revisions")

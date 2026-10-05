@@ -11,6 +11,7 @@ import HeatmapView from './HeatmapView'
 import ChangePasswordForm from './ChangePasswordForm'
 import SelfAssessmentBoard from './SelfAssessmentBoard'
 import RevisionHistory from './RevisionHistory'
+import TeamInsights from './TeamInsights'
 import MatrixEditor from './MatrixEditor'
 import MatrixSummary from './MatrixSummary'
 import ReportPanel from './ReportPanel'
@@ -19,7 +20,7 @@ import { priorityFollowUp } from './followUpModel'
 import { CHANGE_LABELS, RATING_CHANGES, changesBetween, historyLabels } from './comparabilityModel'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
-import { AREAS, PLAYER_DATA_TABS, PLAYER_GENDERS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId, previousCoachAssessment } from './dashboardModel'
+import { AREAS, PLAYER_DATA_TABS, PLAYER_GENDERS, TEAM_DATA_TABS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId, previousCoachAssessment } from './dashboardModel'
 
 const fail = errorMessage
 
@@ -93,6 +94,8 @@ export default function CoachDashboard({ user, onLogout }) {
   const [revisions, setRevisions] = useState([])
   const [heatmap, setHeatmap] = useState([])
   const [playerDataView, setPlayerDataView] = useState('summary')
+  const [teamDataView, setTeamDataView] = useState('heatmap')
+  const [teamDataPosition, setTeamDataPosition] = useState('')
   const [newTeam, setNewTeam] = useState('')
   const [newPlayer, setNewPlayer] = useState('')
   const [newPeriod, setNewPeriod] = useState('')
@@ -370,7 +373,7 @@ export default function CoachDashboard({ user, onLogout }) {
         {selectedTeam.self_assessment_enabled && selectedPeriod.is_active && selectedPlayer.active && <Section title="Player self-assessment" description="Share a one-time link for this player and period"><div className="inline-row"><button type="button" onClick={makeLink}>Create link</button><button type="button" onClick={revokeLink}>Revoke link</button></div>{link && <div className="field link-field"><label>Copy this link now; it will not be shown again</label><input readOnly value={link} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button></div>}</Section>}
       </>)}
       {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description="Explore individual assessment results"><nav className="subtabs" aria-label="Player data views">{PLAYER_DATA_TABS.map(([id, label]) => <button aria-current={playerDataView === id ? 'page' : undefined} className={playerDataView === id ? 'active' : ''} key={id} type="button" onClick={() => { if (id !== playerDataView && confirmDiscard()) setPlayerDataView(id) }}>{label}</button>)}</nav>{playerDataView === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={comparison?.player} />}{playerDataView === 'progress' && <ProgressView matrix={matrix} history={history} />}{playerDataView === 'priorities' && <ConfirmedPrioritiesPanel key={`${teamId}-${playerId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} periods={periods} />}{playerDataView === 'report' && <ReportPanel key={`${teamId}-${playerId}-${periodId}`} matrix={matrix} teamId={teamId} playerId={playerId} periodId={periodId} readOnly={!selectedPlayer.active} onMessage={setMessage} onDirtyChange={setReportDirty} />}</Section>)}
-      {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix ? <Section title="No team data yet"><p className="muted">Add a period in Settings to view team data.</p></Section> : <Section className="context-panel" title={`${selectedTeam.name} · ${selectedPeriod.label}`} description="Compare assessed skills across the squad"><HeatmapView matrix={matrix} assessments={heatmap} /></Section>)}
+      {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix ? <Section title="No team data yet"><p className="muted">Add a period in Settings to view team data.</p></Section> : <Section className="context-panel" title={`${selectedTeam.name} · ${selectedPeriod.label}`} description="Compare skills across the squad"><nav className="subtabs" aria-label="Team data views">{TEAM_DATA_TABS.map(([id, label]) => <button aria-current={teamDataView === id ? 'page' : undefined} className={teamDataView === id ? 'active' : ''} key={id} type="button" onClick={() => setTeamDataView(id)}>{label}</button>)}</nav>{teamDataView === 'heatmap' ? <HeatmapView matrix={matrix} assessments={heatmap} /> : <TeamInsights key={`${teamId}-${periodId}`} teamId={teamId} periodId={periodId} view={teamDataView} position={teamDataPosition} onPositionChange={setTeamDataPosition} onMessage={setMessage} />}</Section>)}
       {selectedTeam && currentArea.id === 'development' && (!selectedPlayer || !selectedPeriod || !matrix ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section> : <Section className="context-panel" title={`${selectedPlayer.name} · ${selectedPeriod.label}`} description={selectedPlayer.active ? 'Review and confirm the three most important priorities' : 'Priorities (read-only)'}>{!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}<PrioritiesView matrix={matrix} coach={comparison?.coach} player={comparison?.player} teamId={teamId} playerId={playerId} periodId={periodId} followUp={priorityFollowUp(periods, history, periodId, comparison?.coach)} onDirtyChange={setPrioritiesDirty} readOnly={!selectedPlayer.active} /></Section>)}
     </main>
     <nav className="bottom-nav" aria-label="Main navigation">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} aria-label={area.label} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.short}</span></button>)}</nav>

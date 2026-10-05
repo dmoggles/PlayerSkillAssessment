@@ -739,3 +739,57 @@ def test_skill_tag_ids_are_never_removed():
     with engine.begin() as conn:
         in_database = set(conn.execute(text("SELECT id FROM skill_tags")).scalars())
     assert ever_defined - in_database == set()
+
+
+def test_team_insights_average_players_group_priorities_by_tag_and_split_positions(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("insights-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Insights"}, headers=headers).json()["id"]
+    ids = {n: owner.post(f"/teams/{team_id}/players", json={"name": n}, headers=headers).json()["id"] for n in ("Ada", "Bea", "Cy")}
+    p1 = owner.post(f"/teams/{team_id}/periods", json={"label": "P1"}, headers=headers).json()["id"]
+
+    def assess(player, period, position, kind, score):
+        body = {"player_id": ids[player], "period_id": period, "version": 0, "primary_position": position,
+                "ratings": [{"skill_id": s, "score": score} for s in starter_skills(kind)]}
+        assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+
+    assess("Ada", p1, "defender", "outfield", 2)
+    assess("Bea", p1, "winger", "outfield", 4)
+    assess("Cy", p1, "goalkeeper", "goalkeeper", 3)
+    for player, picks in (("Ada", ["first_touch_body_shape", "passing_short"]), ("Bea", ["first_touch_body_shape"])):
+        assert owner.put(f"/teams/{team_id}/priorities", params={"player_id": ids[player], "period_id": p1}, headers=headers,
+                         json={"priorities": [{"skill_id": s, "rank": i + 1} for i, s in enumerate(picks)]}).status_code == 200
+    p2 = owner.post(f"/teams/{team_id}/periods", json={"label": "P2"}, headers=headers).json()["id"]
+    assess("Ada", p2, "defender", "outfield", 3)
+
+    data = owner.get(f"/teams/{team_id}/insights", params={"period_id": p1}).json()
+    first, second = data["trend"]
+    assert (first["label"], first["players"], second["label"], second["players"]) == ("P1", 3, "P2", 1)
+    assert first["sections"]["technical"] == {"average": 3.0, "players": 2}      # Ada 2 and Bea 4
+    assert first["sections"]["goalkeeper"] == {"average": 3.0, "players": 1}     # Cy only
+    assert first["tags"]["first_touch"] == {"average": 3.0, "players": 2}
+    assert second["sections"]["technical"] == {"average": 3.0, "players": 1} and second["changed_sections"] == []
+    assert data["tags"]["first_touch"] == {"label": "First touch", "area": "technical"}
+
+    period = data["period"]
+    assert (period["assessed"], period["priority_players"]) == (3, 2)
+    assert [(p["skill_id"], [x["player"] for x in p["players"]]) for p in period["priorities"]] == [
+        ("first_touch_body_shape", ["Ada", "Bea"]), ("passing_short", ["Ada"])]
+    # Main tags only: first touch counts once per player; the partial scanning tag is not counted.
+    assert [(t["tag_id"], len(t["players"])) for t in period["priority_tags"]] == [("first_touch", 2), ("passing_short", 1)]
+    assert [(g["position"], g["players"]) for g in period["positions"]] == [("goalkeeper", 1), ("defender", 1), ("winger", 1)]
+    assert next(g for g in period["positions"] if g["position"] == "winger")["sections"]["tactical"] == {"average": 4.0, "players": 1}
+    assert owner.get(f"/teams/{team_id}/insights").json()["period"] is None
+
+    # Position filter: trends and priorities cover one primary position; the position breakdown stays whole-squad.
+    defenders = owner.get(f"/teams/{team_id}/insights", params={"period_id": p1, "position": "defender"}).json()
+    assert [(row["label"], row["players"]) for row in defenders["trend"]] == [("P1", 1), ("P2", 1)]
+    assert defenders["trend"][0]["sections"]["technical"] == {"average": 2.0, "players": 1}     # Ada only
+    assert "goalkeeper" not in defenders["trend"][0]["sections"]
+    assert (defenders["period"]["assessed"], defenders["period"]["priority_players"]) == (1, 1)
+    assert [(t["tag_id"], [p["player"] for p in t["players"]]) for t in defenders["period"]["priority_tags"]] == [("first_touch", ["Ada"]), ("passing_short", ["Ada"])]
+    assert len(defenders["period"]["positions"]) == 3
+    strikers = owner.get(f"/teams/{team_id}/insights", params={"period_id": p1, "position": "striker"}).json()
+    assert strikers["trend"] == [] and strikers["period"]["priorities"] == [] and strikers["period"]["assessed"] == 0
+    assert owner.get(f"/teams/{team_id}/insights", params={"position": "sweeper"}).status_code == 422

@@ -489,3 +489,48 @@ test('history views mark comparisons that cross a skill matrix change', async ()
   assert.deepEqual(report.trend.rows.map(r => [r.label, r.changed]), [['Technical', [false, true]], ['Tactical', [false, true]]])
   assert.match(renderToStaticMarkup(React.createElement(PlayerReport, { report })), /skills in this area changed from this period/)
 })
+
+test('team insights shape trends by skill area and tag, keep colours fixed, and render each tab', async () => {
+  const { sectionSeries, tagTrendRows, tagPositionRows, SERIES_COLORS, groupName } = await loadJsx('src/insightsModel.js')
+  assert.equal(groupName('defender'), 'defenders')
+  assert.equal(groupName(''), 'all positions')
+  const { default: TrendChart } = await loadJsx('src/TrendChart.jsx')
+  const { placeEndLabels } = await loadJsx('src/insightsModel.js')
+  const placed = placeEndLabels([{ id: 'a', y: 100 }, { id: 'b', y: 100 }, { id: 'c', y: 100 }], 20, 240)
+  assert.deepEqual(placed.map(l => l.labelY), [100, 113, 126], 'equal end values are stacked, not overprinted')
+  assert.deepEqual(placeEndLabels([{ id: 'a', y: 238 }, { id: 'b', y: 240 }], 20, 240).map(l => l.labelY), [227, 240], 'kept inside the plot')
+  const data = {
+    section_labels: { technical: 'Technical', tactical: 'Tactical', goalkeeper: 'Goalkeeping' },
+    tags: { first_touch: { label: 'First touch', area: 'technical' }, scanning: { label: 'Scanning', area: 'tactical' }, gk_positioning: { label: 'GK positioning', area: 'goalkeeping' } },
+    trend: [
+      { period_id: 1, label: 'Autumn', players: 3, changed_sections: [], sections: { technical: { average: 2.5 }, goalkeeper: { average: 3 } }, tags: { first_touch: { average: 2 }, gk_positioning: { average: 3 } } },
+      { period_id: 2, label: 'Spring', players: 2, changed_sections: ['technical'], sections: { technical: { average: 3 }, tactical: { average: 2.75 } }, tags: { first_touch: { average: 3 }, scanning: { average: 2 } } },
+    ],
+  }
+  const series = sectionSeries(data)
+  assert.deepEqual(series.map(s => [s.id, s.values, s.changed]), [['technical', [2.5, 3], [false, true]], ['goalkeeper', [3, null], [false, false]], ['tactical', [null, 2.75], [false, false]]])
+  assert.deepEqual(series.map(s => s.color), SERIES_COLORS.slice(0, 3), 'colours follow first appearance, in fixed order')
+  assert.deepEqual(tagTrendRows(data).map(r => [r.label, r.values]), [['First touch', [2, 3]], ['Scanning', [null, 2]], ['GK positioning', [3, null]]])
+  assert.deepEqual(tagPositionRows(data, [{ tags: { scanning: { average: 4 } } }]).map(r => r.id), ['scanning'])
+
+  const svg = renderToStaticMarkup(React.createElement(TrendChart, { periods: ['Autumn', 'Spring'], series }))
+  assert.equal(svg.match(/<polyline/g).length, 3, 'one line segment per series (single points still drawn as dots)')
+  assert.match(svg, /class="chart-change">\*</)
+  assert.match(svg, /class="chart-legend"/)
+  assert.match(svg, /role="img"/)
+})
+
+test('priority player lists are sorted by rank, summarised, and collapsed when long', async () => {
+  const { sortByRank, priorityCount } = await loadJsx('src/insightsModel.js')
+  const { PlayerList } = await loadJsx('src/TeamInsights.jsx')
+  const players = [{ player: 'Zed', rank: 2 }, { player: 'Ada', rank: 3 }, { player: 'Bea', rank: 1 }, { player: 'Al', rank: 1 }, { player: 'Cy', rank: 2 }, { player: 'Di', rank: 1 }]
+  assert.deepEqual(sortByRank(players).map(p => p.player), ['Al', 'Bea', 'Di', 'Cy', 'Zed', 'Ada'])
+  assert.equal(priorityCount(players), '6 players (3 as #1)')
+  assert.equal(priorityCount([{ player: 'Al', rank: 1 }]), '1 player')
+  assert.equal(priorityCount([{ player: 'Al', rank: 2 }, { player: 'Bo', rank: 3 }]), '2 players')
+  const html = renderToStaticMarkup(React.createElement(PlayerList, { players }))
+  assert.match(html, /Al \(#1\), Bea \(#1\), Di \(#1\), Cy \(#2\)/)
+  assert.doesNotMatch(html, /Zed|Ada/)
+  assert.match(html, />\+2 more</)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PlayerList, { players: players.slice(0, 4) })), /more/)
+})
