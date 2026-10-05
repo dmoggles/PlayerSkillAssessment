@@ -298,6 +298,19 @@ test('coach notes affect the unsaved-changes check and appear in the form and re
   assert.notEqual(assessmentSignature('defender', '', 'sometimes', form.ratings, { touch: 'Lighter touch' }, 'Good week'), baseline)
   assert.notEqual(assessmentSignature('defender', '', 'sometimes', form.ratings, form.notes, ''), baseline)
   assert.equal(formFromAssessment(null).note, '')
+  // A new period starts from the player's previous positions, with no ratings or notes.
+  const { previousCoachAssessment } = await import('../src/dashboardModel.js')
+  const winger = { primary_position: 'winger', secondary_position: 'striker', secondary_position_frequency: 'often', ratings: [{ skill_id: 'touch', score: 4, note: 'x' }] }
+  const keeper = { primary_position: 'goalkeeper', secondary_position: null, ratings: [] }
+  const periods = [{ id: 3 }, { id: 2 }, { id: 1 }]
+  const history = [{ period_id: 1, assessments: { coach: keeper } }, { period_id: 2, assessments: { coach: winger } }]
+  assert.equal(previousCoachAssessment(history, periods, 3), winger)
+  assert.equal(previousCoachAssessment(history, periods, 2), keeper, 'nearest earlier period, not the current one')
+  assert.equal(previousCoachAssessment(history, periods, 1), winger, 'no earlier period: most recent')
+  assert.equal(previousCoachAssessment([], periods, 3), null)
+  const fresh = formFromAssessment(null, winger)
+  assert.deepEqual([fresh.position, fresh.secondary, fresh.frequency, fresh.ratings, fresh.notes], ['winger', 'striker', 'often', {}, {}])
+  assert.equal(formFromAssessment(null).position, 'defender')
 
   const labels = { touch: 'First touch', passing: 'Passing' }
   const after = { ...saved, note: null, ratings: [{ skill_id: 'touch', score: 3, note: 'Better' }, { skill_id: 'passing', score: 2, note: 'Look up first' }] }

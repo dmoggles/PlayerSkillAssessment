@@ -19,7 +19,7 @@ import { priorityFollowUp } from './followUpModel'
 import { CHANGE_LABELS, RATING_CHANGES, changesBetween, historyLabels } from './comparabilityModel'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
-import { AREAS, PLAYER_DATA_TABS, PLAYER_GENDERS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId } from './dashboardModel'
+import { AREAS, PLAYER_DATA_TABS, PLAYER_GENDERS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId, previousCoachAssessment } from './dashboardModel'
 
 const fail = errorMessage
 
@@ -107,6 +107,7 @@ export default function CoachDashboard({ user, onLogout }) {
   const [frequency, setFrequency] = useState('sometimes')
   const [ratings, setRatings] = useState({})
   const [notes, setNotes] = useState({})
+  const [previousCoach, setPreviousCoach] = useState(null)
   const [assessmentNote, setAssessmentNote] = useState('')
   const [assessmentBaseline, setAssessmentBaseline] = useState(null)
   const [prioritiesDirty, setPrioritiesDirty] = useState(false)
@@ -124,13 +125,16 @@ export default function CoachDashboard({ user, onLogout }) {
   const blockerPrompted = useRef(false)
   const contextDialogRef = useRef(null)
 
-  const applyForm = useCallback(assessment => {
-    const form = formFromAssessment(assessment)
+  const applyForm = useCallback((assessment, previous = null) => {
+    const form = formFromAssessment(assessment, previous)
     setPosition(form.position); setSecondary(form.secondary); setFrequency(form.frequency)
     setRatings(form.ratings); setNotes(form.notes); setAssessmentNote(form.note)
     setAssessmentBaseline(formSignature(form))
   }, [])
-  const restoreAssessment = useCallback(() => applyForm(coach), [applyForm, coach])
+  const restoreAssessment = useCallback(() => applyForm(coach, previousCoach), [applyForm, coach, previousCoach])
+  // Read inside the assessment-loading effect without re-running it (and discarding edits) whenever periods change.
+  const periodsRef = useRef(periods)
+  useEffect(() => { periodsRef.current = periods }, [periods])
 
   useEffect(() => {
     if (blocker.state !== 'blocked') { blockerPrompted.current = false; return }
@@ -219,8 +223,9 @@ export default function CoachDashboard({ user, onLogout }) {
       if (historyResult.status === 'fulfilled') setHistory(historyResult.value)
       if (assessmentResult.status !== 'fulfilled') { setMessage(fail(assessmentResult.reason)); return }
       const assessment = assessmentResult.value
-      setCoach(assessment)
-      applyForm(assessment)
+      const previous = historyResult.status === 'fulfilled' ? previousCoachAssessment(historyResult.value, periodsRef.current, periodId) : null
+      setCoach(assessment); setPreviousCoach(previous)
+      applyForm(assessment, previous)
       if (assessment) getRevisions(teamId, assessment.id).then(value => { if (live) setRevisions(value) }).catch(() => {})
     })
     return () => { live = false }
