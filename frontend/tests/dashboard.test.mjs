@@ -534,3 +534,83 @@ test('priority player lists are sorted by rank, summarised, and collapsed when l
   assert.match(html, />\+2 more</)
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(PlayerList, { players: players.slice(0, 4) })), /more/)
 })
+
+test('animated diagrams replay passes, runs, dribbles and shots into positions over time', async () => {
+  const { buildTimeline, frameAt, stepArrows, ease } = await loadJsx('src/diagramModel.js')
+  const { videoEmbedUrl } = await loadJsx('src/drillModel.js')
+  const { default: DiagramPlayer } = await loadJsx('src/DiagramPlayer.jsx')
+  const diagram = {
+    pitch: { width: 10, length: 20, goals: [{ id: 'goal', at: [5, 20] }] },
+    objects: { A: { type: 'player', team: 'A', at: [2, 2] }, B: { type: 'player', team: 'A', at: [8, 10] }, c: { type: 'cone', at: [5, 5] }, ball: { type: 'ball', with: 'A' } },
+    steps: [
+      { label: 'Pass while B runs', actions: [{ pass: { from: 'A', to: 'B' } }, { run: { who: 'B', to: [8, 12] } }] },
+      { label: 'B dribbles', actions: [{ dribble: { who: 'B', to: [6, 16] } }] },
+      { label: 'Shoot', actions: [{ shot: { who: 'B', to: 'goal' } }] },
+    ],
+  }
+  const timeline = buildTimeline(diagram)
+  assert.equal(timeline.states.length, 4)
+  assert.deepEqual(timeline.states[1].positions.B, [8, 12])
+  assert.equal(timeline.states[1].holder, 'B')
+  assert.deepEqual(timeline.steps[0].ballMove.to, [8.45, 12.35], 'the pass meets the receiver where the run ends')
+  assert.deepEqual(frameAt(timeline, 1, 0).positions.B, [8, 12])
+  assert.deepEqual(frameAt(timeline, 1, 1).positions.B, [6, 16])
+  assert.deepEqual(frameAt(timeline, 2, 1).ball, [5, 20], 'shots end in the goal')
+  assert.deepEqual(stepArrows(timeline, 0).map(a => a.kind), ['run', 'pass'])
+  assert.equal(ease(0), 0); assert.equal(ease(1), 1); assert.equal(ease(0.5), 0.5)
+
+  const html = renderToStaticMarkup(React.createElement(DiagramPlayer, { diagram, caption: 'Test drill' }))
+  assert.match(html, /role="img" aria-label="Test drill\. Step 1 of 3: Pass while B runs"/)
+  assert.match(html, /diagram-arrow-run/)
+  assert.match(html, /diagram-cone/)
+
+  assert.equal(videoEmbedUrl('https://www.youtube.com/watch?v=abc123', 30), 'https://www.youtube-nocookie.com/embed/abc123?autoplay=1&start=30')
+  assert.equal(videoEmbedUrl('https://youtu.be/xyz'), 'https://www.youtube-nocookie.com/embed/xyz?autoplay=1')
+  assert.equal(videoEmbedUrl('https://vimeo.com/76979871'), 'https://player.vimeo.com/video/76979871?autoplay=1&dnt=1')
+  assert.equal(videoEmbedUrl('https://example.com/video'), null)
+  assert.equal(videoEmbedUrl('https://www.youtube.com/shorts/BIHD3HOH040'), 'https://www.youtube-nocookie.com/embed/BIHD3HOH040?autoplay=1')
+  const { isVerticalVideo } = await loadJsx('src/drillModel.js')
+  assert.equal(isVerticalVideo('https://www.youtube.com/shorts/BIHD3HOH040'), true)
+  assert.equal(isVerticalVideo('https://www.youtube.com/watch?v=abc'), false)
+})
+
+test('a chosen variation shows its own content where it overrides the drill, and the drill content otherwise', async () => {
+  const { effectiveDrill } = await loadJsx('src/drillModel.js')
+  const drill = { setup: 'Base setup', equipment: [{ item: 'cones', quantity: 4 }], instructions: ['Base step'], coaching_points: ['Base point'], players: [5, 5, 15], space: [10, 10] }
+  const base = effectiveDrill(drill, { setup: null, equipment: null, instructions: null, coaching_points: null, players: null, space: null })
+  assert.equal(base.setup, 'Base setup'); assert.equal(base.changed.size, 0)
+  const harder = effectiveDrill(drill, { setup: 'Two defenders', equipment: null, instructions: null, coaching_points: ['Split them'], players: [6, 6, 18], space: [10, 10] })
+  assert.deepEqual([harder.setup, harder.instructions, harder.coaching_points, harder.players], ['Two defenders', ['Base step'], ['Split them'], [6, 6, 18]])
+  assert.deepEqual([...harder.changed].sort(), ['coaching_points', 'players', 'setup'], 'an override equal to the drill is not marked as changed')
+  assert.equal(effectiveDrill(drill, undefined).setup, 'Base setup')
+})
+
+test('a variation without its own diagram inherits outward from the base version', async () => {
+  const { variationDiagram } = await loadJsx('src/drillModel.js')
+  const drill = {
+    media: [{ id: 10, kind: 'diagram' }, { id: 11, kind: 'diagram' }, { id: 12, kind: 'diagram' }, { id: 13, kind: 'video' }],
+    variations: [
+      { id: 1, kind: 'regression', diagram_media_id: null },
+      { id: 2, kind: 'regression', diagram_media_id: 12 },
+      { id: 3, kind: 'base', diagram_media_id: null },
+      { id: 4, kind: 'escalator', diagram_media_id: 11 },
+      { id: 5, kind: 'escalator', diagram_media_id: null },
+    ],
+  }
+  assert.equal(variationDiagram(drill, drill.variations[2]).id, 10, 'base: the drill first diagram, not an easier one')
+  assert.equal(variationDiagram(drill, drill.variations[3]).id, 11, 'escalator: its own')
+  assert.equal(variationDiagram(drill, drill.variations[4]).id, 11, 'escalator: inherits from the one below')
+  assert.equal(variationDiagram(drill, drill.variations[1]).id, 12, 'regression: its own')
+  assert.equal(variationDiagram(drill, drill.variations[0]).id, 12, 'regression: inherits from the one above')
+  assert.equal(variationDiagram({ media: [], variations: [] }, undefined), null)
+})
+
+test('a variation shows its own video first, plus drill-wide videos no variation claims', async () => {
+  const { visibleVideos } = await loadJsx('src/drillModel.js')
+  const drill = {
+    media: [{ id: 1, kind: 'diagram' }, { id: 2, kind: 'video', url: 'a' }, { id: 3, kind: 'video', url: 'b' }],
+    variations: [{ id: 10, video_media_id: null }, { id: 11, video_media_id: 3 }],
+  }
+  assert.deepEqual(visibleVideos(drill, drill.variations[0]).map(v => v.id), [2], 'a claimed video is hidden elsewhere')
+  assert.deepEqual(visibleVideos(drill, drill.variations[1]).map(v => [v.id, Boolean(v.forVariation)]), [[3, true], [2, false]])
+})

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, JSON, SmallInteger, String, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, JSON, Numeric, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -16,6 +16,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # App admins curate the shared drill library.
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Session(Base):
@@ -165,7 +167,7 @@ class AuditEvent(Base):
     actor_email: Mapped[str] = mapped_column(String(255))
     action: Mapped[str] = mapped_column(String(40))
     target_email: Mapped[str | None] = mapped_column(String(255))
-    details: Mapped[dict | None] = mapped_column(JSON)
+    details: Mapped[dict | None] = mapped_column(JSON(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -239,4 +241,100 @@ class MatrixDraft(Base):
     document: Mapped[dict] = mapped_column(JSONB)
     revision: Mapped[int] = mapped_column(Integer)
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Drill(Base):
+    """One drill in the shared library (curated by app admins, loaded from data files)."""
+    __tablename__ = "drills"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(80), unique=True)
+    status: Mapped[str] = mapped_column(String(10))
+    title: Mapped[str] = mapped_column(String(120))
+    summary: Mapped[str] = mapped_column(String(300), default="")
+    format: Mapped[str] = mapped_column(String(12))
+    players_min: Mapped[int] = mapped_column(SmallInteger)
+    players_ideal: Mapped[int] = mapped_column(SmallInteger)
+    players_max: Mapped[int] = mapped_column(SmallInteger)
+    age_min: Mapped[int] = mapped_column(SmallInteger)
+    age_max: Mapped[int] = mapped_column(SmallInteger)
+    duration_min: Mapped[int] = mapped_column(SmallInteger)
+    duration_typical: Mapped[int] = mapped_column(SmallInteger)
+    session_phase: Mapped[str] = mapped_column(String(20))
+    intensity: Mapped[str] = mapped_column(String(6))
+    space_width_m: Mapped[float | None] = mapped_column(Numeric(5, 1))
+    space_length_m: Mapped[float | None] = mapped_column(Numeric(5, 1))
+    equipment: Mapped[list] = mapped_column(JSONB, default=list)
+    setup: Mapped[str] = mapped_column(Text, default="")
+    instructions: Mapped[list] = mapped_column(JSONB, default=list)
+    coaching_points: Mapped[list] = mapped_column(JSONB, default=list)
+    home_friendly: Mapped[bool] = mapped_column(Boolean, default=False)
+    source_version: Mapped[str | None] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class DrillTag(Base):
+    __tablename__ = "drill_tags"
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
+    tag_id: Mapped[str] = mapped_column(ForeignKey("skill_tags.id"), primary_key=True)
+    weight: Mapped[float] = mapped_column(Float)
+
+
+class DrillMedia(Base):
+    """A video link, other link, or animated diagram (JSON drawn by the app)."""
+    __tablename__ = "drill_media"
+    __table_args__ = (UniqueConstraint("drill_id", "position"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), index=True)
+    position: Mapped[int] = mapped_column(SmallInteger)
+    kind: Mapped[str] = mapped_column(String(8))
+    caption: Mapped[str] = mapped_column(String(200), default="")
+    url: Mapped[str | None] = mapped_column(String(500))
+    video_start_seconds: Mapped[int | None] = mapped_column(Integer)
+    diagram: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+
+
+class DrillVariation(Base):
+    """One rung of a drill's ladder: an easier regression, the base version, or a harder escalator."""
+    __tablename__ = "drill_variations"
+    __table_args__ = (UniqueConstraint("drill_id", "position"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), index=True)
+    position: Mapped[int] = mapped_column(SmallInteger)
+    kind: Mapped[str] = mapped_column(String(10))
+    title: Mapped[str] = mapped_column(String(120))
+    change: Mapped[str] = mapped_column(Text, default="")
+    level_min: Mapped[int] = mapped_column(SmallInteger)
+    level_max: Mapped[int] = mapped_column(SmallInteger)
+    diagram_media_id: Mapped[int | None] = mapped_column(ForeignKey("drill_media.id", ondelete="SET NULL"))
+    # A video shown only for this variation; videos no variation claims are shown for the whole drill.
+    video_media_id: Mapped[int | None] = mapped_column(ForeignKey("drill_media.id", ondelete="SET NULL"))
+    # Overrides of the drill's content for this variation (None = same as the drill).
+    setup: Mapped[str | None] = mapped_column(Text)
+    # none_as_null: store Python None as SQL NULL ("no override"), not a JSON null value.
+    equipment: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
+    instructions: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
+    coaching_points: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
+    players_min: Mapped[int | None] = mapped_column(SmallInteger)
+    players_ideal: Mapped[int | None] = mapped_column(SmallInteger)
+    players_max: Mapped[int | None] = mapped_column(SmallInteger)
+    space_width_m: Mapped[float | None] = mapped_column(Numeric(5, 1))
+    space_length_m: Mapped[float | None] = mapped_column(Numeric(5, 1))
+
+
+class DrillLink(Base):
+    __tablename__ = "drill_links"
+    from_drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
+    to_drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
+    relation: Mapped[str] = mapped_column(String(12), primary_key=True)
+
+
+class DrillVote(Base):
+    """A coach's like (+1) or dislike (-1) of a drill; the reason is optional and for dislikes only."""
+    __tablename__ = "drill_votes"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
+    vote: Mapped[int] = mapped_column(SmallInteger)
+    reason: Mapped[str | None] = mapped_column(String(20))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

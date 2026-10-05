@@ -39,6 +39,8 @@ export const resetPassword = (token, password) => data(api.post('/auth/reset-pas
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
+export const getDrills = () => data(api.get('/drills'))
+export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))
 export const saveMatrixDraft = (id, revision, document) => data(api.put(`${team(id)}/matrix/draft`, { revision, document }))

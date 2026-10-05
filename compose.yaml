@@ -63,7 +63,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["alembic", "upgrade", "head"]
+    # Migrate, then sync the drill library from app/data/drills_v*.json (safe to re-run).
+    command: ["sh", "-c", "alembic upgrade head && python -m app.drills"]
 
 volumes:
   postgres_data:

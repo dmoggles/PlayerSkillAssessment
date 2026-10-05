@@ -794,3 +794,60 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .insight-bar-fill { height: 100%; border-radius: 0 4px 4px 0; background: #2a78d6; }
 .insight-players { color: var(--muted); font-size: .8rem; }
 .insight-players .link-btn { font-size: .8rem; padding: 0; }
+
+/* Drill library */
+.drill-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.drill-card { width: 100%; height: 100%; display: grid; gap: 6px; align-content: start; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-align: left; color: var(--text); cursor: pointer; }
+.drill-card:hover { border-color: var(--accent); }
+.drill-card-summary { font-size: .85rem; }
+.drill-facts { color: var(--muted); font-size: .78rem; }
+.drill-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; }
+.drill-tags .status-pill { margin-left: 0; }
+.drill-detail { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.drill-detail h3 { margin: 4px 0; font-size: 1.25rem; }
+.drill-detail h4 { margin: 0 0 6px; font-size: .95rem; }
+.drill-detail header p { margin: 4px 0; }
+.drill-detail section p, .drill-detail section li { font-size: .9rem; }
+.drill-detail-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 16px; align-items: start; }
+.drill-ladder ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.drill-ladder button { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); text-align: left; color: var(--text); cursor: pointer; }
+.drill-ladder button.active { border-color: var(--accent); background: #eef4fa; }
+.ladder-kind { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.ladder-escalator { color: #8a5300; } .ladder-base { color: #21694d; }
+.ladder-levels { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.ladder-change { grid-column: 2 / -1; font-size: .82rem; color: var(--muted); }
+.diagram-player { margin: 0; display: grid; gap: 6px; }
+.diagram-player svg { width: 100%; max-height: 420px; }
+.diagram-pitch { fill: #2f7d4f; }
+.diagram-lines { fill: none; stroke: #ffffffb3; stroke-width: 1.5; }
+.diagram-goal { fill: #ffffff; }
+.diagram-cone { fill: #f2a33a; stroke: #7a4a00; stroke-width: .8; }
+.diagram-mannequin { fill: #d9dee3; stroke: #33404d; stroke-width: .8; }
+.diagram-player-dot { stroke: #ffffff; stroke-width: 2; }
+.diagram-player-label { fill: #ffffff; font-size: 8px; font-weight: 700; pointer-events: none; }
+.diagram-ball { fill: #ffffff; stroke: #1b2c24; stroke-width: 1.2; }
+.diagram-arrow { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.diagram-arrow-pass, .diagram-arrow-shot, .diagram-arrow-dribble { stroke: #ffe08a; }
+.diagram-arrow-run { stroke: #ffffff; stroke-dasharray: 5 4; }
+.diagram-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.diagram-controls button { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; }
+.diagram-controls button:disabled { opacity: .4; cursor: default; }
+.diagram-step { margin: 0; font-weight: 600; font-size: .9rem; }
+.diagram-caption { margin: 0; font-size: .8rem; }
+.drill-video iframe { width: 100%; max-width: 640px; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; }
+.drill-video button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; font-weight: 600; }
+@media (max-width: 760px) { .drill-detail-body { grid-template-columns: minmax(0, 1fr); } }
+@media print { .diagram-controls { display: none; } }
+.drill-detail section > ol, .drill-detail section > ul { margin: 0; padding-left: 22px; display: grid; gap: 4px; }
+.drill-detail section > ol { list-style: decimal; }
+.drill-detail section > ul { list-style: disc; }
+/* Back links inside panels: plain text, clear of the content below. */
+.dashboard-panel .back-link, .back-link { display: inline-block; margin: 0 0 14px; padding: 4px 0; border: 0; background: none; color: var(--accent); font-weight: 600; box-shadow: none; }
+.dashboard-panel .back-link:hover { text-decoration: underline; background: none; }
+.variation-changed { margin-left: 6px; font-size: .62rem; vertical-align: middle; }
+.variation-note { margin: 0; font-size: .85rem; }
+.drill-detail .drill-ladder > ol { list-style: none; padding-left: 0; }
+.drill-video { display: grid; gap: 8px; }
+.drill-video-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.drill-video-head p { margin: 0; flex: 1 1 260px; font-size: .85rem; color: var(--muted); }
+.drill-video iframe.vertical { width: auto; height: min(70vh, 560px); max-width: 100%; aspect-ratio: 9 / 16; }

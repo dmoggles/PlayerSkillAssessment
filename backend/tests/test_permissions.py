@@ -19,6 +19,8 @@ ACCESS = {
     ("GET", "/skill-matrix"): (PUBLIC, None, None),
     ("GET", "/teams/{team_id}/matrix-versions/{version_id}"): (MEMBER, None, None),
     ("GET", "/skill-tags"): (SIGNED_IN, None, None),
+    ("GET", "/drills"): (SIGNED_IN, None, None),
+    ("GET", "/drills/{slug}"): (SIGNED_IN, None, None),
     ("GET", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
     ("PUT", "/teams/{team_id}/matrix/draft"): (OWNER, {"revision": 0, "document": {}}, None),
     ("DELETE", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
@@ -99,7 +101,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
     ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id,
            "assessment_id": assessment_id, "member_user_id": owner_id,
-           "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"]}
+           "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill"}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

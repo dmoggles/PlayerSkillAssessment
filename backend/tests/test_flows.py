@@ -793,3 +793,77 @@ def test_team_insights_average_players_group_priorities_by_tag_and_split_positio
     strikers = owner.get(f"/teams/{team_id}/insights", params={"period_id": p1, "position": "striker"}).json()
     assert strikers["trend"] == [] and strikers["period"]["priorities"] == [] and strikers["period"]["assessed"] == 0
     assert owner.get(f"/teams/{team_id}/insights", params={"position": "sweeper"}).status_code == 422
+
+
+def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
+    import json
+    from app.database import SessionLocal
+    from app.drills import DATA_DIR, DrillError, diagram_problems, load_file
+    clean_database()
+    client, _ = signed_in("drills-coach@example.com", monkeypatch)
+    with SessionLocal() as db:
+        assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 5, "updated": 0, "retired": 0}
+        assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 0, "updated": 5, "retired": 0}  # safe to re-run
+
+    drills = {d["slug"]: d for d in client.get("/drills").json()}
+    assert len(drills) == 5
+    rondo = drills["rondo-4v1"]
+    assert rondo["levels"] == [1, 5] and rondo["votes"] == {"likes": 0, "dislikes": 0, "mine": 0}
+    assert [(t["id"], t["weight"]) for t in rondo["tags"]][0] == ("passing_short", 1.0)
+    detail = client.get("/drills/receive-and-turn").json()
+    assert [v["kind"] for v in detail["variations"]] == ["regression", "base", "escalator", "escalator"]
+    second_diagram = detail["media"][1]["id"]
+    assert detail["variations"][2]["diagram_media_id"] == second_diagram
+    assert detail["media"][0]["diagram"]["steps"][1]["actions"] == [{"pass": {"from": "S", "to": "R"}}]
+    # Variations override only what they change; null means "same as the drill".
+    rondo_detail = client.get("/drills/rondo-4v1").json()
+    base, two_touch, four_v_two = rondo_detail["variations"][1], rondo_detail["variations"][2], rondo_detail["variations"][3]
+    assert base["players"] is None and base["setup"] is None and base["coaching_points"] is None
+    assert two_touch["coaching_points"][0] == "Decide where the ball goes before it arrives." and two_touch["setup"] is None
+    assert four_v_two["players"] == [6, 6, 18] and four_v_two["equipment"][1] == {"item": "bibs", "quantity": 2}
+    assert four_v_two["diagram_media_id"] == rondo_detail["media"][1]["id"]
+    assert client.get("/drills/one-v-one-end-line").json()["variations"][3]["space"] == [6.0, 15.0]
+    keeper = client.get("/drills/gk-catch-and-hold").json()
+    videos = {m["url"]: m["id"] for m in keeper["media"] if m["kind"] == "video"}
+    angled = next(v for v in keeper["variations"] if v["title"] == "Angled strikes")
+    assert angled["video_media_id"] == videos["https://www.youtube.com/shorts/SbMUr6HNJOQ"]
+    assert all(v["video_media_id"] is None for v in keeper["variations"] if v["title"] != "Angled strikes")
+    with engine.begin() as conn:  # "no override" is SQL NULL, not a JSON null value
+        assert conn.execute(text("SELECT count(*) FROM drill_variations WHERE kind = 'base' AND (equipment IS NOT NULL OR instructions IS NOT NULL OR coaching_points IS NOT NULL)")).scalar() == 0
+        assert conn.execute(text("SELECT count(*) FROM drill_media WHERE kind = 'diagram' AND diagram IS NULL")).scalar() == 0
+    assert client.get("/drills/no-such-drill").status_code == 404
+    assert TestClient(app).get("/drills").status_code == 401
+
+    # Bad diagrams are caught by replaying them.
+    base = {"pitch": {"width": 10, "length": 10}, "objects": {"A": {"type": "player", "team": "A", "at": [1, 1]},
+            "B": {"type": "player", "team": "B", "at": [5, 5]}, "ball": {"type": "ball", "with": "A"}}}
+    assert diagram_problems({**base, "steps": [{"label": "ok", "actions": [{"pass": {"from": "A", "to": "B"}}]}]}) == []
+    assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"pass": {"from": "B", "to": "A"}}]}]}) == ["step 1: B passes without the ball"]
+    assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"run": {"who": "A", "to": [12, 3]}}]}]}) == ["step 1: run target is off the pitch"]
+    assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": "goal"}}]}]}) == ["step 1: shot at unknown goal goal"]
+
+    # A bad file changes nothing; a drill dropped from its file is retired, not deleted.
+    data = json.loads((DATA_DIR / "drills_v1.json").read_text())
+    data["drills"][0]["variations"][0]["levels"] = [4, 5]  # gap before the base variation and out of order
+    data["drills"][1]["tags"] = {"not_a_tag": 1.0}
+    data["drills"][2]["variations"][3]["players"] = [7, 6, 18]
+    data["drills"][2]["variations"][3]["equipment"] = [{"item": "trampoline", "quantity": 1}]
+    data["drills"][2]["variations"][1]["video"] = 0  # media 0 of the rondo is a diagram, not a video
+    bad = tmp_path / "drills_v1.json"
+    bad.write_text(json.dumps(data))
+    with SessionLocal() as db:
+        try:
+            load_file(db, bad)
+            raise AssertionError("expected rejection")
+        except DrillError as error:
+            assert "unknown or retired tag 'not_a_tag'" in str(error) and "without a gap" in str(error)
+            assert "players must be [min, ideal, max]" in str(error) and "unknown equipment 'trampoline'" in str(error)
+            assert "video must point at one of this drill's videos" in str(error)
+    data = json.loads((DATA_DIR / "drills_v1.json").read_text())
+    data["drills"] = [d for d in data["drills"] if d["slug"] != "rondo-4v1"]
+    smaller = tmp_path / "smaller.json"
+    smaller.write_text(json.dumps(data))
+    with SessionLocal() as db:
+        assert load_file(db, smaller)["retired"] == 1
+    assert "rondo-4v1" not in {d["slug"] for d in client.get("/drills").json()}
+    assert client.get("/drills/rondo-4v1").status_code == 404
