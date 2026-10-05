@@ -7,7 +7,7 @@ from ..audit import record
 from ..auth import current_user, digest, fresh_token, require_member
 from ..config import settings
 from ..database import get_db
-from ..matrix import period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
+from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
 from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from .teams import scoped_period, scoped_player
 
@@ -183,14 +183,15 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     rows = db.query(Assessment, Period).join(Period, Period.id == Assessment.period_id).filter(
         Assessment.player_id == player_id, Period.team_id == team_id).order_by(Period.created_at, Period.id).all()
     priorities = db.query(PriorityConfirmation).filter_by(player_id=player_id).all()
-    by_period = {}
+    by_period, versions = {}, {}
     for a, p in rows:
+        versions[p.id] = p.matrix_version_id
         item = by_period.setdefault(p.id, {"period_id": p.id, "label": p.label, "assessments": {}, "priorities": []})
         item["assessments"][a.assessor] = assessment_out(a)
     for priority in priorities:
         if priority.period_id in by_period:
             by_period[priority.period_id]["priorities"].append({"skill_id": priority.skill_id, "rank": priority.rank, "coach_note": priority.coach_note})
-    return list(by_period.values())
+    return annotate_history(db, list(by_period.values()), [versions[pid] for pid in by_period])
 
 
 def report_payload(db: DbSession, team: Team, player: Player, period: Period) -> dict:
@@ -216,6 +217,7 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                             "secondary_position": a.secondary_position,
                             "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings],
                         }} if a else {}})
+    annotate_history(db, history, [p.matrix_version_id for p in periods])
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
             "matrix": rendered(db, period.matrix_version_id, team.player_gender)}

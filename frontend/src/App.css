@@ -702,6 +702,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 /* Skill matrix editor */
+.matrix-change { margin-left: 1px; color: #8a5300; font-weight: 700; cursor: help; }
+.matrix-change-note, .report-footnote { margin: 8px 0 0; font-size: .78rem; color: var(--muted); }
+.follow-up-change { margin: 4px 0 0; font-size: .8rem; color: #8a5300; }
 .primary-btn { background: var(--green) !important; color: #fff !important; border-color: var(--green) !important; }
 .publish-review { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .publish-review h3 { margin: 0; }

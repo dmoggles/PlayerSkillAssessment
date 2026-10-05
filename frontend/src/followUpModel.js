@@ -1,12 +1,14 @@
 // Compares the priorities confirmed in the most recent earlier period with the
 // coach's scores in the selected period. Coach scores only: self-ratings do not count.
 import { ratingMap } from './assessment'
+import { RATING_CHANGES, changesBetween, historyLabels } from './comparabilityModel'
 
 export const TRENDS = {
   improved: 'Improved',
   unchanged: 'No change',
   worse: 'Dropped',
   pending: 'Not yet rated',
+  retired: 'No longer assessed',
 }
 
 const trend = (before, now) => now == null || before == null ? 'pending' : now > before ? 'improved' : now < before ? 'worse' : 'unchanged'
@@ -21,14 +23,24 @@ export function priorityFollowUp(periods, history, periodId, currentCoach) {
   const previous = byPeriod[earlier.id]
   const before = ratingMap(previous.assessments?.coach)
   const now = ratingMap(currentCoach)
-  const items = [...previous.priorities].sort((a, b) => a.rank - b.rank).map(priority => ({
-    skill_id: priority.skill_id,
-    rank: priority.rank,
-    coach_note: priority.coach_note ?? null,
-    before: before[priority.skill_id] ?? null,
-    now: now[priority.skill_id] ?? null,
-    trend: trend(before[priority.skill_id], now[priority.skill_id]),
-  }))
+  // Skill matrix changes between the earlier period and this one (when this period is in the history).
+  const fromIndex = history.indexOf(previous)
+  const toIndex = history.findIndex(row => row.period_id === Number(periodId))
+  const changes = toIndex > fromIndex ? changesBetween(history, fromIndex, toIndex) : {}
+  const labels = historyLabels(history)  // includes retired skills
+  const items = [...previous.priorities].sort((a, b) => a.rank - b.rank).map(priority => {
+    const change = RATING_CHANGES.includes(changes[priority.skill_id]) ? changes[priority.skill_id] : null
+    return {
+      skill_id: priority.skill_id,
+      label: labels[priority.skill_id] ?? null,
+      rank: priority.rank,
+      coach_note: priority.coach_note ?? null,
+      before: before[priority.skill_id] ?? null,
+      now: now[priority.skill_id] ?? null,
+      trend: change === 'retired' ? 'retired' : trend(before[priority.skill_id], now[priority.skill_id]),
+      change,
+    }
+  })
   return { periodId: earlier.id, periodLabel: earlier.label, items }
 }
 

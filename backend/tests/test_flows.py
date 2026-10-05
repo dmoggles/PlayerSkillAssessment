@@ -693,6 +693,19 @@ def test_matrix_editor_drafts_classify_changes_and_publish_new_versions(monkeypa
     retired = {**body, "version": 1, "ratings": [{"skill_id": "restarts", "score": 3}]}
     assert owner.put(f"/teams/{team_id}/assessments/coach", json=retired, headers=headers).status_code == 422
 
+    # History flags what changed between the periods' matrix versions, keeping names of retired skills.
+    autumn_body = {"player_id": player_id, "period_id": autumn["id"], "version": 0, "primary_position": "winger",
+                   "ratings": [{"skill_id": k, "score": 2} for k in starter_skills()]}
+    assert owner.put(f"/teams/{team_id}/assessments/coach", json=autumn_body, headers=headers).status_code == 200
+    history = owner.get(f"/teams/{team_id}/players/{player_id}/history").json()
+    assert [(row["label"], row["matrix_version_id"]) for row in history] == [("Autumn", starter_id), ("Spring", published["version_id"])]
+    assert history[0]["skill_changes"] == {}
+    assert history[1]["skill_changes"] == {"communication": "reworded", "weak_foot": "added", "restarts": "retired"}
+    assert history[1]["skill_labels"]["restarts"].startswith("Restarts") and history[1]["skill_labels"]["weak_foot"] == "Weak foot"
+    assert history[1]["skill_sections"]["weak_foot"] == "technical"
+    report = owner.get(f"/teams/{team_id}/players/{player_id}/periods/{spring['id']}/report").json()
+    assert report["history"][1]["skill_changes"] == history[1]["skill_changes"]
+
     # A retired id is never reused; reordering alone needs no confirmation; the unassessed current period can adopt a new version.
     state = owner.get(url).json()
     doc = state["document"]

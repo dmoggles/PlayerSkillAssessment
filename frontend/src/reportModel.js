@@ -1,6 +1,7 @@
 // Turns the player-safe report payload into what the report shows. Coach scores only.
 import { ratingMap, sectionAverages, skillCallouts } from './assessment'
 import { priorityFollowUp } from './followUpModel'
+import { changedSections, changesBetween } from './comparabilityModel'
 import { POSITION_LABELS, norm, scaleAnchors } from './matrix'
 
 export const REPORT_TRENDS = {
@@ -8,6 +9,7 @@ export const REPORT_TRENDS = {
   unchanged: 'Holding steady',
   worse: 'Needs more work',
   pending: 'Not yet assessed',
+  retired: 'No longer assessed',
 }
 
 const positionLabel = id => POSITION_LABELS[norm(id)] ?? id
@@ -23,12 +25,14 @@ export function buildReport(matrix, report) {
   const base = {
     player: report.player, team: report.team, period: report.period, message: report.message,
     scale: Object.entries(anchors).map(([point, label]) => `${point} ${label}`).join(', '),
-    followUp: followUp && { label: followUp.periodLabel, items: followUp.items.map(item => ({ ...item, label: names[item.skill_id] ?? item.skill_id })) },
+    followUp: followUp && { label: followUp.periodLabel, items: followUp.items.map(item => ({ ...item, label: names[item.skill_id] ?? item.label ?? item.skill_id })) },
   }
   if (!coach) return { ...base, assessed: false }
 
   const coachMap = ratingMap(coach)
   const assessed = history.filter(row => row.assessments.coach)
+  // For each assessed period after the first, the skill areas whose skills changed since the previous one.
+  const changedAreas = assessed.map((row, k) => k === 0 ? new Set() : changedSections(changesBetween(history, history.indexOf(assessed[k - 1]), history.indexOf(row)), history))
   const sections = sectionAverages(matrix, coach.position, coachMap, {}).map(section => ({ id: section.id, label: section.label, score: section.coach }))
   return {
     ...base,
@@ -41,6 +45,7 @@ export function buildReport(matrix, report) {
       periods: assessed.map(row => row.label),
       rows: sections.map(section => ({
         label: section.label,
+        changed: changedAreas.map(areas => areas.has(section.id)),
         values: assessed.map(row => {
           const match = sectionAverages(matrix, row.assessments.coach.position, ratingMap(row.assessments.coach), {}).find(s => s.id === section.id)
           return match?.coach ?? null

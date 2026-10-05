@@ -16,6 +16,7 @@ import MatrixSummary from './MatrixSummary'
 import ReportPanel from './ReportPanel'
 import { auditText } from './auditModel'
 import { priorityFollowUp } from './followUpModel'
+import { CHANGE_LABELS, RATING_CHANGES, changesBetween, historyLabels } from './comparabilityModel'
 import { ALL_POSITIONS, POSITION_LABELS, FREQUENCIES, sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
 import { AREAS, PLAYER_DATA_TABS, PLAYER_GENDERS, assessmentSignature, canManageTeam, formFromAssessment, formSignature, initialPeriodId, initialPlayerId } from './dashboardModel'
@@ -34,20 +35,35 @@ function NavIcon({ name }) {
 }
 
 export function ProgressView({ matrix, history }) {
-  const periods = history.filter(row => row.assessments.coach)
-  if (!periods.length) return <p className="muted">No coach assessments recorded yet.</p>
+  const assessed = history.map((row, index) => ({ row, index })).filter(({ row }) => row.assessments.coach)
+  if (!assessed.length) return <p className="muted">No coach assessments recorded yet.</p>
+  const periods = assessed.map(({ row }) => row)
   const skillIds = [...new Set(periods.flatMap(row => row.assessments.coach.ratings.map(r => r.skill_id)))]
-  const names = Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
+  const names = historyLabels(history, matrix)
   const score = (row, id) => row.assessments.coach.ratings.find(r => r.skill_id === id)?.score
+  // The skill matrix change (if any) that separates this period from the previous assessed one.
+  const marker = (k, id) => {
+    if (k === 0) return null
+    const kind = changesBetween(history, assessed[k - 1].index, assessed[k].index)[id]
+    return RATING_CHANGES.includes(kind) ? kind : null
+  }
+  const crossesChange = id => periods.some((_, k) => marker(k, id))
   const change = id => {
     const first = score(periods[0], id)
     const last = score(periods[periods.length - 1], id)
-    return first != null && last != null && periods.length > 1 ? `${last - first > 0 ? '+' : ''}${last - first}` : '—'
+    if (first == null || last == null || periods.length < 2) return '—'
+    return `${last - first > 0 ? '+' : ''}${last - first}${crossesChange(id) ? '*' : ''}`
   }
+  const cell = (k, row, id) => {
+    const kind = marker(k, id)
+    return <>{score(row, id) ?? '—'}{kind && <sup className="matrix-change" title={`Skill matrix: ${CHANGE_LABELS[kind]} in ${row.label}. Not directly comparable with earlier periods.`}>*</sup>}</>
+  }
+  const anyMarker = skillIds.some(crossesChange)
   return <div className="history">
     <h3>Progress across periods</h3>
-    <div className="desktop-data"><div className="heatmap-scroll"><table className="heatmap-table"><thead><tr><th>Skill</th>{periods.map(row => <th key={row.period_id}>{row.label}</th>)}<th>Change</th></tr></thead><tbody>{skillIds.map(id => <tr key={id}><td>{names[id] ?? id}</td>{periods.map(row => <td key={row.period_id}>{score(row, id) ?? '—'}</td>)}<td>{change(id)}</td></tr>)}</tbody></table></div></div>
-    <div className="mobile-data mobile-card-list">{skillIds.map(id => <article className="data-card" key={id}><h4>{names[id] ?? id}</h4><dl>{periods.map(row => <div key={row.period_id}><dt>{row.label}</dt><dd>{score(row, id) ?? '—'}</dd></div>)}<div className="data-card-total"><dt>Change</dt><dd>{change(id)}</dd></div></dl></article>)}</div>
+    <div className="desktop-data"><div className="heatmap-scroll"><table className="heatmap-table"><thead><tr><th>Skill</th>{periods.map(row => <th key={row.period_id}>{row.label}</th>)}<th>Change</th></tr></thead><tbody>{skillIds.map(id => <tr key={id}><td>{names[id] ?? id}</td>{periods.map((row, k) => <td key={row.period_id}>{cell(k, row, id)}</td>)}<td>{change(id)}</td></tr>)}</tbody></table></div></div>
+    <div className="mobile-data mobile-card-list">{skillIds.map(id => <article className="data-card" key={id}><h4>{names[id] ?? id}</h4><dl>{periods.map((row, k) => <div key={row.period_id}><dt>{row.label}</dt><dd>{cell(k, row, id)}</dd></div>)}<div className="data-card-total"><dt>Change</dt><dd>{change(id)}</dd></div></dl></article>)}</div>
+    {anyMarker && <p className="muted matrix-change-note">* The skill matrix changed for this skill (wording, added or retired), so scores before and after are not directly comparable. Hover a marked score for details.</p>}
   </div>
 }
 
@@ -152,7 +168,7 @@ export default function CoachDashboard({ user, onLogout }) {
   }
 
   function chooseTeam(id) {
-    if (confirmDiscard()) selectTeam(id)
+    if (id !== teamId && confirmDiscard()) selectTeam(id)
   }
   function selectTeam(id) {
     setAuditEvents(null)

@@ -436,3 +436,43 @@ test('matrix editor helpers add, move, retire and tag skills without touching ot
   assert.deepEqual(m.literalPronouns('Sets {their} position'), [])
   assert.equal(m.changeCount({ addition: ['a'], wording: ['b', 'c'], breaking: [] }), 3)
 })
+
+test('history views mark comparisons that cross a skill matrix change', async () => {
+  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const { priorityFollowUp } = await loadJsx('src/followUpModel.js')
+  const { buildReport } = await loadJsx('src/reportModel.js')
+  const { default: PlayerReport } = await loadJsx('src/PlayerReport.jsx')
+  const { default: FollowUpCard } = await loadJsx('src/FollowUpCard.jsx')
+  const coach = scores => ({ position: 'outfield', primary_position: 'winger', ratings: Object.entries(scores).map(([skill_id, score]) => ({ skill_id, score })) })
+  const sections = { touch: 'technical', talk: 'tactical', restarts: 'technical', weak: 'technical' }
+  const history = [
+    { period_id: 1, label: 'Autumn', assessments: { coach: coach({ touch: 2, talk: 2, restarts: 3 }) }, priorities: [{ skill_id: 'talk', rank: 1 }, { skill_id: 'restarts', rank: 2 }, { skill_id: 'touch', rank: 3 }],
+      matrix_version_id: 1, skill_changes: {}, skill_labels: { touch: 'Touch', talk: 'Communication', restarts: 'Restarts' }, skill_sections: sections },
+    { period_id: 2, label: 'Spring', assessments: { coach: coach({ touch: 3, talk: 3, weak: 2 }) }, priorities: [],
+      matrix_version_id: 7, skill_changes: { talk: 'reworded', restarts: 'retired', weak: 'added' }, skill_labels: { touch: 'Touch', talk: 'Communication', weak: 'Weak foot', restarts: 'Restarts' }, skill_sections: sections },
+  ]
+  const matrix = { meta: { scale: { anchors: {} } }, sections: [
+    { id: 'technical', label: 'Technical', applies_to: ['winger'], skills: [{ id: 'touch', label: 'Touch' }, { id: 'weak', label: 'Weak foot' }] },
+    { id: 'tactical', label: 'Tactical', applies_to: ['winger'], skills: [{ id: 'talk', label: 'Communication' }] },
+  ] }
+
+  const progress = renderToStaticMarkup(React.createElement(ProgressView, { matrix, history }))
+  assert.match(progress, /Restarts/, 'retired skills keep their name')
+  assert.match(progress, /3<sup class="matrix-change" title="Skill matrix: wording changed in Spring/)
+  assert.match(progress, /\+1\*/, 'change across a rewording is flagged')
+  assert.match(progress, /<td>Touch<\/td><td>2<\/td><td>3<\/td><td>\+1<\/td>/, 'unchanged skills are not flagged')
+  assert.match(progress, /not directly comparable/)
+
+  const periods = [{ id: 2, label: 'Spring' }, { id: 1, label: 'Autumn' }]
+  const followUp = priorityFollowUp(periods, history, 2, history[1].assessments.coach)
+  assert.deepEqual(followUp.items.map(i => [i.skill_id, i.trend, i.change]), [['talk', 'improved', 'reworded'], ['restarts', 'retired', 'retired'], ['touch', 'improved', null]])
+  const card = renderToStaticMarkup(React.createElement(FollowUpCard, { matrix, followUp, canKeep: () => true, onKeep: () => {} }))
+  assert.match(card, /wording changed since Autumn/)
+  assert.match(card, /No longer assessed/)
+  assert.match(card, /<strong>Restarts<\/strong>/, 'retired priorities show their name from history')
+  assert.doesNotMatch(card, />Keep</, 'retired and improved priorities cannot be kept')
+
+  const report = buildReport(matrix, { player: 'Rae', team: 'T', period: 'Spring', period_id: 2, message: null, history })
+  assert.deepEqual(report.trend.rows.map(r => [r.label, r.changed]), [['Technical', [false, true]], ['Tactical', [false, true]]])
+  assert.match(renderToStaticMarkup(React.createElement(PlayerReport, { report })), /skills in this area changed from this period/)
+})

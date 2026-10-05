@@ -1,7 +1,7 @@
 """Skill matrices stored in the database: lookups, the skill sets used for validation, and tag levels."""
 from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
-from .models import MatrixVersion, Period, SkillMatrix, Team
+from .models import MatrixSkillTag, MatrixVersion, Period, SkillMatrix, Team
 from .wording import render_document
 
 # Published versions never change, so their documents can be cached for the life of the process.
@@ -64,6 +64,58 @@ def version_label(db: DbSession, version_id: int) -> str:
     version = db.get(MatrixVersion, version_id)
     matrix = db.get(SkillMatrix, version.matrix_id)
     return f"{'Starter' if matrix.team_id is None else matrix.name} v{version.version}"
+
+
+_version_tags: dict[int, dict[str, dict[str, float]]] = {}
+
+
+def version_tags(db: DbSession, version_id: int) -> dict[str, dict[str, float]]:
+    """Skill id -> {tag id: weight} for a published version (cached; versions never change)."""
+    if version_id not in _version_tags:
+        tags = {}
+        for row in db.query(MatrixSkillTag).filter_by(matrix_version_id=version_id):
+            tags.setdefault(row.skill_id, {})[row.tag_id] = row.weight
+        _version_tags[version_id] = tags
+    return _version_tags[version_id]
+
+
+def version_skills(db: DbSession, version_id: int) -> dict[str, tuple[dict, str]]:
+    return {skill["id"]: (skill, section["id"]) for section in document(db, version_id)["sections"] for skill in section["skills"]}
+
+
+def skill_changes(db: DbSession, old_id: int, new_id: int) -> dict[str, str]:
+    """How each skill changed between two versions, as far as comparing ratings is concerned:
+    reworded (name or level descriptions), added, retired, moved (to another section) or retagged."""
+    if old_id == new_id:
+        return {}
+    old, new = version_skills(db, old_id), version_skills(db, new_id)
+    old_tags, new_tags = version_tags(db, old_id), version_tags(db, new_id)
+    changes = {skill_id: "added" for skill_id in new if skill_id not in old}
+    changes.update({skill_id: "retired" for skill_id in old if skill_id not in new})
+    for skill_id in new.keys() & old.keys():
+        (before, before_section), (after, after_section) = old[skill_id], new[skill_id]
+        if before["label"] != after["label"] or before["descriptors"] != after["descriptors"]:
+            changes[skill_id] = "reworded"
+        elif before_section != after_section:
+            changes[skill_id] = "moved"
+        elif old_tags.get(skill_id, {}) != new_tags.get(skill_id, {}):
+            changes[skill_id] = "retagged"
+    return changes
+
+
+def annotate_history(db: DbSession, rows: list[dict], version_ids: list[int]) -> list[dict]:
+    """Add each period's matrix version, its skill names and sections, and the skills that changed
+    since the previous row, so history views can flag comparisons that cross a matrix change."""
+    previous = None
+    for row, version_id in zip(rows, version_ids):
+        skills = version_skills(db, version_id)
+        retired_from = version_skills(db, previous) if previous else {}
+        row["matrix_version_id"] = version_id
+        row["skill_changes"] = skill_changes(db, previous, version_id) if previous else {}
+        row["skill_labels"] = {**{k: v[0]["label"] for k, v in retired_from.items()}, **{k: v[0]["label"] for k, v in skills.items()}}
+        row["skill_sections"] = {**{k: v[1] for k, v in retired_from.items()}, **{k: v[1] for k, v in skills.items()}}
+        previous = version_id
+    return rows
 
 
 def tag_levels(db: DbSession, player_id: int, period_id: int) -> dict[str, float]:
