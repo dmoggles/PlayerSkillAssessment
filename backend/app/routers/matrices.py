@@ -31,7 +31,10 @@ def draft_out(db: DbSession, team: Team, draft: MatrixDraft | None) -> dict:
     base = editable_document(db, base_id)
     doc = draft.document if draft else base
     matrix = db.get(SkillMatrix, current.matrix_id)
+    period = db.query(Period).filter_by(team_id=team.id, is_active=True).first()
     return {
+        "current_period": {"label": period.label, "assessed": db.query(Assessment).filter_by(period_id=period.id).first() is not None}
+        if period else None,
         "draft": draft is not None, "revision": draft.revision if draft else 0,
         "base_version_id": base_id, "current_version_id": current.id, "stale": base_id != current.id,
         "current": {"name": matrix.name, "version": current.version, "own": matrix.team_id is not None},

@@ -702,6 +702,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 /* Skill matrix editor */
+.primary-btn { background: var(--green) !important; color: #fff !important; border-color: var(--green) !important; }
+.publish-review { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.publish-review h3 { margin: 0; }
+.publish-review p { margin: 0; font-size: .88rem; }
+.publish-options { margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 6px; font-size: .88rem; }
+.publish-options legend { padding: 0 6px; font-weight: 700; }
+.publish-ack { padding: 10px 12px; border-radius: 10px; background: #fbeedd; font-size: .88rem; }
 .matrix-card p { margin: 0 0 8px; font-size: .88rem; }
 .matrix-card button, .matrix-editor button:not(.link-btn):not(.danger-btn) { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; font-weight: 600; }
 .matrix-card button:disabled, .matrix-editor button:disabled { opacity: .45; cursor: default; }

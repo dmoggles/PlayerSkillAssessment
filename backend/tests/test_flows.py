@@ -706,9 +706,12 @@ def test_matrix_editor_drafts_classify_changes_and_publish_new_versions(monkeypa
     state = owner.put(url, json={"revision": 0, "document": doc}, headers=headers).json()
     assert state["changes"]["layout"] == ["Changed the order of sections or skills"] and not state["changes"]["breaking"]
     summer = owner.post(f"/teams/{team_id}/periods", json={"label": "Summer"}, headers=headers).json()
+    assert owner.get(url).json()["current_period"] == {"label": "Summer", "assessed": False}
     applied = owner.post(publish, json={"revision": 1, "apply_to_current_period": True}, headers=headers).json()
     assert applied["version"] == 2 and applied["applied_to_period"] == "Summer"
     assert next(p for p in owner.get(f"/teams/{team_id}/periods").json() if p["id"] == summer["id"])["matrix_version_id"] == applied["version_id"]
+    labels = {p["label"]: p["matrix_label"] for p in owner.get(f"/teams/{team_id}/periods").json()}
+    assert labels == {"Autumn": "Starter v1", "Spring": "Editors matrix v1", "Summer": "Editors matrix v2"}
     events = [e for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "matrix_published"]
     assert [e["details"]["version"] for e in events] == [2, 1]
     assert owner.request("DELETE", f"/teams/{team_id}", json={"confirm_name": "Editors"}, headers=headers).status_code == 200

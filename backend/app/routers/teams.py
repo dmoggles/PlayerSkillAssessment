@@ -7,7 +7,7 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..matrix import team_version
+from ..matrix import team_version, version_label
 from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SkillMatrix, Team, User
 from .accounts import delivery_message
 
@@ -63,9 +63,12 @@ def player_out(player: Player):
     return {"id": player.id, "name": player.name, "active": player.active}
 
 
-def period_out(period: Period):
-    return {"id": period.id, "label": period.label, "is_active": period.is_active, "created_at": period.created_at,
-            "matrix_version_id": period.matrix_version_id}
+def period_out(period: Period, db: DbSession | None = None):
+    out = {"id": period.id, "label": period.label, "is_active": period.is_active, "created_at": period.created_at,
+           "matrix_version_id": period.matrix_version_id}
+    if db is not None:
+        out["matrix_label"] = version_label(db, period.matrix_version_id)
+    return out
 
 
 def nonblank(value: str) -> str:
@@ -308,7 +311,7 @@ def restore_player(team_id: int, player_id: int, db: DbSession = Depends(get_db)
 @router.get("/teams/{team_id}/periods")
 def list_periods(team_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
-    return [period_out(p) for p in db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc()).all()]
+    return [period_out(p, db) for p in db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc()).all()]
 
 
 @router.post("/teams/{team_id}/periods", status_code=201)
@@ -325,7 +328,7 @@ def create_period(team_id: int, body: PeriodBody, db: DbSession = Depends(get_db
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "Period label already exists in this team")
-    return period_out(period)
+    return period_out(period, db)
 
 
 @router.post("/teams/{team_id}/periods/{period_id}/activate")
@@ -336,7 +339,7 @@ def activate_period(team_id: int, period_id: int, db: DbSession = Depends(get_db
     db.query(Period).filter_by(team_id=team_id).update({"is_active": False})
     period.is_active = True
     db.commit()
-    return period_out(period)
+    return period_out(period, db)
 
 
 @router.patch("/teams/{team_id}/periods/{period_id}")
@@ -349,7 +352,7 @@ def rename_period(team_id: int, period_id: int, body: PeriodRename, db: DbSessio
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "Period label already exists in this team")
-    return period_out(period)
+    return period_out(period, db)
 
 
 @router.delete("/teams/{team_id}/periods/{period_id}")

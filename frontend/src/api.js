@@ -24,6 +24,7 @@ export function errorMessage(error, fallback = 'Request failed. Please try again
     if (messages.length) return messages.join(' ')
   }
   if (detail && typeof detail.msg === 'string') return detail.msg
+  if (detail && typeof detail.message === 'string') return Array.isArray(detail.problems) && detail.problems.length ? `${detail.message}: ${detail.problems.join('; ')}` : detail.message
   return fallback
 }
 
@@ -41,6 +42,7 @@ export const acceptInvite = token => data(api.post('/invites/accept', { token })
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))
 export const saveMatrixDraft = (id, revision, document) => data(api.put(`${team(id)}/matrix/draft`, { revision, document }))
+export const publishMatrix = (id, revision, acknowledge, applyToCurrentPeriod) => data(api.post(`${team(id)}/matrix/publish`, { revision, acknowledge, apply_to_current_period: applyToCurrentPeriod }))
 export const discardMatrixDraft = id => data(api.delete(`${team(id)}/matrix/draft`))
 export const getMatrixVersion = (id, versionId) => data(api.get(`${team(id)}/matrix-versions/${versionId}`))
 export const getTeams = () => data(api.get('/teams'))

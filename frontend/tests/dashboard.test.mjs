@@ -26,6 +26,7 @@ test('API validation errors become readable text without exposing submitted valu
   assert.equal(errorMessage(error), 'password: Value error')
   assert.equal(errorMessage({ response: { data: { detail: 'Not found' } } }), 'Not found')
   assert.equal(errorMessage({}), 'Request failed. Please try again.')
+  assert.equal(errorMessage({ response: { data: { detail: { message: 'Fix these before publishing', problems: ['A needs a tag', 'B needs a name'] } } } }), 'Fix these before publishing: A needs a tag; B needs a name')
 })
 
 test('player data exposes all sub-tabs, including confirmed priorities and the report', () => {

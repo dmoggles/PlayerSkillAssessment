@@ -59,6 +59,13 @@ def version_visible_to_team(db: DbSession, team_id: int, version_id: int) -> boo
     return row is not None and row.team_id in (None, team_id)
 
 
+def version_label(db: DbSession, version_id: int) -> str:
+    """Short name for a matrix version, e.g. "Starter v1" or "Falcons matrix v2"."""
+    version = db.get(MatrixVersion, version_id)
+    matrix = db.get(SkillMatrix, version.matrix_id)
+    return f"{'Starter' if matrix.team_id is None else matrix.name} v{version.version}"
+
+
 def tag_levels(db: DbSession, player_id: int, period_id: int) -> dict[str, float]:
     """A player's level on each skill tag in a period: coach scores weighted through that period's tag mapping."""
     rows = db.execute(text("""

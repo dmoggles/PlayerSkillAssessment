@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { discardMatrixDraft, errorMessage, getMatrixDraft, getSkillTags, saveMatrixDraft } from './api'
+import { discardMatrixDraft, errorMessage, getMatrixDraft, getSkillTags, publishMatrix, saveMatrixDraft } from './api'
 import { POSITION_LABELS } from './matrix'
 import * as m from './matrixEditorModel'
 
@@ -7,7 +7,7 @@ const AUTOSAVE_MS = 800
 const AREA_LABELS = { technical: 'Technical', tactical: 'Tactical', mental: 'Mental', goalkeeping: 'Goalkeeping', physical: 'Physical' }
 
 // Owner-only editor for the team's skill matrix. Edits autosave to a shared draft; publishing is a separate step.
-export default function MatrixEditor({ teamId, onClose, onMessage }) {
+export default function MatrixEditor({ teamId, onClose, onMessage, onPublished }) {
   const [server, setServer] = useState(null)
   const [doc, setDoc] = useState(null)
   const [tags, setTags] = useState([])
@@ -17,6 +17,7 @@ export default function MatrixEditor({ teamId, onClose, onMessage }) {
   const [saving, setSaving] = useState(false)
   const [failure, setFailure] = useState(null)
   const [selected, setSelected] = useState(null)
+  const [reviewing, setReviewing] = useState(false)
 
   const load = useCallback(() => Promise.all([getMatrixDraft(teamId), getSkillTags()]).then(([draft, tagList]) => {
     setServer(draft); setDoc(draft.document); setRevision(draft.revision); setTags(tagList)
@@ -53,6 +54,14 @@ export default function MatrixEditor({ teamId, onClose, onMessage }) {
     }
     onClose()
   }
+  async function publish(acknowledge, applyNow) {
+    try {
+      const result = await publishMatrix(teamId, revision, acknowledge, applyNow)
+      onMessage(`Published skill matrix version ${result.version}${result.applied_to_period ? `; ${result.applied_to_period} now uses it` : '; new periods will use it'}.`)
+      onPublished?.()
+      onClose()
+    } catch (e) { onMessage(errorMessage(e)) }
+  }
   async function discard() {
     if (!window.confirm('Discard the draft? All unpublished changes to the skill matrix will be lost.')) return
     try { await discardMatrixDraft(teamId); setSelected(null); await load(); onMessage('Draft discarded.') } catch (e) { onMessage(errorMessage(e)) }
@@ -73,10 +82,12 @@ export default function MatrixEditor({ teamId, onClose, onMessage }) {
       <div className="matrix-editor-actions">
         <span className={`save-status ${failure ? 'save-status-problem' : ''}`} role="status">{status}</span>
         {failure === 'conflict' && <button type="button" onClick={load}>Reload</button>}
-        {server.draft && <button type="button" onClick={discard}>Discard draft</button>}
+        {server.draft && !reviewing && <button type="button" onClick={discard}>Discard draft</button>}
+        {!reviewing && <button type="button" className="primary-btn" disabled={!server.draft || pending || saving || Boolean(failure)} onClick={() => setReviewing(true)}>Review &amp; publish</button>}
       </div>
     </div>
 
+    {reviewing ? <PublishReview server={server} onCancel={() => setReviewing(false)} onPublish={publish} /> : <>
     <DraftSummary server={server} />
 
     <div className="matrix-editor-body">
@@ -113,7 +124,42 @@ export default function MatrixEditor({ teamId, onClose, onMessage }) {
             onEdit={edit} onBack={() => setSelected(null)} onRemoved={() => setSelected(null)} />}
       </div>
     </div>
+    </>}
   </div>
+}
+
+// Final check before a draft becomes the team's matrix for new periods.
+function PublishReview({ server, onCancel, onPublish }) {
+  const [acknowledged, setAcknowledged] = useState(false)
+  const [applyNow, setApplyNow] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const total = m.changeCount(server.changes)
+  const needsAck = server.changes.wording.length > 0 || server.changes.breaking.length > 0
+  const period = server.current_period
+  const blocked = server.problems.length > 0 || total === 0 || (needsAck && !acknowledged)
+
+  return <section className="publish-review" aria-labelledby="publish-review-title">
+    <h3 id="publish-review-title">Review and publish</h3>
+    <p>Publishing makes this draft version {server.current.own ? server.current.version + 1 : 1} of your team's matrix. Past periods keep the matrix they were rated on.</p>
+    {server.problems.length > 0 && <div className="matrix-summary-group problem"><h4>Fix before publishing</h4><ul>{server.problems.map(p => <li key={p}>{p}</li>)}</ul></div>}
+    {total === 0 && <p className="muted">There are no changes to publish.</p>}
+    {m.CHANGE_GROUPS.filter(([kind]) => server.changes[kind]?.length).map(([kind, label, note]) => <div key={kind} className={`matrix-summary-group change-${kind}`}>
+      <h4>{label} <small>{note}</small></h4><ul>{server.changes[kind].map(c => <li key={c}>{c}</li>)}</ul></div>)}
+    {server.warnings.length > 0 && <div className="matrix-summary-group warning"><h4>Pronouns <small>These words will show exactly as typed, whatever the Players setting.</small></h4><ul>{server.warnings.map(w => <li key={w}>{w}</li>)}</ul></div>}
+
+    <fieldset className="publish-options"><legend>Use the new matrix for</legend>
+      <label className="checkbox"><input type="radio" name="apply" checked={!applyNow} onChange={() => setApplyNow(false)} /> New periods only</label>
+      <label className="checkbox"><input type="radio" name="apply" checked={applyNow} disabled={!period || period.assessed} onChange={() => setApplyNow(true)} /> New periods and the current period{period ? ` (${period.label})` : ''}</label>
+      {period?.assessed && <p className="muted hint">{period.label} already has assessments, so it keeps its current matrix.</p>}
+    </fieldset>
+
+    {needsAck && <label className="checkbox publish-ack"><input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} /> I understand that ratings for the changed or retired skills will not be directly comparable with earlier periods.</label>}
+
+    <div className="inline-row">
+      <button type="button" onClick={onCancel}>Back to editing</button>
+      <button type="button" className="primary-btn" disabled={blocked || busy} onClick={async () => { setBusy(true); await onPublish(acknowledged, applyNow); setBusy(false) }}>{busy ? 'Publishing…' : 'Publish'}</button>
+    </div>
+  </section>
 }
 
 function DraftSummary({ server }) {
