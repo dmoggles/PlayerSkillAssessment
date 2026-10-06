@@ -561,12 +561,18 @@ test('animated diagrams replay passes, runs, dribbles and shots into positions o
   assert.deepEqual(frameAt(timeline, 2, 1).ball, [5, 20], 'shots end in the goal')
   assert.deepEqual(buildTimeline({ ...diagram, steps: [{ label: 'Corner', actions: [{ shot: { who: 'A', to: [6, 20] } }] }] }).steps[0].ballMove.to, [6, 20], 'or at a point, such as a corner of the goal')
   assert.deepEqual(stepArrows(timeline, 0).map(a => a.kind), ['run', 'pass'])
+  // A pass off a wall goes out to the wall, then back to the receiver, with an arrow for each leg.
+  const wall = buildTimeline({ ...diagram, objects: { ...diagram.objects, W: { type: 'wall', at: [0, 0], to: [10, 0] } }, steps: [{ label: 'Off the wall', actions: [{ pass: { from: 'A', to: 'A', via: [2, 0] } }] }] })
+  assert.deepEqual(frameAt(wall, 0, 0.5).ball, [2, 0], 'at the wall halfway through the step')
+  assert.deepEqual(frameAt(wall, 0, 1).ball, [2.45, 2.35], 'back at the passer\'s feet')
+  assert.deepEqual(stepArrows(wall, 0).map(a => [a.from, a.to]), [[[2.45, 2.35], [2, 0]], [[2, 0], [2.45, 2.35]]])
   assert.equal(ease(0), 0); assert.equal(ease(1), 1); assert.equal(ease(0.5), 0.5)
 
   const html = renderToStaticMarkup(React.createElement(DiagramPlayer, { diagram, caption: 'Test drill' }))
   assert.match(html, /role="img" aria-label="Test drill\. Step 1 of 3: Pass while B runs"/)
   assert.match(html, /diagram-arrow-run/)
   assert.match(html, /diagram-cone/)
+  assert.match(renderToStaticMarkup(React.createElement(DiagramPlayer, { diagram: { ...diagram, objects: { ...diagram.objects, W: { type: 'wall', at: [0, 0], to: [10, 0] } } } })), /<line[^>]*class="diagram-wall"/)
   // It opens before step 1 has happened: A still has the ball and B has not run yet.
   assert.match(html, /<circle cx="142" cy="174" r="10"/, 'B at its starting spot')
   assert.match(html, /<circle cx="53.2" cy="51.6" r="4.5" class="diagram-ball"/, 'the ball with A')

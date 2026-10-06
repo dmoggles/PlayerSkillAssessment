@@ -271,6 +271,8 @@ class Drill(Base):
     instructions: Mapped[list] = mapped_column(JSONB, default=list)
     coaching_points: Mapped[list] = mapped_column(JSONB, default=list)
     home_friendly: Mapped[bool] = mapped_column(Boolean, default=False)
+    # How to run a home drill indoors (soft ball, household items), shown as its own section.
+    indoors: Mapped[str | None] = mapped_column(Text)
     source_version: Mapped[str | None] = mapped_column(String(40))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

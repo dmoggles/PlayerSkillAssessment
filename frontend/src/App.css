@@ -821,6 +821,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .diagram-pitch { fill: #2f7d4f; }
 .diagram-lines { fill: none; stroke: #ffffffb3; stroke-width: 1.5; }
 .diagram-goal { fill: #ffffff; }
+.diagram-wall { stroke: #b9a58c; stroke-width: 7; stroke-linecap: round; }
 .diagram-cone { fill: #f2a33a; stroke: #7a4a00; stroke-width: .8; }
 .diagram-mannequin { fill: #d9dee3; stroke: #33404d; stroke-width: .8; }
 .diagram-player-dot { stroke: #ffffff; stroke-width: 2; }

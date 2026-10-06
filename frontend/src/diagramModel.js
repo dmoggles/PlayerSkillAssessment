@@ -31,7 +31,7 @@ export function buildTimeline(diagram) {
       const [kind, spec] = Object.entries(action)[0]
       if (kind === 'pass') {
         const target = ends[spec.to] ?? positions[spec.to]
-        ballMove = { kind: 'pass', from: ball, to: [target[0] + BALL_OFFSET[0], target[1] + BALL_OFFSET[1]], receiver: spec.to }
+        ballMove = { kind: 'pass', from: ball, to: [target[0] + BALL_OFFSET[0], target[1] + BALL_OFFSET[1]], receiver: spec.to, via: spec.via ? [...spec.via] : null }
       } else if (kind === 'shot') {
         ballMove = { kind: 'shot', from: ball, to: Array.isArray(spec.to) ? [...spec.to] : [...goals[spec.to].at], receiver: null }
       }
@@ -53,7 +53,10 @@ export function frameAt(timeline, index, t) {
   const positions = { ...start.positions }
   for (const move of step.moves) positions[move.who] = lerp(move.from, move.to, k)
   let ball = start.ball
-  if (step.ballMove) ball = lerp(step.ballMove.from, step.ballMove.to, k)
+  const via = step.ballMove?.via
+  // A pass off a wall travels to the wall in the first half of the step and back out in the second.
+  if (via) ball = k < 0.5 ? lerp(step.ballMove.from, via, k * 2) : lerp(via, step.ballMove.to, (k - 0.5) * 2)
+  else if (step.ballMove) ball = lerp(step.ballMove.from, step.ballMove.to, k)
   else if (start.holder && end.ball) ball = lerp(start.ball, end.ball, k)
   return { positions, ball }
 }
@@ -62,6 +65,8 @@ export function frameAt(timeline, index, t) {
 export function stepArrows(timeline, index) {
   const step = timeline.steps[index]
   const arrows = step.moves.filter(m => m.kind !== 'move').map(m => ({ kind: m.kind, from: m.from, to: m.to }))
-  if (step.ballMove) arrows.push({ kind: step.ballMove.kind, from: step.ballMove.from, to: step.ballMove.to })
+  const { ballMove } = step
+  if (ballMove?.via) arrows.push({ kind: 'pass', from: ballMove.from, to: ballMove.via }, { kind: 'pass', from: ballMove.via, to: ballMove.to })
+  else if (ballMove) arrows.push({ kind: ballMove.kind, from: ballMove.from, to: ballMove.to })
   return arrows
 }

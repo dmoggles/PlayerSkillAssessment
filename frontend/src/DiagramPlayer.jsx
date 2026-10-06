@@ -81,10 +81,11 @@ export default function DiagramPlayer({ diagram, caption }) {
       {/* The current step's arrows, with the previous step's faded behind them for context. */}
       {[index - 1, index].filter(i => i >= 0).map(i => <g key={i} opacity={i === index ? 1 : 0.3}>{stepArrows(timeline, i).map((arrow, j) =>
         <path key={j} d={arrowPath(arrow, k)} className={`diagram-arrow diagram-arrow-${arrow.kind}`} markerEnd={`url(#arrow-${arrow.kind})`} />)}</g>)}
-      {/* Cones and mannequins first, so players are never hidden underneath them. */}
+      {/* Walls, cones and mannequins first, so players are never hidden underneath them. */}
       {Object.entries(diagram.objects).sort(([, a], [, b]) => (a.type === 'player') - (b.type === 'player')).map(([name, obj]) => {
         if (obj.type === 'ball') return null
         const [x, y] = px(current.positions[name])
+        if (obj.type === 'wall') { const [x2, y2] = px(obj.to); return <line key={name} x1={x} y1={y} x2={x2} y2={y2} className="diagram-wall" /> }
         if (obj.type === 'cone') return <path key={name} d={`M${x} ${y - 6}L${x + 5} ${y + 4}L${x - 5} ${y + 4}Z`} className="diagram-cone" />
         if (obj.type === 'mannequin') return <rect key={name} x={x - 4} y={y - 9} width="8" height="18" rx="3" className="diagram-mannequin" />
         return <g key={name}><circle cx={x} cy={y} r="10" fill={TEAM_COLORS[obj.team] ?? TEAM_COLORS.N} className="diagram-player-dot" /><text x={x} y={y + 3.5} textAnchor="middle" className="diagram-player-label">{obj.label ?? name}</text></g>

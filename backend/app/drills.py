@@ -18,7 +18,7 @@ INTENSITIES = {"low", "medium", "high"}
 EQUIPMENT = {"cones", "balls", "bibs", "goals", "mini_goals", "mannequins", "hurdles", "ladders", "poles", "other"}
 KIND_ORDER = {"regression": 0, "base": 1, "escalator": 2}
 VIDEO_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "vimeo.com", "www.vimeo.com", "player.vimeo.com"}
-OBJECT_TYPES = {"player", "cone", "ball", "mannequin"}
+OBJECT_TYPES = {"player", "cone", "ball", "mannequin", "wall"}
 ACTIONS = {"pass", "run", "dribble", "shot", "move"}
 MAX_STEPS, MAX_OBJECTS = 12, 30
 
@@ -64,6 +64,8 @@ def diagram_problems(diagram) -> list[str]:
             continue
         if not _is_point(obj.get("at"), pitch):
             problems.append(f"{name}: position must be on the pitch")
+        if kind == "wall" and not _is_point(obj.get("to"), pitch):
+            problems.append(f"{name}: a wall runs from 'at' to 'to', both on the pitch")
         if kind == "player":
             players.add(name)
             if obj.get("team") not in ("A", "B", "N"):
@@ -90,6 +92,9 @@ def diagram_problems(diagram) -> list[str]:
                     problems.append(f"{where}: {spec.get('from')} passes without the ball")
                 if spec.get("to") not in players:
                     problems.append(f"{where}: pass to unknown player {spec.get('to')}")
+                # A pass can bounce off a point on the way (a wall), even back to the passer.
+                if "via" in spec and not _is_point(spec["via"], pitch):
+                    problems.append(f"{where}: pass bounces off a point that is off the pitch")
                 new_holder = spec.get("to")
             elif kind == "shot":
                 if spec.get("who") != holder:
@@ -103,7 +108,7 @@ def diagram_problems(diagram) -> list[str]:
                 who = spec.get("who")
                 if kind in ("run", "dribble") and who not in players:
                     problems.append(f"{where}: {who} is not a player")
-                if kind == "move" and (who not in objects or objects[who].get("type") == "ball"):
+                if kind == "move" and (who not in objects or objects[who].get("type") in ("ball", "wall")):
                     problems.append(f"{where}: cannot move {who}")
                 if kind == "dribble" and who != holder:
                     problems.append(f"{where}: {who} dribbles without the ball")
@@ -137,6 +142,8 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
     for item in raw.get("equipment", []):
         if item.get("item") not in EQUIPMENT:
             p.append(f"unknown equipment {item.get('item')!r}")
+    if "indoors" in raw and not (isinstance(raw["indoors"], str) and raw["indoors"] and raw.get("home_friendly")):
+        p.append("indoors must be text, and only on a home-friendly drill")
     tags = raw.get("tags") or {}
     if not tags or 1.0 not in tags.values():
         p.append("needs at least one Main (1.0) tag")
@@ -223,6 +230,7 @@ def load_file(db: DbSession, path: Path) -> dict:
         for key in ("title", "format", "session_phase", "intensity"):
             setattr(drill, key, r[key])
         drill.summary, drill.setup = r.get("summary", ""), r.get("setup", "")
+        drill.indoors = r.get("indoors")
         drill.equipment, drill.instructions, drill.coaching_points = r.get("equipment", []), r.get("instructions", []), r.get("coaching_points", [])
         drill.home_friendly, drill.status = r.get("home_friendly", False), r.get("status", "published")
         drill.source_version, drill.updated_at = version, utcnow()

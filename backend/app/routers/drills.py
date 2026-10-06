@@ -64,7 +64,7 @@ def drill_detail(slug: str, db: DbSession = Depends(get_db), user: User = Depend
     return {**summary(drill, _tags(db, [drill.id]).get(drill.id, []), levels, _votes(db, [drill.id], user)[drill.id]),
             "space": [float(drill.space_width_m), float(drill.space_length_m)] if drill.space_width_m is not None else None,
             "equipment": drill.equipment, "setup": drill.setup, "instructions": drill.instructions,
-            "coaching_points": drill.coaching_points,
+            "coaching_points": drill.coaching_points, "indoors": drill.indoors,
             "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "change": v.change, "levels": [v.level_min, v.level_max],
                             "diagram_media_id": v.diagram_media_id, "video_media_id": v.video_media_id,
                             # Overrides of the drill's content; null means "same as the drill".
