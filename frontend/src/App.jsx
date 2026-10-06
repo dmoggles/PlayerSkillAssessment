@@ -3,6 +3,7 @@ import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, use
 import CoachDashboard from './CoachDashboard'
 import PlayerPage from './PlayerPage'
 import SharedReportPage from './SharedReportPage'
+import UpdateBanner from './UpdateBanner'
 import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
 
@@ -88,4 +89,4 @@ function Shell() {
 }
 
 const router = createBrowserRouter([{ path: '*', element: <Shell /> }])
-export default function App() { return <RouterProvider router={router} /> }
+export default function App() { return <><UpdateBanner /><RouterProvider router={router} /></> }

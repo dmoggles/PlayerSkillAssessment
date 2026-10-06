@@ -673,3 +673,12 @@ test('priority drill suggestions are folded away, name the variation and explain
   assert.match(render({ tagged: false, level: 3, matches: 0, drills: [] }), /this skill has no tags/)
   assert.equal(render(undefined), '')
 })
+
+test('an open page asks to be reloaded only when the server runs a different build', async () => {
+  const { isOutdated } = await loadJsx('src/version.js')
+  assert.equal(isOutdated('dev-e93b78e', 'dev-5085244'), true)
+  assert.equal(isOutdated('dev-e93b78e', 'dev-e93b78e'), false)
+  assert.equal(isOutdated('local', 'dev-e93b78e'), false, 'local builds never ask')
+  assert.equal(isOutdated('dev-e93b78e', 'local'), false)
+  assert.equal(isOutdated('dev-e93b78e', undefined), false, 'no answer from the server is not a new version')
+})

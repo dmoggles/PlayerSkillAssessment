@@ -882,3 +882,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .priority-drills .hint { margin: 4px 0 0; }
 .drill-dialog { width: min(900px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: 0 16px 48px #14233435; overflow: auto; }
 .drill-dialog::backdrop { background: #101c2a99; }
+
+.update-banner { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; padding: 10px 16px; background: #fbeedd; color: #5c3800; border-bottom: 1px solid #e8cfa6; font-size: .9rem; }
+.update-banner button { padding: 6px 14px; border: 1px solid #c79a55; border-radius: 8px; background: white; color: #5c3800; font-weight: 600; cursor: pointer; }

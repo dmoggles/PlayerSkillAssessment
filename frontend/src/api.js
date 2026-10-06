@@ -39,6 +39,7 @@ export const resetPassword = (token, password) => data(api.post('/auth/reset-pas
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
+export const getServerVersion = () => data(api.get('/health')).then(value => value.version)
 export const getDrills = () => data(api.get('/drills'))
 export const voteOnDrill = (slug, vote, reason = null) => data(api.put(`/drills/${encodeURIComponent(slug)}/vote`, { vote, reason }))
 export const getDrillSuggestions = (id, playerId, periodId, skills) => data(api.get(`${team(id)}/players/${playerId}/drill-suggestions`, { params: { period_id: periodId, skills }, paramsSerializer: { indexes: null } }))
