@@ -1608,7 +1608,7 @@
     {
       "slug": "gk-catch-and-hold",
       "title": "Goalkeeper catch and hold",
-      "summary": "Catch and hold shots at different heights, then progress to angles and rebounds.",
+      "summary": "Catch and hold shots at different heights, then progress to angled strikes with diving saves, and rebounds.",
       "format": "individual",
       "players": [
         1,
@@ -1687,12 +1687,12 @@
         },
         {
           "kind": "escalator",
-          "title": "Angled strikes",
+          "title": "Angled strikes with diving saves",
           "levels": [
             3,
             4
           ],
-          "change": "Server strikes from cones 4 m either side of centre, alternating; the goalkeeper resets the angle before every strike.",
+          "change": "Server strikes from cones 4 m either side of centre, alternating, just out of reach; the goalkeeper resets the angle and dives to catch.",
           "diagram": 2,
           "setup": "A goal and a server 10 m out with several balls, alternating between two cones 4 m either side of centre.",
           "equipment": [
@@ -1712,12 +1712,16 @@
           "instructions": [
             "The server strikes from one cone, then moves to the other for the next ball.",
             "The goalkeeper shuffles across and sets a new position before each strike.",
-            "Ten strikes, alternating sides."
+            "Strikes go low to mid height, just out of reach to one side, so the goalkeeper has to dive to catch. Start with every other strike wide, then all of them.",
+            "Get up, roll the ball back and reset. Ten strikes, alternating sides."
           ],
           "coaching_points": [
             "Move with the ball: stay on the line between ball and the centre of the goal.",
             "Shuffle, do not cross the feet; be set before the strike.",
-            "Catch and hold; parry wide only if you cannot hold."
+            "Dive by stepping towards the ball with the near foot, not by falling sideways.",
+            "Hands lead: bottom hand behind the ball, top hand on top; land on your side, not your front.",
+            "Catch and hold; parry wide only if you cannot hold.",
+            "Get up quickly and set again before the next strike."
           ],
           "video": 5
         },
@@ -1918,7 +1922,7 @@
         },
         {
           "kind": "diagram",
-          "caption": "Harder: angled strikes, reset the angle every time",
+          "caption": "Harder: angled strikes, reset the angle and dive to catch",
           "diagram": {
             "pitch": {
               "width": 16,
@@ -1973,23 +1977,55 @@
             },
             "steps": [
               {
-                "label": "Strike from the left cone; goalkeeper set on the near-post side",
+                "label": "Strike from the left cone, wide of the goalkeeper: step and dive to the near post, catch",
                 "actions": [
                   {
                     "pass": {
                       "from": "S",
                       "to": "GK"
                     }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        5.9,
+                        1.0
+                      ]
+                    }
                   }
                 ]
               },
               {
-                "label": "Return; server moves to the right cone, goalkeeper shuffles across",
+                "label": "Get up and roll it back",
                 "actions": [
                   {
                     "pass": {
                       "from": "GK",
                       "to": "S"
+                    }
+                  },
+                  {
+                    "move": {
+                      "who": "GK",
+                      "to": [
+                        7,
+                        1.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Server takes the ball to the right cone; goalkeeper shuffles across and sets",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "S",
+                      "to": [
+                        12,
+                        10
+                      ]
                     }
                   },
                   {
@@ -2004,26 +2040,21 @@
                 ]
               },
               {
-                "label": "Server takes the ball to the right cone",
-                "actions": [
-                  {
-                    "dribble": {
-                      "who": "S",
-                      "to": [
-                        12,
-                        10
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "label": "Strike from the right: set before it is hit, catch and hold",
+                "label": "Strike from the right, wide the other way: dive across towards the far post and catch",
                 "actions": [
                   {
                     "pass": {
                       "from": "S",
                       "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        7.6,
+                        1.0
+                      ]
                     }
                   }
                 ]
