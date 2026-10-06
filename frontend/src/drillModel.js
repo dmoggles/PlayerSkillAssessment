@@ -60,3 +60,52 @@ export function visibleVideos(drill, variation) {
   const own = videos.find(m => m.id === variation?.video_media_id)
   return [...(own ? [{ ...own, forVariation: true }] : []), ...videos.filter(m => !claimed.has(m.id))]
 }
+
+export const AREA_LABELS = { technical: 'Technical', tactical: 'Tactical', mental: 'Mental', goalkeeping: 'Goalkeeping', physical: 'Physical' }
+export const INTENSITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' }
+export const DISLIKE_REASONS = { too_advanced: 'Too advanced', too_easy: 'Too easy', unclear: 'Unclear', equipment_or_space: 'Needs equipment or space we lack', did_not_work: 'Did not work in practice', other: 'Other' }
+export const equipmentLabel = item => item.replace('_', ' ')
+
+// Empty values mean "any". Numbers are kept as strings, as the inputs give them.
+export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', players: '', age: '', level: '', duration: '', intensity: '', equipment: [], home: false, liked: false }
+
+export const activeFilterCount = filters => Object.entries(filters)
+  .filter(([key, value]) => key !== 'text' && (Array.isArray(value) ? value.length : value)).length
+
+// The tags and equipment that appear in the library, for the filter choices.
+export function filterOptions(drills) {
+  const tags = new Map()
+  const equipment = new Set()
+  for (const drill of drills) {
+    for (const tag of drill.tags) tags.set(tag.id, tag)
+    for (const item of drill.equipment_items ?? []) equipment.add(item)
+  }
+  return { tags: [...tags.values()].sort((a, b) => a.label.localeCompare(b.label)), equipment: [...equipment].sort() }
+}
+
+const within = (value, [min, max]) => value === '' || (Number(value) >= min && Number(value) <= max)
+
+export function matchesFilters(drill, filters) {
+  const text = filters.text.trim().toLowerCase()
+  if (text && ![drill.title, drill.summary, ...drill.tags.map(t => t.label)].some(s => s.toLowerCase().includes(text))) return false
+  if (filters.area && !drill.tags.some(t => t.area === filters.area)) return false
+  if (filters.tag && !drill.tags.some(t => t.id === filters.tag)) return false
+  if (filters.format && drill.format !== filters.format) return false
+  if (filters.intensity && drill.intensity !== filters.intensity) return false
+  if (!within(filters.players, [drill.players[0], drill.players[2]])) return false
+  if (!within(filters.age, drill.ages) || !within(filters.level, drill.levels)) return false
+  // Fits in the time: the drill's shortest useful run is no longer than the time available.
+  if (filters.duration !== '' && drill.duration[0] > Number(filters.duration)) return false
+  // Equipment lists what the coach has; the drill must need nothing else.
+  if (filters.equipment.length && !(drill.equipment_items ?? []).every(item => filters.equipment.includes(item))) return false
+  if (filters.home && !drill.home_friendly) return false
+  if (filters.liked && drill.votes.mine !== 1) return false
+  return true
+}
+
+// The coach's own vote outranks everyone else's: liked first, disliked last, then most liked overall, then by title.
+export function sortDrills(drills) {
+  const rank = d => -d.votes.mine
+  const net = d => d.votes.likes - d.votes.dislikes
+  return [...drills].sort((a, b) => rank(a) - rank(b) || net(b) - net(a) || a.title.localeCompare(b.title))
+}

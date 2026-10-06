@@ -800,7 +800,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     from app.database import SessionLocal
     from app.drills import DATA_DIR, DrillError, diagram_problems, load_file
     clean_database()
-    client, _ = signed_in("drills-coach@example.com", monkeypatch)
+    client, csrf = signed_in("drills-coach@example.com", monkeypatch)
     with SessionLocal() as db:
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 5, "updated": 0, "retired": 0}
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 0, "updated": 5, "retired": 0}  # safe to re-run
@@ -808,7 +808,8 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     drills = {d["slug"]: d for d in client.get("/drills").json()}
     assert len(drills) == 5
     rondo = drills["rondo-4v1"]
-    assert rondo["levels"] == [1, 5] and rondo["votes"] == {"likes": 0, "dislikes": 0, "mine": 0}
+    assert rondo["levels"] == [1, 5] and rondo["votes"] == {"likes": 0, "dislikes": 0, "mine": 0, "reason": None}
+    assert rondo["equipment_items"] == ["balls", "bibs", "cones"]
     assert [(t["id"], t["weight"]) for t in rondo["tags"]][0] == ("passing_short", 1.0)
     detail = client.get("/drills/receive-and-turn").json()
     assert [v["kind"] for v in detail["variations"]] == ["regression", "base", "escalator", "escalator"]
@@ -833,6 +834,22 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
         assert conn.execute(text("SELECT count(*) FROM drill_media WHERE kind = 'diagram' AND diagram IS NULL")).scalar() == 0
     assert client.get("/drills/no-such-drill").status_code == 404
     assert TestClient(app).get("/drills").status_code == 401
+
+    # Votes: one per coach per drill, totals shared, a reason only with a dislike.
+    other, other_csrf = signed_in("drills-other@example.com", monkeypatch)
+    vote = lambda c, token, body, slug="rondo-4v1": c.put(f"/drills/{slug}/vote", json=body, headers={"x-csrf-token": token})
+    assert vote(client, csrf, {"vote": 1}).json() == {"likes": 1, "dislikes": 0, "mine": 1, "reason": None}
+    assert vote(other, other_csrf, {"vote": -1, "reason": "too_advanced"}).json() == {"likes": 1, "dislikes": 1, "mine": -1, "reason": "too_advanced"}
+    assert vote(client, csrf, {"vote": -1}).json() == {"likes": 0, "dislikes": 2, "mine": -1, "reason": None}  # changing a vote replaces it
+    assert vote(client, csrf, {"vote": 0}).json() == {"likes": 0, "dislikes": 1, "mine": 0, "reason": None}
+    assert vote(client, csrf, {"vote": 0}).status_code == 200  # clearing twice is harmless
+    assert vote(client, csrf, {"vote": 1, "reason": "unclear"}).status_code == 422
+    assert vote(client, csrf, {"vote": -1, "reason": "boring"}).status_code == 422
+    assert vote(client, csrf, {"vote": 2}).status_code == 422
+    assert vote(client, csrf, {"vote": 1}, slug="no-such-drill").status_code == 404
+    assert client.put("/drills/rondo-4v1/vote", json={"vote": 1}).status_code == 403  # CSRF token required
+    listed = next(d for d in other.get("/drills").json() if d["slug"] == "rondo-4v1")
+    assert listed["votes"] == {"likes": 0, "dislikes": 1, "mine": -1, "reason": "too_advanced"}
 
     # Bad diagrams are caught by replaying them.
     base = {"pitch": {"width": 10, "length": 10}, "objects": {"A": {"type": "player", "team": "A", "at": [1, 1]},

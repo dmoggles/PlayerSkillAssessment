@@ -851,3 +851,24 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .drill-video-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
 .drill-video-head p { margin: 0; flex: 1 1 260px; font-size: .85rem; color: var(--muted); }
 .drill-video iframe.vertical { width: auto; height: min(70vh, 560px); max-width: 100%; aspect-ratio: 9 / 16; }
+
+.drill-filters { display: grid; gap: 8px; margin-bottom: 8px; }
+.drill-search { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.drill-search input { flex: 1 1 240px; min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+.drill-filters summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.drill-filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px 12px; margin: 8px 0; }
+.drill-filter-grid small { color: var(--muted); font-size: .75rem; }
+.drill-equipment { display: flex; flex-wrap: wrap; gap: 0 16px; border: 0; padding: 0; margin: 4px 0; }
+.drill-equipment legend { font-weight: 600; font-size: .85rem; padding: 0; margin-bottom: 2px; }
+.drill-equipment legend small { font-weight: 400; color: var(--muted); }
+.drill-equipment .checkbox { margin: 6px 0; text-transform: capitalize; }
+.drill-count { margin: 4px 0 8px; font-size: .85rem; }
+.drill-votes { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: .8rem; color: var(--muted); }
+.drill-votes .status-pill { margin-left: 0; }
+.drill-card.disliked { opacity: .7; }
+.drill-vote { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-top: 8px; }
+.drill-vote button { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer; }
+.drill-vote button.active { border-color: var(--accent); background: #eef4fa; }
+.drill-vote-reason { display: flex; gap: 6px; align-items: center; font-size: .85rem; }
+.drill-vote-reason select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.drill-vote > small { flex-basis: 100%; }

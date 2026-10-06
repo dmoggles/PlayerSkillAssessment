@@ -40,6 +40,7 @@ export const changePassword = (currentPassword, newPassword) => data(api.post('/
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 
 export const getDrills = () => data(api.get('/drills'))
+export const voteOnDrill = (slug, vote, reason = null) => data(api.put(`/drills/${encodeURIComponent(slug)}/vote`, { vote, reason }))
 export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))

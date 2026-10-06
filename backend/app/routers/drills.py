@@ -1,10 +1,12 @@
 """The shared drill library, read by any signed-in coach."""
+from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, model_validator
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user
 from ..database import get_db
-from ..models import Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, SkillTag, User
+from ..models import utcnow, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, SkillTag, User
 
 router = APIRouter(tags=["drills"])
 
@@ -18,12 +20,12 @@ def _tags(db: DbSession, drill_ids: list[int]) -> dict[int, list[dict]]:
 
 
 def _votes(db: DbSession, drill_ids: list[int], user: User) -> dict[int, dict]:
-    totals = {drill_id: {"likes": 0, "dislikes": 0, "mine": 0} for drill_id in drill_ids}
+    totals = {drill_id: {"likes": 0, "dislikes": 0, "mine": 0, "reason": None} for drill_id in drill_ids}
     for drill_id, vote, count in db.query(DrillVote.drill_id, DrillVote.vote, func.count()).filter(
             DrillVote.drill_id.in_(drill_ids)).group_by(DrillVote.drill_id, DrillVote.vote):
         totals[drill_id]["likes" if vote > 0 else "dislikes"] = count
     for vote in db.query(DrillVote).filter(DrillVote.drill_id.in_(drill_ids), DrillVote.user_id == user.id):
-        totals[vote.drill_id]["mine"] = vote.vote
+        totals[vote.drill_id].update(mine=vote.vote, reason=vote.reason)
     return totals
 
 
@@ -32,6 +34,7 @@ def summary(drill: Drill, tags: list[dict], levels: tuple[int, int], votes: dict
             "players": [drill.players_min, drill.players_ideal, drill.players_max], "ages": [drill.age_min, drill.age_max],
             "duration": [drill.duration_min, drill.duration_typical], "session_phase": drill.session_phase,
             "intensity": drill.intensity, "home_friendly": drill.home_friendly, "tags": tags,
+            "equipment_items": sorted({e["item"] for e in drill.equipment}),
             "levels": list(levels), "votes": votes}
 
 
@@ -71,3 +74,35 @@ def drill_detail(slug: str, db: DbSession = Depends(get_db), user: User = Depend
             "media": [{"id": m.id, "kind": m.kind, "caption": m.caption, "url": m.url, "start_seconds": m.video_start_seconds,
                        "diagram": m.diagram} for m in media],
             "links": [{"slug": d.slug, "title": d.title, "relation": link.relation} for link, d in links]}
+
+
+DislikeReason = Literal["too_advanced", "too_easy", "unclear", "equipment_or_space", "did_not_work", "other"]
+
+
+class VoteIn(BaseModel):
+    vote: Literal[-1, 0, 1]  # 0 clears the coach's vote
+    reason: DislikeReason | None = None
+
+    @model_validator(mode="after")
+    def reason_only_for_dislikes(self):
+        if self.reason and self.vote != -1:
+            raise ValueError("A reason can only be given with a dislike")
+        return self
+
+
+@router.put("/drills/{slug}/vote")
+def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Like or dislike a drill. Each coach has one vote per drill; totals are shared, the vote itself is private."""
+    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
+    if not drill:
+        raise HTTPException(404, "Drill not found")
+    existing = db.get(DrillVote, (user.id, drill.id))
+    if payload.vote == 0:
+        if existing:
+            db.delete(existing)
+    elif existing:
+        existing.vote, existing.reason, existing.updated_at = payload.vote, payload.reason, utcnow()
+    else:
+        db.add(DrillVote(user_id=user.id, drill_id=drill.id, vote=payload.vote, reason=payload.reason, updated_at=utcnow()))
+    db.commit()
+    return _votes(db, [drill.id], user)[drill.id]
