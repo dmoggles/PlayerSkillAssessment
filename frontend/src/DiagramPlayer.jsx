@@ -33,8 +33,9 @@ function arrowPath(arrow, k) {
 // Animated drill diagram: pitch, players, cones and ball, played step by step.
 export default function DiagramPlayer({ diagram, caption }) {
   const timeline = useMemo(() => buildTimeline(diagram), [diagram])
+  // Opens at the start of step 1, so the first Play animates it. Stepping with the arrows shows each step's end.
   const [index, setIndex] = useState(0)
-  const [progress, setProgress] = useState(1)
+  const [progress, setProgress] = useState(0)
   const [playing, setPlaying] = useState(false)
   const frame = useRef(null)
   const total = timeline.steps.length
@@ -61,7 +62,11 @@ export default function DiagramPlayer({ diagram, caption }) {
   const current = frameAt(timeline, index, progress)
   const play = () => {
     // With reduced motion, Play steps forward one position at a time instead of animating.
-    if (reducedMotion()) { setIndex(index === total - 1 ? 0 : index + 1); setProgress(1); return }
+    if (reducedMotion()) {
+      if (progress < 1) setProgress(1)
+      else { setIndex(index === total - 1 ? 0 : index + 1); setProgress(1) }
+      return
+    }
     if (index === total - 1 && progress >= 1) { setIndex(0); setProgress(0) } else if (progress >= 1 && index < total - 1) { setIndex(index + 1); setProgress(0) }
     setPlaying(true)
   }

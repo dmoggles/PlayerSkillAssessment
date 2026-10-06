@@ -566,6 +566,9 @@ test('animated diagrams replay passes, runs, dribbles and shots into positions o
   assert.match(html, /role="img" aria-label="Test drill\. Step 1 of 3: Pass while B runs"/)
   assert.match(html, /diagram-arrow-run/)
   assert.match(html, /diagram-cone/)
+  // It opens before step 1 has happened: A still has the ball and B has not run yet.
+  assert.match(html, /<circle cx="142" cy="174" r="10"/, 'B at its starting spot')
+  assert.match(html, /<circle cx="53.2" cy="51.6" r="4.5" class="diagram-ball"/, 'the ball with A')
 
   assert.equal(videoEmbedUrl('https://www.youtube.com/watch?v=abc123', 30), 'https://www.youtube-nocookie.com/embed/abc123?autoplay=1&start=30')
   assert.equal(videoEmbedUrl('https://youtu.be/xyz'), 'https://www.youtube-nocookie.com/embed/xyz?autoplay=1')
