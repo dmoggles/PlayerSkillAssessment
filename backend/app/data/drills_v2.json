@@ -1,0 +1,3787 @@
+{
+  "source_version": "drills_v2",
+  "drills": [
+    {
+      "slug": "one-v-one-defending-channel",
+      "title": "1v1 defending in a channel",
+      "summary": "Close down an attacker, slow them, steer them away from the line and win the ball.",
+      "format": "small_group",
+      "players": [
+        3,
+        3,
+        18
+      ],
+      "ages": [
+        8,
+        18
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "session_phase": "opposed",
+      "intensity": "high",
+      "space": [
+        8,
+        15
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 6
+        }
+      ],
+      "setup": "A channel 8 m wide and 15 m long. The defender starts on one end line with the ball, the attacker on the far end line. A server stands behind the defender's line with spare balls.",
+      "instructions": [
+        "The defender passes to the attacker and closes them down.",
+        "The attacker scores by dribbling over the defender's end line.",
+        "The defender scores by winning the ball and passing it to the server.",
+        "Swap roles after each turn; first to five points."
+      ],
+      "coaching_points": [
+        "Close down quickly while the ball travels, then slow down with short steps as you arrive.",
+        "Arrive side-on, about an arm's length away, on your toes.",
+        "Show the attacker towards the touchline or their weaker foot, away from the line they want.",
+        "Be patient: tackle when the ball leaves their feet, not while they have it under control."
+      ],
+      "tags": {
+        "1v1_defending": 1.0,
+        "1v1_attacking": 0.5
+      },
+      "ladder_tags": [
+        "1v1_defending"
+      ],
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Attacker at jogging pace",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "The attacker may only dribble at jogging pace in a 6 m wide channel, so the defender can practise the approach.",
+          "space": [
+            6,
+            15
+          ],
+          "instructions": [
+            "The defender passes and closes down; the attacker dribbles at jogging pace and may not speed up.",
+            "The defender practises slowing down, getting side-on and showing the attacker one way.",
+            "Tackle only when the ball leaves the attacker's feet; pass it to the server to score.",
+            "Swap roles after each turn."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Pass and press",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Live 1v1 in an 8 m channel: the defender passes, then presses."
+        },
+        {
+          "kind": "escalator",
+          "title": "Wider channel, longer approach",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "A 12 m wide, 20 m long channel: more space to defend and a longer run to judge.",
+          "space": [
+            12,
+            20
+          ],
+          "setup": "A channel 12 m wide and 20 m long. The defender starts on one end line with the ball, the attacker on the far end line. A server stands behind the defender's line with spare balls.",
+          "coaching_points": [
+            "Curve your run so you arrive already showing the attacker one way.",
+            "The longer the run, the earlier you must start slowing down.",
+            "With more space, delay: stay goal-side and wait for help or a heavy touch.",
+            "Tackle when the ball leaves their feet, not before."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Recover and stop",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The defender starts beside the attacker, not in front, and must recover goal-side before defending.",
+          "setup": "A channel 8 m wide and 15 m long. The attacker and defender start side by side, 3 m apart, at one end; the server stands behind them with the balls.",
+          "instructions": [
+            "The server passes to the attacker; both players go as the pass is played.",
+            "The attacker scores by dribbling over the far end line.",
+            "The defender recovers goal-side, then delays and wins the ball; passing it back to the server scores.",
+            "Swap roles after each turn."
+          ],
+          "coaching_points": [
+            "Sprint back on the shortest line to get between the attacker and the line.",
+            "Once goal-side, slow down, get side-on and show them away from the line.",
+            "Don't tackle from the side or behind: a miss or a foul gives them a free run."
+          ],
+          "diagram": 1
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Pass, press, slow down and steer the attacker wide",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 15,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  8,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  15
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  8,
+                  15
+                ]
+              },
+              "A": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  1
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  4,
+                  14
+                ]
+              },
+              "S": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  6.5,
+                  14.6
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "D"
+              }
+            },
+            "steps": [
+              {
+                "label": "The defender passes to the attacker and closes down while the ball travels",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D",
+                      "to": "A"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        4,
+                        7.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Slow down with short steps and arrive side-on, showing the attacker to the left",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        4,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        4.8,
+                        6.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The attacker is pushed towards the touchline; the defender stays goal-side and matches the speed",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        1.6,
+                        7
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        2.7,
+                        7.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A heavy touch: the defender steps in and wins the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A",
+                      "to": "D"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        1.8,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass to the server to score",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D",
+                      "to": "S"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: recover goal-side first, then stop the attacker",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 15,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  8,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  15
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  8,
+                  15
+                ]
+              },
+              "S": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  4,
+                  0.5
+                ]
+              },
+              "A": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2.5,
+                  3
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5.5,
+                  3
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "S"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server passes to the attacker; both go",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "S",
+                      "to": "A"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A",
+                      "to": [
+                        2.5,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        5.5,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The attacker drives at the line; the defender sprints on the shortest line to get goal-side",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        3,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        4,
+                        10.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Goal-side: slow down, get side-on and show the attacker towards the touchline",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        2,
+                        10.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        3,
+                        11.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The attacker tries to cut inside; the defender wins the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A",
+                      "to": "D"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        2.8,
+                        11.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass back to the server to score",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D",
+                      "to": "S"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: England Football – Tackling session: 1v1 challenging grid",
+          "url": "https://learn.englandfootball.com/sessions/resources/2023/Tackling-session-1v1-challenging-grid"
+        },
+        {
+          "kind": "link",
+          "caption": "Source: England Football – Tackling session: recover and stop",
+          "url": "https://learn.englandfootball.com/sessions/resources/2022/Tackling-session-recover-and-stop"
+        }
+      ],
+      "links": [
+        {
+          "to": "one-v-one-end-line",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "receive-and-shoot",
+      "title": "Receive and shoot past a goalkeeper",
+      "summary": "Receive a pass, set the ball with one touch and finish past a goalkeeper, in small groups at several goals.",
+      "format": "small_group",
+      "players": [
+        3,
+        4,
+        16
+      ],
+      "ages": [
+        7,
+        18
+      ],
+      "duration": [
+        10,
+        15
+      ],
+      "session_phase": "technical",
+      "intensity": "medium",
+      "space": [
+        20,
+        18
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "goals",
+          "quantity": 1
+        },
+        {
+          "item": "balls",
+          "quantity": 8
+        },
+        {
+          "item": "cones",
+          "quantity": 2
+        }
+      ],
+      "setup": "A goal with a goalkeeper. A server stands 16 m out with the balls; a cone 10 m out marks where shooters receive. No more than three shooters per goal: use more goals for bigger groups.",
+      "instructions": [
+        "The server passes into the shooter's path towards the cone.",
+        "The shooter takes one touch to set the ball, then shoots before the goalkeeper is set.",
+        "The shooter collects the ball and becomes the server; the server joins the shooters."
+      ],
+      "coaching_points": [
+        "Look at the goal and the goalkeeper before the ball arrives.",
+        "Open your body so the first touch sets the ball out of your feet towards goal.",
+        "Laces for power, side-foot for placement; keep your head over the ball to keep it low.",
+        "Follow your shot in for a rebound."
+      ],
+      "tags": {
+        "shooting": 1.0,
+        "first_touch": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Shoot a still ball",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Shoot a still ball from 8 m; any technique, toe pokes and laces welcome.",
+          "space": [
+            16,
+            12
+          ],
+          "setup": "A goal with a goalkeeper and a row of balls 8 m out. No more than three shooters per goal.",
+          "instructions": [
+            "Shooters take turns striking a still ball at goal.",
+            "Aim for the corners, away from the goalkeeper.",
+            "Collect your ball and go again."
+          ],
+          "coaching_points": [
+            "Plant your standing foot beside the ball.",
+            "Toe poke or laces: strike through the middle of the ball.",
+            "Keep your head still and watch the ball as you strike it."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Receive, set and shoot",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "The server passes into the shooter's path; one touch to set, then shoot."
+        },
+        {
+          "kind": "escalator",
+          "title": "First time from a pass across",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The server plays the ball across from the side; finish first time where you can, low and across the goalkeeper.",
+          "setup": "A goal with a goalkeeper. A server stands at the side of the box, level with the penalty spot; shooters start 16 m out. No more than three shooters per goal.",
+          "instructions": [
+            "The server plays the ball across the box.",
+            "The shooter times the run to meet it and finishes first time, or with one touch if the ball is awkward.",
+            "Swap the server's side every five balls."
+          ],
+          "coaching_points": [
+            "Adjust your feet early to the line of the ball.",
+            "Side-foot through the ball for accuracy when finishing first time.",
+            "Low and across the goalkeeper: a save is harder to hold and may spill to a teammate."
+          ],
+          "diagram": 2
+        },
+        {
+          "kind": "escalator",
+          "title": "1v1 against a defender",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "A defender passes out and presses; the attacker may only shoot once past the cone line 12 m out.",
+          "players": [
+            4,
+            4,
+            16
+          ],
+          "space": [
+            20,
+            22
+          ],
+          "setup": "A goal with a goalkeeper and a cone line 12 m out. The defender starts beside the goal with the balls, the attacker 20 m out.",
+          "instructions": [
+            "The defender passes to the attacker, then presses.",
+            "The attacker must get past the cone line before shooting.",
+            "The defender scores by winning the ball and dribbling it out past the attacker's start.",
+            "Swap roles after each turn."
+          ],
+          "coaching_points": [
+            "Attack the defender at speed, then shift the ball past them into the shooting zone.",
+            "Shoot early once you are past: the defender is recovering.",
+            "Low and across the goalkeeper."
+          ],
+          "diagram": 3
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Receive in stride, set with one touch, shoot low",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 18,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  12,
+                  16
+                ]
+              },
+              "S": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  7,
+                  16
+                ]
+              },
+              "cone": {
+                "type": "cone",
+                "at": [
+                  9,
+                  10
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server passes into the shooter's path; the shooter runs onto it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "S"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "S",
+                      "to": [
+                        8.6,
+                        10.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "One touch sets the ball out of the feet towards goal",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "S",
+                      "to": [
+                        9.3,
+                        8.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        9.7,
+                        1.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Shoot low into the corner before the goalkeeper is set",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "S",
+                      "to": [
+                        12.1,
+                        0
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        10.6,
+                        1.1
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: strike a still ball",
+          "diagram": {
+            "pitch": {
+              "width": 16,
+              "length": 12,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    8,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  8,
+                  1
+                ]
+              },
+              "S": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  7.6,
+                  8
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "S"
+              }
+            },
+            "steps": [
+              {
+                "label": "Plant beside the ball and strike low towards a corner",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "S",
+                      "to": [
+                        6.1,
+                        0
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        7.4,
+                        1
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: meet a pass across and finish first time",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 18,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  18,
+                  8
+                ]
+              },
+              "S": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  16
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server plays it across; the shooter times the run to meet it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "S"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "S",
+                      "to": [
+                        9,
+                        7.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        10.8,
+                        1.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "First-time finish, low and across the goalkeeper",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "S",
+                      "to": [
+                        7.9,
+                        0
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        10.2,
+                        1
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: beat the defender, then finish",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 22,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  13.5,
+                  2
+                ]
+              },
+              "A": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10,
+                  20
+                ]
+              },
+              "l": {
+                "type": "cone",
+                "at": [
+                  3,
+                  12
+                ]
+              },
+              "r": {
+                "type": "cone",
+                "at": [
+                  17,
+                  12
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "D"
+              }
+            },
+            "steps": [
+              {
+                "label": "The defender passes out to the attacker and presses",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D",
+                      "to": "A"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        12,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The attacker drives at the defender and shifts the ball past them",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        8.5,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        9.6,
+                        11.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Into the shooting zone past the cone line",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A",
+                      "to": [
+                        7.6,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        9.4,
+                        11.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Shoot early, low and across the goalkeeper",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "A",
+                      "to": [
+                        12.1,
+                        0
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        9.2,
+                        1.2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        9,
+                        10.8
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: England Football – How to design a football shooting session",
+          "url": "https://learn.englandfootball.com/articles/resources/2022/How-to-design-a-football-shooting-session"
+        },
+        {
+          "kind": "link",
+          "caption": "Source: England Football – Finishing session: techniques to score (1v1 finishing)",
+          "url": "https://learn.englandfootball.com/sessions/resources/2026/Finishing-session-techniques-to-score"
+        }
+      ]
+    },
+    {
+      "slug": "check-away-and-show",
+      "title": "Check away and show to receive",
+      "summary": "Move away from a defender to make space, then come back into it at an angle to receive.",
+      "format": "small_group",
+      "players": [
+        3,
+        3,
+        15
+      ],
+      "ages": [
+        8,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "session_phase": "technical",
+      "intensity": "medium",
+      "space": [
+        10,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 4
+        }
+      ],
+      "setup": "A channel 10 m wide and 20 m long. A server with balls at one end; the receiver in the middle with a defender on the far side of them.",
+      "instructions": [
+        "The receiver checks away from the server, taking the defender with them.",
+        "Then they show sharply back towards the server at an angle, into the space they made.",
+        "The server passes; the receiver takes it on the half-turn and passes back.",
+        "The defender follows but does not tackle. Swap roles after five receptions."
+      ],
+      "coaching_points": [
+        "Look where the defender is before you move.",
+        "Go away first to make the space, then come back into it with a sharp change of speed and direction.",
+        "Show at an angle, not straight at the server, so you can see the defender and the field.",
+        "Arrive as the pass is played, and ask for it.",
+        "Open your body and receive with the foot furthest from the defender."
+      ],
+      "tags": {
+        "movement_to_receive": 1.0,
+        "scanning": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Check away from a cone",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "A cone stands in for the defender, so the receiver can practise the timing of the double movement.",
+          "players": [
+            2,
+            2,
+            14
+          ],
+          "setup": "A channel 10 m wide and 20 m long. A server with balls at one end; a cone in the middle stands in for the defender.",
+          "instructions": [
+            "The receiver jogs away from the server past the cone.",
+            "Then they sprint back at an angle to show for the ball.",
+            "The server passes; receive and pass back.",
+            "Swap after five receptions."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Show against a shadow defender",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "A defender follows the receiver but does not tackle."
+        },
+        {
+          "kind": "escalator",
+          "title": "Live defender, set it back",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The defender competes and may intercept; the receiver must get free and set the ball back to the server.",
+          "instructions": [
+            "The receiver checks away and shows to get free of the defender.",
+            "The server passes only when the receiver is free.",
+            "The receiver sets the ball back first time or with two touches; the defender scores by intercepting.",
+            "Swap roles after five attempts."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Live defender, turn and play forward",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "A target player stands at the far end: if the defender is not tight, turn and pass to the target.",
+          "players": [
+            4,
+            4,
+            16
+          ],
+          "setup": "A channel 10 m wide and 20 m long. A server with balls at one end and a target player at the other; the receiver in the middle with a live defender.",
+          "instructions": [
+            "The receiver checks away and shows to get free.",
+            "If the defender is tight, set the ball back to the server; if not, turn and pass to the target.",
+            "A pass to the target scores two, a set-back one; the defender scores by intercepting.",
+            "Swap roles after five attempts."
+          ],
+          "coaching_points": [
+            "Check over your shoulder before the ball arrives: is the defender tight or off?",
+            "If there is space, turn on your first touch, away from the defender.",
+            "If they are tight, set it back and move again."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Check away to make space, then show at an angle",
+          "diagram": {
+            "pitch": {
+              "width": 10,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "SV": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "R": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  10
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  8.8
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The receiver checks away, taking the defender towards the far end",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        6,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        5.4,
+                        4.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Then shows sharply back at an angle, into the space made",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.6,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        6.6,
+                        8.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The server passes; receive on the half-turn with the foot furthest from the defender",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "R"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.8,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        7.1,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass back and go again",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "R",
+                      "to": "SV"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: a cone stands in for the defender",
+          "diagram": {
+            "pitch": {
+              "width": 10,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "SV": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "R": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  10
+                ]
+              },
+              "cone": {
+                "type": "cone",
+                "at": [
+                  5,
+                  8.8
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "Jog away past the cone",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        6.4,
+                        6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Sprint back at an angle to show for the ball",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.6,
+                        11
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Receive on the half-turn",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "R"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.8,
+                        12
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass back and go again",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "R",
+                      "to": "SV"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the defender is not tight, so turn and play forward",
+          "diagram": {
+            "pitch": {
+              "width": 10,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "SV": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "R": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  10
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  8.8
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              },
+              "T": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  0.5
+                ]
+              }
+            },
+            "steps": [
+              {
+                "label": "Check away, taking the defender with you",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        6,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        5.4,
+                        4.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Show at an angle; the defender is slow to follow",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.6,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        6.2,
+                        7.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Receive side-on and check: the defender is off",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "R"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "R",
+                      "to": [
+                        7.8,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        6.8,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Turn away from the defender on the first touch",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "R",
+                      "to": [
+                        8.6,
+                        8.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        7.4,
+                        9.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Play forward to the target",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "R",
+                      "to": "T"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: England Football – How preparing off the ball can improve receiving skills",
+          "url": "https://learn.englandfootball.com/articles/resources/2023/How-preparing-off-the-ball-can-improve-receiving-skills"
+        },
+        {
+          "kind": "link",
+          "caption": "Background: Fine Soccer – Show and go, go and show",
+          "url": "https://finesoccer.com/show-and-go-go-and-show/"
+        }
+      ]
+    },
+    {
+      "slug": "pressing-pairs-4v2",
+      "title": "4v2 pressing in pairs",
+      "summary": "Two players press together: one closes the ball, the other covers the next pass, to win the ball back.",
+      "format": "small_group",
+      "players": [
+        6,
+        6,
+        18
+      ],
+      "ages": [
+        10,
+        18
+      ],
+      "duration": [
+        10,
+        15
+      ],
+      "session_phase": "opposed",
+      "intensity": "high",
+      "space": [
+        15,
+        15
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "bibs",
+          "quantity": 6
+        },
+        {
+          "item": "balls",
+          "quantity": 6
+        }
+      ],
+      "setup": "A 15 by 15 m square. Six players in three pairs, each in its own bib colour: two pairs keep the ball, one pair presses.",
+      "instructions": [
+        "The two pairs keep the ball; six passes in a row scores a point.",
+        "The pressing pair works together to win the ball or force it out; a win scores them a point.",
+        "When the pressers win it or the ball goes out, the pair that lost it presses next."
+      ],
+      "coaching_points": [
+        "The player nearest the ball presses first; the partner covers the pass they are most likely to try.",
+        "Approach side-on and curve your run to cut off one passing lane as you close.",
+        "Get within arm's reach: close enough that the passer has to rush.",
+        "Press together on a trigger: a heavy touch, a backward pass, or a player facing away from play.",
+        "Force play towards a corner or a side: the line is an extra defender."
+      ],
+      "tags": {
+        "pressing": 1.0,
+        "team_shape": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "3v2 in a small square",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Three players keep the ball in a 10 by 10 m square, so the pair has fewer passes to cover.",
+          "players": [
+            5,
+            5,
+            15
+          ],
+          "space": [
+            10,
+            10
+          ],
+          "setup": "A 10 by 10 m square. Three players keep the ball against a pressing pair.",
+          "instructions": [
+            "The three keep the ball; four passes in a row scores a point.",
+            "The pair presses together to win it; a win scores them a point.",
+            "Rotate so everyone presses for 60 seconds."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "4v2 in pairs",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Two pairs keep the ball in a 15 by 15 m square against a pressing pair."
+        },
+        {
+          "kind": "escalator",
+          "title": "Bigger square",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "A 20 by 20 m square: more ground to cover, so the cover player's position matters more.",
+          "space": [
+            20,
+            20
+          ],
+          "setup": "A 20 by 20 m square. Six players in three pairs, each in its own bib colour: two pairs keep the ball, one pair presses."
+        },
+        {
+          "kind": "escalator",
+          "title": "4v4 to mini-goals",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Two teams of four play to two mini-goals each; the team without the ball presses as a unit.",
+          "players": [
+            8,
+            8,
+            16
+          ],
+          "space": [
+            20,
+            25
+          ],
+          "equipment": [
+            {
+              "item": "mini_goals",
+              "quantity": 4
+            },
+            {
+              "item": "cones",
+              "quantity": 4
+            },
+            {
+              "item": "bibs",
+              "quantity": 4
+            },
+            {
+              "item": "balls",
+              "quantity": 6
+            }
+          ],
+          "setup": "A 20 by 25 m pitch with a halfway line and two mini-goals at each end. Two teams of four, each in a 3-1 shape: three defenders and one striker.",
+          "instructions": [
+            "Each team attacks two mini-goals and defends two.",
+            "In possession, the three stay in their own half and the striker stays behind the other team's defenders; score from your own half or through the striker.",
+            "Without the ball, all four may press anywhere.",
+            "A coach plays a new ball in after each goal or when the ball goes out."
+          ],
+          "coaching_points": [
+            "The nearest player presses; the others move together to cover and stay balanced around the ball.",
+            "Keep the middle compact and force play wide.",
+            "Watch the striker behind you: don't all chase the ball and leave them free.",
+            "Lose the ball? Switch to defending straight away."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "The nearest presses, the partner covers, and the pass back is the trigger",
+          "diagram": {
+            "pitch": {
+              "width": 15,
+              "length": 15,
+              "view": "area"
+            },
+            "objects": {
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  7.5,
+                  14.5
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14.5,
+                  7.5
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  7.5,
+                  0.5
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  7.5
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  6.6,
+                  7
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  8.6,
+                  8.2
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 passes to A2. P2, the nearest, closes on a curved run that blocks the pass up to A3; P1 covers the pass across",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        12.4,
+                        5.8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        8.4,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        10,
+                        14.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Blocked, A2 plays back to A1. The backward pass is the trigger: P1 jumps onto A1 while P2 cuts off the return",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        10.4,
+                        13
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        12.6,
+                        11.2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        0.5,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 is trapped against the line with both passes blocked; the pair win the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "P1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        10.2,
+                        13.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: 3v2 in a small square",
+          "diagram": {
+            "pitch": {
+              "width": 10,
+              "length": 10,
+              "view": "area"
+            },
+            "objects": {
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  9.5
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9.5,
+                  4
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  4
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  4.5,
+                  4.5
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5.6,
+                  5.6
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 passes to A2; P2 closes on a curved run that blocks the pass across to A3",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        7.8,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        5.6,
+                        7.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "P1 covers the pass back, so A2 has to dribble towards the corner",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A2",
+                      "to": [
+                        9.2,
+                        1.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        8.4,
+                        2.2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        7,
+                        5.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Trapped in the corner: P2 wins the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "P2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        8.8,
+                        1.8
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: 4v4, the team without the ball presses as a unit",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 25,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "a1",
+                  "at": [
+                    6,
+                    0
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "a2",
+                  "at": [
+                    14,
+                    0
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "b1",
+                  "at": [
+                    6,
+                    25
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "b2",
+                  "at": [
+                    14,
+                    25
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "half_l": {
+                "type": "cone",
+                "at": [
+                  0,
+                  12.5
+                ]
+              },
+              "half_r": {
+                "type": "cone",
+                "at": [
+                  20,
+                  12.5
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  20
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10,
+                  21
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  20
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10,
+                  7
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  14
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  9
+                ]
+              },
+              "B3": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  15,
+                  9
+                ]
+              },
+              "B4": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  7,
+                  23.5
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A2"
+              }
+            },
+            "steps": [
+              {
+                "label": "Blues circulate: A2 to A3. The nearest orange, B1, presses on a curved run that blocks the pass inside; B3 drops to cover the striker",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        14.2,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B3",
+                      "to": [
+                        12,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        8,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "With the inside closed, A3 goes down the line; B1 traps them against the touchline",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A3",
+                      "to": [
+                        18.6,
+                        16
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        17.2,
+                        15.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        13,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B3",
+                      "to": [
+                        13.4,
+                        8.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "B1 wins the ball; orange striker B4 is free behind the blues",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A3",
+                      "to": "B1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        17.6,
+                        15.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B4",
+                      "to": [
+                        11,
+                        23.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Quick pass to B4 before the blues recover",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "B1",
+                      "to": "B4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        13.6,
+                        21.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "B4 scores in the mini-goal",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "B4",
+                      "to": "b2"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: FIFA Training Centre – Preventing progression through central areas (4v2 and 4v4 pressing games)",
+          "url": "https://www.fifatrainingcentre.com/media/native/test/U14-Costa-Rica-session-6-new.pdf"
+        }
+      ],
+      "links": [
+        {
+          "to": "rondo-4v1",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "transition-4v3",
+      "title": "4v3 transition game",
+      "summary": "Attack a goal 4v3; when the ball is lost, win it back at once, and when it's won, break out fast.",
+      "format": "unit",
+      "players": [
+        9,
+        9,
+        18
+      ],
+      "ages": [
+        10,
+        18
+      ],
+      "duration": [
+        12,
+        20
+      ],
+      "session_phase": "small_sided_game",
+      "intensity": "high",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "goals",
+          "quantity": 1
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "bibs",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 10
+        }
+      ],
+      "setup": "A 20 by 20 m area in front of a goal with a goalkeeper. Four attackers and three defenders inside it; a server with the balls stands on the far end line.",
+      "instructions": [
+        "The server passes to an attacker; the four attackers try to score: one point.",
+        "The defenders try to win the ball and dribble it over the far end line: two points.",
+        "If the attackers lose the ball, they press at once to win it back before it crosses the line.",
+        "Restart from the server after a goal, a save, or the ball going out. Swap roles every three minutes."
+      ],
+      "coaching_points": [
+        "Attacking: use the extra player, so someone is always free in space.",
+        "Lose it? The nearest player presses straight away; the others cut off the forward passes.",
+        "Win it? Look forward, play forward and run forward, quickly, before the attackers recover.",
+        "Defending the goal: stay compact and make the attackers play around you, not through you."
+      ],
+      "tags": {
+        "transition_attack": 1.0,
+        "transition_defence": 1.0,
+        "pressing": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "4v2",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Only two defenders, so the attackers keep the ball more and transitions are easier to read.",
+          "players": [
+            8,
+            8,
+            16
+          ],
+          "setup": "A 20 by 20 m area in front of a goal with a goalkeeper. Four attackers and two defenders inside it; a server with the balls stands on the far end line.",
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "4v3",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Four attackers against three defenders; winning the ball means a break for the far line."
+        },
+        {
+          "kind": "escalator",
+          "title": "Five-second rule",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Defenders who win the ball must cross the line within 5 seconds; attackers score a point if they win it back within 5 seconds.",
+          "instructions": [
+            "The server passes to an attacker; the four attackers try to score: one point.",
+            "Defenders who win the ball have 5 seconds to dribble it over the far end line: two points.",
+            "Attackers who win the ball back within 5 seconds of losing it score a point, and keep attacking.",
+            "Restart from the server after a goal, a save, or the ball going out. Swap roles every three minutes."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Counter into mini-goals",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Defenders who win the ball counter into two mini-goals on the far line within 5 seconds; attackers who win it back can shoot at once.",
+          "equipment": [
+            {
+              "item": "goals",
+              "quantity": 1
+            },
+            {
+              "item": "mini_goals",
+              "quantity": 2
+            },
+            {
+              "item": "cones",
+              "quantity": 4
+            },
+            {
+              "item": "bibs",
+              "quantity": 4
+            },
+            {
+              "item": "balls",
+              "quantity": 10
+            }
+          ],
+          "setup": "A 20 by 20 m area in front of a goal with a goalkeeper, and two mini-goals on the far end line. Four attackers and three defenders inside it; a server with the balls stands between the mini-goals.",
+          "instructions": [
+            "The server passes to an attacker; the four attackers try to score: one point.",
+            "Defenders who win the ball have 5 seconds to score in either mini-goal: two points.",
+            "Attackers who win the ball back can shoot at once.",
+            "Restart from the server after each goal, save or ball out. Swap roles every three minutes."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Ball lost: the nearest attacker presses at once; ball won: break out fast",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  14
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14,
+                  14
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  7
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  7
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  8,
+                  9
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  12,
+                  9
+                ]
+              },
+              "B3": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  4
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server passes in to A1; the attackers spread out so one is always free",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        4,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        16,
+                        7.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        7,
+                        11.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 tries to pass through to A4; B2 steps in and intercepts",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "B2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        11.5,
+                        10.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B3",
+                      "to": [
+                        11,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Transition: A2, the nearest attacker, presses B2 at once",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "B2",
+                      "to": [
+                        12.4,
+                        13.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        13.8,
+                        12.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        7,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        8.6,
+                        12.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "B2 escapes the press and plays forward to B1 in space",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "B2",
+                      "to": "B1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        6,
+                        16.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        13.2,
+                        14.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "B1 dribbles over the line: two points",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "B1",
+                      "to": [
+                        5,
+                        19.8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        6.2,
+                        17.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: 4v2",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  14
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14,
+                  14
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  7
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  7
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  8,
+                  9
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  12,
+                  9
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server passes in to A1; the attackers spread out",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        4,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        16,
+                        7.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 tries to pass through to A4; B2 intercepts",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "B2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        11.5,
+                        10.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Transition: A2 presses B2 at once, and A1 cuts off the pass to B1",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "B2",
+                      "to": [
+                        12.4,
+                        13.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        13.8,
+                        12.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        10,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        7,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pressed from two sides, B2 loses it back to A2",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "B2",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        13.8,
+                        12.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: win it and counter into a mini-goal within 5 seconds",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 5
+                },
+                {
+                  "id": "m1",
+                  "at": [
+                    5,
+                    20
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "m2",
+                  "at": [
+                    15,
+                    20
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  19.5
+                ],
+                "label": "S"
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  14
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14,
+                  14
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  7
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  7
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  8,
+                  9
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  12,
+                  9
+                ]
+              },
+              "B3": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  4
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server passes in to A1; the attackers spread out",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        4,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        16,
+                        7.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 tries to pass through to A4; B2 intercepts",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "B2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        11.5,
+                        10.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Five seconds to score: B2 drives at the mini-goal while A2 counter-presses",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "B2",
+                      "to": [
+                        13.4,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        14.6,
+                        14.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        8,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Shot into the mini-goal before the press arrives",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "B2",
+                      "to": "m2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        14.4,
+                        16.4
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: FIFA Training Centre – Fast recapture (4v3 transition game)",
+          "url": "https://fifatrainingcentre.com/media/native/test/FIFA_Session_Plan_fast-recapture-new1.pdf"
+        }
+      ],
+      "links": [
+        {
+          "to": "pressing-pairs-4v2",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "gk-roll-and-throw",
+      "title": "Goalkeeper rolls and throws to targets",
+      "summary": "Catch a served ball, then roll or throw it accurately to targets at different distances.",
+      "format": "individual",
+      "players": [
+        2,
+        2,
+        4
+      ],
+      "ages": [
+        8,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "session_phase": "technical",
+      "intensity": "low",
+      "space": [
+        30,
+        26
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "goals",
+          "quantity": 1
+        },
+        {
+          "item": "mini_goals",
+          "quantity": 2
+        },
+        {
+          "item": "balls",
+          "quantity": 6
+        }
+      ],
+      "setup": "A goal with the goalkeeper. A server 10 m out with the balls. Two mini-goals as targets: one 15 m away to the left, one 22 m away to the right.",
+      "instructions": [
+        "The server throws or volleys the ball at the goalkeeper, who catches it.",
+        "The server calls a target: roll to the near one, or javelin throw to the far one.",
+        "Ten catches, mixing the targets; count how many reach them."
+      ],
+      "coaching_points": [
+        "Every distribution is a pass: weight it so a teammate could take it in their stride.",
+        "Roll: step towards the target, bend low, and let go just before your hand passes your front foot, so the ball doesn't bounce.",
+        "Follow through in a straight line at the target.",
+        "Javelin throw: side-on, bring the arm round at shoulder height and push the ball flat at the target."
+      ],
+      "tags": {
+        "gk_distribution_short": 1.0,
+        "gk_distribution_long": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Roll through a gate",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "No catch first: the goalkeeper rolls the ball through a 2 m gate 10 m away.",
+          "players": [
+            1,
+            1,
+            4
+          ],
+          "space": [
+            30,
+            14
+          ],
+          "equipment": [
+            {
+              "item": "cones",
+              "quantity": 2
+            },
+            {
+              "item": "balls",
+              "quantity": 6
+            }
+          ],
+          "setup": "Balls beside the goalkeeper and a 2 m wide gate of cones 10 m away.",
+          "instructions": [
+            "Roll the ball through the gate.",
+            "Ten rolls, then move the gate further away or make it narrower."
+          ],
+          "coaching_points": [
+            "Step towards the gate with the opposite foot to your rolling hand.",
+            "Bend low and let go just before your hand passes your front foot.",
+            "Follow through in a straight line at the gate."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Catch, then roll or javelin",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Catch a served ball, then roll or javelin throw to one of two targets."
+        },
+        {
+          "kind": "escalator",
+          "title": "Overarm throw to a far target",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "A third target 25 m away for an overarm throw; the server calls short, medium or long.",
+          "equipment": [
+            {
+              "item": "goals",
+              "quantity": 1
+            },
+            {
+              "item": "mini_goals",
+              "quantity": 3
+            },
+            {
+              "item": "balls",
+              "quantity": 6
+            }
+          ],
+          "setup": "A goal with the goalkeeper. A server 10 m out with the balls. Three mini-goals as targets: 15 m to the left, 22 m to the right and 25 m straight out.",
+          "instructions": [
+            "The server throws or volleys the ball at the goalkeeper, who catches it.",
+            "The server calls short, medium or long: roll, javelin or overarm throw.",
+            "Ten catches, mixing the calls; count how many reach their target."
+          ],
+          "coaching_points": [
+            "Overarm: side-on, ball held back with a straight arm, step forward and bring the arm over the top.",
+            "Release a little in front of your head so the ball travels flat, not high.",
+            "Choose the throw by distance: roll short, javelin medium, overarm long."
+          ],
+          "diagram": 2
+        },
+        {
+          "kind": "escalator",
+          "title": "Throw to a moving teammate",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "A teammate moves between the targets and calls; the goalkeeper picks the throw and puts it into their stride.",
+          "players": [
+            3,
+            3,
+            4
+          ],
+          "setup": "A goal with the goalkeeper. A server 10 m out with the balls, and a teammate moving around 15 to 25 m away.",
+          "instructions": [
+            "The server throws or volleys the ball at the goalkeeper, who catches it.",
+            "The teammate moves into space and calls for the ball.",
+            "The goalkeeper picks the throw for the distance and plays it into the teammate's path.",
+            "Ten catches; the teammate scores each throw they can take in their stride."
+          ],
+          "coaching_points": [
+            "Look up as you catch: where is the teammate going, not just where they are?",
+            "Throw into the space ahead of them, not at their feet.",
+            "Distribute quickly, before an opponent could recover."
+          ],
+          "diagram": 3
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Catch, then roll to the near target",
+          "diagram": {
+            "pitch": {
+              "width": 30,
+              "length": 26,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    15,
+                    0
+                  ],
+                  "width": 5
+                },
+                {
+                  "id": "near",
+                  "at": [
+                    6,
+                    15
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "far",
+                  "at": [
+                    24,
+                    22
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  15,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  15,
+                  10
+                ],
+                "label": "S"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server volleys at the goalkeeper: step in and catch",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        15,
+                        2.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The server calls 'near': step towards it, bend low and roll it in",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "GK",
+                      "to": "near"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: roll through a gate",
+          "diagram": {
+            "pitch": {
+              "width": 30,
+              "length": 14,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "gate",
+                  "at": [
+                    15,
+                    11
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  15,
+                  1
+                ]
+              },
+              "l": {
+                "type": "cone",
+                "at": [
+                  14,
+                  11
+                ]
+              },
+              "r": {
+                "type": "cone",
+                "at": [
+                  16,
+                  11
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "GK"
+              }
+            },
+            "steps": [
+              {
+                "label": "Step towards the gate, bend low and roll it through",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "GK",
+                      "to": "gate"
+                    }
+                  },
+                  {
+                    "move": {
+                      "who": "GK",
+                      "to": [
+                        15,
+                        1.8
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: overarm to the far target",
+          "diagram": {
+            "pitch": {
+              "width": 30,
+              "length": 26,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    15,
+                    0
+                  ],
+                  "width": 5
+                },
+                {
+                  "id": "near",
+                  "at": [
+                    6,
+                    15
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "far",
+                  "at": [
+                    24,
+                    22
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "long",
+                  "at": [
+                    15,
+                    26
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  15,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  12,
+                  10
+                ],
+                "label": "S"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server volleys at the goalkeeper: step in and catch",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        15,
+                        2.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The call is 'long': overarm throw to the far target",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "GK",
+                      "to": "long"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: read the teammate's run and throw into their stride",
+          "diagram": {
+            "pitch": {
+              "width": 30,
+              "length": 26,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    15,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  15,
+                  1
+                ]
+              },
+              "SV": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  15,
+                  10
+                ],
+                "label": "S"
+              },
+              "T": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  18
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "SV"
+              }
+            },
+            "steps": [
+              {
+                "label": "The server volleys at the goalkeeper: catch it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "SV",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        15,
+                        2.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Look up: the teammate is running into space on the right and calling",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "T",
+                      "to": [
+                        19,
+                        17
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Javelin throw into the space ahead of them",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "T"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T",
+                      "to": [
+                        23,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Example: Sportsessionplanner – Goalkeeper distribution using the hands (ages 8 to 12)",
+          "url": "https://www.sportsessionplanner.com/s/ToDdi/Goalkeeper-distribution-using-the-hands-(Age-8-to-12).html"
+        },
+        {
+          "kind": "link",
+          "caption": "Background: FA Boot Room – Goalkeeping distribution and passing (12 to 16)",
+          "url": "https://www.thefa.com/bootroom/resources/coaching/goalkeeping-distribution-and-passing"
+        }
+      ]
+    }
+  ]
+}

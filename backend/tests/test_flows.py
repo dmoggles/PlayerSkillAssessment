@@ -813,9 +813,15 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     with SessionLocal() as db:
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 5, "updated": 0, "retired": 0}
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 0, "updated": 5, "retired": 0}  # safe to re-run
+        # Later files load on top; drills link across files.
+        assert load_file(db, DATA_DIR / "drills_v2.json") == {"added": 6, "updated": 0, "retired": 0}
 
     drills = {d["slug"]: d for d in client.get("/drills").json()}
-    assert len(drills) == 5
+    assert len(drills) == 11
+    defending = client.get("/drills/one-v-one-defending-channel").json()
+    assert [(t["id"], t["on_ladder"]) for t in defending["tags"]] == [("1v1_defending", True), ("1v1_attacking", False)]
+    assert defending["links"] == [{"slug": "one-v-one-end-line", "title": "1v1 to the end line", "relation": "pairs_with"}]
+    assert any(m["kind"] == "link" and m["url"].startswith("https://learn.englandfootball.com/") for m in defending["media"])  # sources
     rondo = drills["rondo-4v1"]
     assert rondo["levels"] == [1, 5] and rondo["votes"] == {"likes": 0, "dislikes": 0, "mine": 0, "reason": None}
     assert rondo["equipment_items"] == ["balls", "bibs", "cones"]
@@ -868,6 +874,8 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"pass": {"from": "B", "to": "A"}}]}]}) == ["step 1: B passes without the ball"]
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"run": {"who": "A", "to": [12, 3]}}]}]}) == ["step 1: run target is off the pitch"]
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": "goal"}}]}]}) == ["step 1: shot at unknown goal goal"]
+    assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": [9, 0]}}]}]}) == []  # at a point
+    assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": [11, 0]}}]}]}) == ["step 1: shot at unknown goal [11, 0]"]
 
     # A bad file changes nothing; a drill dropped from its file is retired, not deleted.
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
