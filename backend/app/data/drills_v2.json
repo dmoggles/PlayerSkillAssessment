@@ -74,7 +74,8 @@
             "The defender practises slowing down, getting side-on and showing the attacker one way.",
             "Tackle only when the ball leaves the attacker's feet; pass it to the server to score.",
             "Swap roles after each turn."
-          ]
+          ],
+          "video": 5
         },
         {
           "kind": "base",
@@ -483,6 +484,16 @@
           "kind": "link",
           "caption": "Source: England Football – Tackling session: recover and stop",
           "url": "https://learn.englandfootball.com/sessions/resources/2022/Tackling-session-recover-and-stop"
+        },
+        {
+          "kind": "video",
+          "caption": "1v1 defending drill for ages 9 to 12: one team attacks, one defends (The Coaching Manual, 3 minutes).",
+          "url": "https://www.youtube.com/watch?v=l6TWYB1wRjc"
+        },
+        {
+          "kind": "video",
+          "caption": "Don't dive in: the defender moves with the attacker and stays close without tackling (KS Performance, 107 seconds).",
+          "url": "https://www.youtube.com/watch?v=uVkpeXS6Byw"
         }
       ],
       "links": [
@@ -601,7 +612,8 @@
             "Side-foot through the ball for accuracy when finishing first time.",
             "Low and across the goalkeeper: a save is harder to hold and may spill to a teammate."
           ],
-          "diagram": 2
+          "diagram": 2,
+          "video": 9
         },
         {
           "kind": "escalator",
@@ -632,7 +644,8 @@
             "Shoot early once you are past: the defender is recovering.",
             "Low and across the goalkeeper."
           ],
-          "diagram": 3
+          "diagram": 3,
+          "video": 8
         }
       ],
       "media": [
@@ -1109,6 +1122,26 @@
           "kind": "link",
           "caption": "Source: England Football – Finishing session: techniques to score (1v1 finishing)",
           "url": "https://learn.englandfootball.com/sessions/resources/2026/Finishing-session-techniques-to-score"
+        },
+        {
+          "kind": "link",
+          "caption": "Full session: England Football – Receiving to score (video, 7 minutes)",
+          "url": "https://www.youtube.com/watch?v=LNJjHkAwSsU"
+        },
+        {
+          "kind": "video",
+          "caption": "Finishing with a first touch, three variations; filmed with U13 to U15 players (AD Football Training, 95 seconds).",
+          "url": "https://www.youtube.com/watch?v=DcfRUtLtu6c"
+        },
+        {
+          "kind": "video",
+          "caption": "First touch and 1v1 finishing; the second variation adds the defender (AD Football Training, 81 seconds).",
+          "url": "https://www.youtube.com/watch?v=mV4hmg-zwBg"
+        },
+        {
+          "kind": "video",
+          "caption": "One-touch shooting from a pass (DiBernardo Soccer, 20 seconds).",
+          "url": "https://www.youtube.com/shorts/JTPAIUsbrF8"
         }
       ]
     },
@@ -1237,7 +1270,8 @@
             "If there is space, turn on your first touch, away from the defender.",
             "If they are tight, set it back and move again."
           ],
-          "diagram": 2
+          "diagram": 2,
+          "video": 6
         }
       ],
       "media": [
@@ -1648,6 +1682,11 @@
           "kind": "video",
           "caption": "Mastering check and receive (Sportsy, 81 seconds).",
           "url": "https://www.youtube.com/watch?v=oAVfLsPQ65Q"
+        },
+        {
+          "kind": "video",
+          "caption": "Receiving to play forward, U13 practice (The Coaching Manual, 172 seconds).",
+          "url": "https://www.youtube.com/watch?v=utjrNq7F5J4"
         }
       ]
     },
