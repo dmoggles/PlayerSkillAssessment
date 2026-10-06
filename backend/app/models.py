@@ -54,6 +54,8 @@ class Team(Base):
     self_assessment_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     # Fills pronoun placeholders in skill descriptions: girls, boys or mixed (they/their).
     player_gender: Mapped[str] = mapped_column(String(10), default="mixed")
+    # The "U" number (12 for U12); unset until the owner chooses it. Defaults the drill library's age filter.
+    age_group: Mapped[int | None] = mapped_column(SmallInteger)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

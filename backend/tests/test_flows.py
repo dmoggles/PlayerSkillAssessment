@@ -602,6 +602,15 @@ def test_pronoun_placeholders_render_for_each_team_gender(monkeypatch):
     gender_events = [e["details"] for e in owner.get(f"/teams/{team['id']}/audit").json() if e["action"] == "player_gender_changed"]
     assert gender_events == [{"from": "girls", "to": "boys"}, {"from": "mixed", "to": "girls"}]
 
+    # Age group: unset at first, omitted leaves it alone, null clears it.
+    assert team["age_group"] is None
+    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": 4}, headers=headers).status_code == 422
+    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": 12}, headers=headers).json()["age_group"] == 12
+    assert owner.patch(f"/teams/{team['id']}", json=settings, headers=headers).json()["age_group"] == 12
+    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": None}, headers=headers).json()["age_group"] is None
+    age_events = [e["details"] for e in owner.get(f"/teams/{team['id']}/audit").json() if e["action"] == "age_group_changed"]
+    assert age_events == [{"from": 12, "to": None}, {"from": None, "to": 12}]
+
 
 def test_starter_matrix_has_no_hard_coded_gendered_words():
     from app.database import SessionLocal

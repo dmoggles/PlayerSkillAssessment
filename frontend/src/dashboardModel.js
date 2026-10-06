@@ -19,6 +19,9 @@ export const PLAYER_GENDERS = [
   ['mixed', 'Mixed (they / them)'],
 ]
 
+// U5 to U21; the team age group is the "U" number.
+export const AGE_GROUPS = Array.from({ length: 17 }, (_, i) => i + 5)
+
 export const PLAYER_DATA_TABS = [
   ['summary', 'Summary'],
   ['comparison', 'Comparison'],

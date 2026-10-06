@@ -19,10 +19,11 @@ export function DrillLibrarySummary({ onOpen }) {
 
 // The shared drill library: a filterable list of drills and a detail view with the variation ladder and diagrams.
 // Filters live here, so they survive opening a drill and coming back.
-export default function DrillLibrary({ onMessage }) {
+// The age filter starts at the team's age group when it has one.
+export default function DrillLibrary({ ageGroup, onMessage }) {
   const [drills, setDrills] = useState(null)
   const [open, setOpen] = useState(null)
-  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [filters, setFilters] = useState(() => ({ ...EMPTY_FILTERS, age: ageGroup ? String(ageGroup) : '' }))
   useEffect(() => {
     let live = true
     getDrills().then(value => { if (live) setDrills(value) }).catch(e => onMessage(errorMessage(e)))
@@ -80,7 +81,7 @@ function DrillFilters({ filters, options, onChange }) {
         {select('format', 'Format', Object.entries(FORMAT_LABELS))}
         {select('intensity', 'Intensity', Object.entries(INTENSITY_LABELS))}
         {number('players', 'Players', 1, 40, 'Bigger squads split into groups')}
-        {number('age', 'Age group (U)', 5, 21, 'For example 12 for U12')}
+        {number('age', 'Age group (U)', 5, 21, 'For example 12 for U12; set your team\'s in Settings')}
         {number('level', 'Player level', 1, 5, '1–5 skill scale')}
         {number('duration', 'Time available (min)', 1, 120)}
       </div>

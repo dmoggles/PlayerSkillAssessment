@@ -283,6 +283,9 @@ test('audit events read as plain sentences', async () => {
   assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
   assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
   assert.equal(auditText(event('matrix_published', { version: 2, applied_to: 'Summer' }, null)), 'owner@example.com published skill matrix version 2 (also used for Summer)')
+  assert.equal(auditText(event('age_group_changed', { from: null, to: 12 }, null)), 'owner@example.com set the age group to U12')
+  assert.equal(auditText(event('age_group_changed', { from: 12, to: 13 }, null)), 'owner@example.com set the age group to U13 (was U12)')
+  assert.equal(auditText(event('age_group_changed', { from: 13, to: null }, null)), 'owner@example.com cleared the age group')
   assert.equal(auditText(event('player_gender_changed', { from: 'mixed', to: 'girls' }, null)), 'owner@example.com changed player wording from mixed to girls')
 })
 
