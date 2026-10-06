@@ -832,6 +832,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     assert two_touch["coaching_points"][0] == "Decide where the ball goes before it arrives." and two_touch["setup"] is None
     assert four_v_two["players"] == [6, 6, 18] and four_v_two["equipment"][1] == {"item": "bibs", "quantity": 2}
     assert four_v_two["diagram_media_id"] == rondo_detail["media"][1]["id"]
+    assert rondo_detail["variations"][0]["diagram_media_id"] == rondo_detail["media"][3]["id"]  # 5v1 has its own
     assert client.get("/drills/one-v-one-end-line").json()["variations"][3]["space"] == [6.0, 15.0]
     keeper = client.get("/drills/gk-catch-and-hold").json()
     videos = {m["url"]: m["id"] for m in keeper["media"] if m["kind"] == "video"}

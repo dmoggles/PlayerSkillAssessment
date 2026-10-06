@@ -866,7 +866,8 @@
             12,
             12
           ],
-          "setup": "A 12 by 12 m square. Five attackers on the edges, one defender in the middle. Spare balls at one corner."
+          "setup": "A 12 by 12 m square. Five attackers on the edges, one defender in the middle. Spare balls at one corner.",
+          "diagram": 3
         },
         {
           "kind": "base",
@@ -1385,6 +1386,243 @@
           "kind": "video",
           "caption": "4v1 rondo how-to guide (Paul Spacey). Shows a tighter 5 × 5 m square; ours starts at 10 × 10 m, shrink it as players improve.",
           "url": "https://www.youtube.com/watch?v=c_nq0Ka_RWs"
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: 5v1 in a 12 × 12 m square, always a free player",
+          "diagram": {
+            "pitch": {
+              "width": 12,
+              "length": 12,
+              "view": "area"
+            },
+            "objects": {
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  0.5
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  11.5,
+                  6
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8.5,
+                  11.5
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  3.5,
+                  11.5
+                ]
+              },
+              "A5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  6
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  6,
+                  6
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 plays to A2, who steps down the line to receive; A3 slides across as a second option; the defender follows the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        11.5,
+                        4.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        10,
+                        11.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        9,
+                        3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "With five attackers someone is always free: A2 plays across to A5; A1 and A4 move to support A5",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A5"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A5",
+                      "to": [
+                        0.5,
+                        6.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        3.5,
+                        0.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        2.5,
+                        11.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        3.5,
+                        6.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A5 plays up to A4; A3 drops back in to offer the next angle; A2 and A1 reset; the defender chases",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A5",
+                      "to": "A4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        3.5,
+                        11.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        8,
+                        11.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        11.5,
+                        7
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        6,
+                        0.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        4.5,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A4 plays along the line to A3, away from the defender; the cycle continues",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A4",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A5",
+                      "to": [
+                        0.5,
+                        7.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        7,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         }
       ]
     },
