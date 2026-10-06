@@ -260,6 +260,18 @@ def test_assessment_versions_history_and_self_link(monkeypatch):
     assert submitted.status_code == 201, submitted.text
     assert public.post(f"/self/{token}", json={"position": "outfield", "ratings": []}).status_code == 410
 
+    # With self-assessment turned off, self-ratings are hidden everywhere; they are kept and come back when it is on.
+    compare = lambda: owner.get(f"/teams/{team_id}/assessments/compare", params={"player_id": player_id, "period_id": period_2}).json()
+    hist = lambda: owner.get(f"/teams/{team_id}/players/{player_id}/history").json()
+    squad = lambda: owner.get(f"/teams/{team_id}/assessments/period/{period_2}").json()
+    assert compare()["player"]["ratings"][0]["score"] == 2 and [a["assessor"] for a in squad()] == ["player"]
+    assert [row["label"] for row in hist()] == ["Autumn", "Winter"]
+    owner.patch(f"/teams/{team_id}", json={"name": "West", "self_assessment_enabled": False}, headers=headers)
+    assert compare()["player"] is None and squad() == []
+    assert [row["label"] for row in hist()] == ["Autumn"]  # Winter only had a self-assessment
+    owner.patch(f"/teams/{team_id}", json={"name": "West", "self_assessment_enabled": True}, headers=headers)
+    assert compare()["player"]["ratings"][0]["score"] == 2
+
 
 def test_session_csrf_and_password_reset(monkeypatch):
     clean_database()

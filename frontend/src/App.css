@@ -639,6 +639,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .score-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); }
   .comparison .cmp-row, .summary .cmp-row { grid-template-columns: minmax(0, 1fr) repeat(3, 38px); gap: 3px; padding: 8px 5px; }
   .summary .cmp-row { grid-template-columns: minmax(0, 1fr) repeat(3, 50px); }
+  .summary .cmp-row.coach-only { grid-template-columns: minmax(0, 1fr) 50px; }
   .comparison .cmp-cell, .summary .cmp-cell { font-size: .78rem; }
   .summary .cmp-head .cmp-cell { min-width: 0; font-size: .7rem; line-height: 1.15; letter-spacing: 0; overflow-wrap: anywhere; }
   .comparison .cmp-skill, .summary .cmp-skill { font-size: .78rem; overflow-wrap: anywhere; }
@@ -912,3 +913,5 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .player-report .plan-reasons { display: none; }
   .player-report .plan-card { break-inside: avoid; }
 }
+
+.summary .cmp-row.coach-only { grid-template-columns: minmax(0, 1fr) 80px; }

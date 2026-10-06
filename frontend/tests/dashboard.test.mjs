@@ -4,7 +4,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { createServer } from 'vite'
-import { AREAS, PLAYER_DATA_TABS, assessmentSignature, canManageTeam, initialPeriodId, initialPlayerId } from '../src/dashboardModel.js'
+import { AREAS, PLAYER_DATA_TABS, assessmentSignature, playerDataTabs, canManageTeam, initialPeriodId, initialPlayerId } from '../src/dashboardModel.js'
 import { horizontalSwipe, ratedCount } from '../src/mobileAssessmentModel.js'
 import { columnsByScore } from '../src/teamDataModel.js'
 import { errorMessage } from '../src/api.js'
@@ -31,6 +31,8 @@ test('API validation errors become readable text without exposing submitted valu
 
 test('player data exposes all sub-tabs, including confirmed priorities and the report', () => {
   assert.deepEqual(PLAYER_DATA_TABS.map(([id]) => id), ['summary', 'comparison', 'progress', 'priorities', 'report'])
+  assert.deepEqual(playerDataTabs(false).map(([id]) => id), ['summary', 'progress', 'priorities', 'report'], 'no Comparison tab without self-assessment')
+  assert.equal(playerDataTabs(true).length, 5)
 })
 
 test('shared context chooses an active player and period, or a valid fallback', () => {
@@ -722,4 +724,15 @@ test('saving plans and extending report links show in the activity log', async (
   // Older events from the separate plan links still read sensibly.
   assert.equal(auditText({ action: 'plan_shared', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x shared a development plan for Kit (Autumn)')
   assert.equal(auditText({ action: 'plan_share_revoked', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x revoked the plan link for Kit (Autumn)')
+})
+
+test('with self-assessment off, the summary is the coach\'s alone', async () => {
+  const { default: SummaryView } = await loadJsx('src/SummaryView.jsx')
+  const matrix = { sections: [{ id: 'tech', label: 'Technical', applies_to: ['defender'], skills: [{ id: 's1', label: 'Passing', position_weights: {} }] }], dependency_map: {}, position_weight_values: {} }
+  const coach = { position: 'outfield', ratings: [{ skill_id: 's1', score: 3 }] }
+  const on = renderToStaticMarkup(React.createElement(SummaryView, { matrix, coach, player: null, selfAssessmentOn: true }))
+  const off = renderToStaticMarkup(React.createElement(SummaryView, { matrix, coach, player: null, selfAssessmentOn: false }))
+  assert.match(on, /Disagreements/)
+  assert.match(on, /<span class="cmp-cell">Player<\/span>/)
+  assert.doesNotMatch(off, /Disagreements|>Player<|Combined|self-assessment/)
 })

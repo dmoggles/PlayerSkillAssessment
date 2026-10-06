@@ -161,12 +161,19 @@ def get_coach_assessment(team_id: int, player_id: int, period_id: int, db: DbSes
     return assessment_out(scoped_assessment(db, team_id, player_id, period_id, "coach"))
 
 
+def visible_assessors(db: DbSession, team_id: int) -> tuple[str, ...]:
+    """Self-assessments are hidden everywhere while the team has self-assessment turned off. They are kept, and
+    come back if it is turned on again."""
+    return ("coach", "player") if db.get(Team, team_id).self_assessment_enabled else ("coach",)
+
+
 @router.get("/teams/{team_id}/assessments/compare")
 def compare(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     scoped_player(db, team_id, player_id)
     scoped_period(db, team_id, period_id)
-    rows = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id).all()
+    rows = db.query(Assessment).filter(Assessment.player_id == player_id, Assessment.period_id == period_id,
+                                       Assessment.assessor.in_(visible_assessors(db, team_id))).all()
     return {"coach": assessment_out(next((a for a in rows if a.assessor == "coach"), None)),
             "player": assessment_out(next((a for a in rows if a.assessor == "player"), None))}
 
@@ -175,7 +182,8 @@ def compare(team_id: int, player_id: int, period_id: int, db: DbSession = Depend
 def period_assessments(team_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     scoped_period(db, team_id, period_id)
-    rows = db.query(Assessment).join(Player).filter(Player.team_id == team_id, Assessment.period_id == period_id).all()
+    rows = db.query(Assessment).join(Player).filter(Player.team_id == team_id, Assessment.period_id == period_id,
+                                                    Assessment.assessor.in_(visible_assessors(db, team_id))).all()
     return [assessment_out(a) for a in rows]
 
 
@@ -184,7 +192,8 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     require_member(team_id, db, user)
     scoped_player(db, team_id, player_id)
     rows = db.query(Assessment, Period).join(Period, Period.id == Assessment.period_id).filter(
-        Assessment.player_id == player_id, Period.team_id == team_id).order_by(Period.created_at, Period.id).all()
+        Assessment.player_id == player_id, Period.team_id == team_id,
+        Assessment.assessor.in_(visible_assessors(db, team_id))).order_by(Period.created_at, Period.id).all()
     priorities = db.query(PriorityConfirmation).filter_by(player_id=player_id).all()
     by_period, versions = {}, {}
     for a, p in rows:

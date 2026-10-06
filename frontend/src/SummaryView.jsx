@@ -10,7 +10,8 @@ const DIRECTION_LABEL = {
   underestimation: 'Rates self lower',
 }
 
-export default function SummaryView({ matrix, coach, player }) {
+// selfAssessmentOn: without it the summary is the coach's alone, with no player columns or disagreements.
+export default function SummaryView({ matrix, coach, player, selfAssessmentOn = true }) {
   if (!coach && !player) {
     return <p className="muted">No assessments recorded for this player yet.</p>
   }
@@ -49,18 +50,19 @@ export default function SummaryView({ matrix, coach, player }) {
       <div className="summary-block">
         <h3>Section averages</h3>
         <div className="cmp-table">
-          <div className="cmp-row cmp-head">
+          <div className={`cmp-row cmp-head${selfAssessmentOn ? '' : ' coach-only'}`}>
             <span className="cmp-skill">Section</span>
             <span className="cmp-cell">Coach</span>
-            <span className="cmp-cell">Player</span>
-            <span className="cmp-cell">Combined</span>
+            {selfAssessmentOn && <><span className="cmp-cell">Player</span><span className="cmp-cell">Combined</span></>}
           </div>
           {sections.map(s => (
-            <div key={s.id} className="cmp-row">
+            <div key={s.id} className={`cmp-row${selfAssessmentOn ? '' : ' coach-only'}`}>
               <span className="cmp-skill">{s.label}</span>
-              <span className="cmp-cell">{fmt1(s.coach)}</span>
-              <span className="cmp-cell">{fmt1(s.player)}</span>
-              <span className="cmp-cell"><strong>{fmt1(s.combined)}</strong></span>
+              {selfAssessmentOn ? <>
+                <span className="cmp-cell">{fmt1(s.coach)}</span>
+                <span className="cmp-cell">{fmt1(s.player)}</span>
+                <span className="cmp-cell"><strong>{fmt1(s.combined)}</strong></span>
+              </> : <span className="cmp-cell"><strong>{fmt1(s.coach)}</strong></span>}
             </div>
           ))}
         </div>
@@ -85,7 +87,7 @@ export default function SummaryView({ matrix, coach, player }) {
         </div>
       </div>
 
-      {foundational.length > 0 && (
+      {selfAssessmentOn && foundational.length > 0 && (
         <div className="summary-block flags-foundational">
           <h3>⚠ Foundational disagreements</h3>
           <p className="muted small">Significant gaps on root skills — most likely to undermine the development plan.</p>
@@ -101,7 +103,7 @@ export default function SummaryView({ matrix, coach, player }) {
         </div>
       )}
 
-      <div className="summary-block">
+      {selfAssessmentOn && <div className="summary-block">
         <h3>Disagreements</h3>
         {!player ? (
           <p className="muted small">The player has not submitted a self-assessment yet, so disagreements cannot be shown.</p>
@@ -123,7 +125,7 @@ export default function SummaryView({ matrix, coach, player }) {
         ) : (
           <p className="muted small">Coach and player are aligned on all jointly-rated skills (no gaps of 2+).</p>
         )}
-      </div>
+      </div>}
     </div>
   )
 }

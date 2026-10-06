@@ -30,6 +30,9 @@ export const PLAYER_DATA_TABS = [
   ['report', 'Report'],
 ]
 
+// The Comparison tab compares coach and self ratings, so it only exists while the team uses self-assessment.
+export const playerDataTabs = selfAssessmentOn => PLAYER_DATA_TABS.filter(([id]) => selfAssessmentOn || id !== 'comparison')
+
 const filledNotes = notes => Object.fromEntries(Object.entries(notes).filter(([, note]) => note?.trim()).map(([id, note]) => [id, note.trim()]))
 
 export const assessmentSignature = (position, secondary, frequency, ratings, notes = {}, note = '') =>
