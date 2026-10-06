@@ -835,9 +835,9 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     assert client.get("/drills/one-v-one-end-line").json()["variations"][3]["space"] == [6.0, 15.0]
     keeper = client.get("/drills/gk-catch-and-hold").json()
     videos = {m["url"]: m["id"] for m in keeper["media"] if m["kind"] == "video"}
-    angled = next(v for v in keeper["variations"] if v["title"] == "Angled strikes with diving saves")
+    angled = next(v for v in keeper["variations"] if v["title"] == "Angled strikes")
     assert angled["video_media_id"] == videos["https://www.youtube.com/shorts/SbMUr6HNJOQ"]
-    assert all(v["video_media_id"] is None for v in keeper["variations"] if v["title"] != "Angled strikes with diving saves")
+    assert all(v["video_media_id"] is None for v in keeper["variations"] if v["title"] != "Angled strikes")
     with engine.begin() as conn:  # "no override" is SQL NULL, not a JSON null value
         assert conn.execute(text("SELECT count(*) FROM drill_variations WHERE kind = 'base' AND (equipment IS NOT NULL OR instructions IS NOT NULL OR coaching_points IS NOT NULL)")).scalar() == 0
         assert conn.execute(text("SELECT count(*) FROM drill_media WHERE kind = 'diagram' AND diagram IS NULL")).scalar() == 0

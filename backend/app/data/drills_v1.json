@@ -1608,7 +1608,7 @@
     {
       "slug": "gk-catch-and-hold",
       "title": "Goalkeeper catch and hold",
-      "summary": "Catch and hold shots at different heights, then progress to angled strikes with diving saves, and rebounds.",
+      "summary": "Catch and hold shots at different heights and dive for wide ones, then progress to angles and rebounds.",
       "format": "individual",
       "players": [
         1,
@@ -1643,13 +1643,16 @@
       "setup": "A goal and a server 8 m out, central, with several balls.",
       "instructions": [
         "The server volleys at the goalkeeper: chest height, then low, then high.",
-        "The goalkeeper catches, holds and rolls the ball back.",
-        "Ten strikes, then swap if two goalkeepers are working."
+        "Every fourth volley goes low to mid height, just out of reach to one side, so the goalkeeper has to dive to catch.",
+        "The goalkeeper catches, holds and rolls the ball back, getting up quickly after a dive.",
+        "Twelve volleys, then swap if two goalkeepers are working."
       ],
       "coaching_points": [
         "Get behind the line of the ball.",
         "W-shaped hands for chest and high balls, scoop for low ones.",
-        "Set your feet before the ball is struck."
+        "Set your feet before the ball is struck.",
+        "Dive by stepping towards the ball with the near foot, not by falling sideways.",
+        "Hands lead on a dive: bottom hand behind the ball, top hand on top; land on your side, not your front."
       ],
       "tags": {
         "gk_shot_stopping": 1.0,
@@ -1674,25 +1677,30 @@
             10,
             10
           ],
-          "diagram": 1
+          "diagram": 1,
+          "coaching_points": [
+            "Get behind the line of the ball.",
+            "W-shaped hands for chest-height balls, scoop for low ones.",
+            "Bring the ball into your chest and hold it."
+          ]
         },
         {
           "kind": "base",
-          "title": "Volleys at three heights",
+          "title": "Volleys at three heights, then wide",
           "levels": [
             2,
             3
           ],
-          "change": "Server volleys from 8 m at chest, low and high."
+          "change": "Server volleys from 8 m at chest, low and high, then wide for a diving catch."
         },
         {
           "kind": "escalator",
-          "title": "Angled strikes with diving saves",
+          "title": "Angled strikes",
           "levels": [
             3,
             4
           ],
-          "change": "Server strikes from cones 4 m either side of centre, alternating, just out of reach; the goalkeeper resets the angle and dives to catch.",
+          "change": "Server strikes from cones 4 m either side of centre, alternating; the goalkeeper resets the angle before every strike and dives for wide ones.",
           "diagram": 2,
           "setup": "A goal and a server 10 m out with several balls, alternating between two cones 4 m either side of centre.",
           "equipment": [
@@ -1712,7 +1720,7 @@
           "instructions": [
             "The server strikes from one cone, then moves to the other for the next ball.",
             "The goalkeeper shuffles across and sets a new position before each strike.",
-            "Strikes go low to mid height, just out of reach to one side, so the goalkeeper has to dive to catch. Start with every other strike wide, then all of them.",
+            "Some strikes go low to mid height, just out of reach to one side, so the goalkeeper has to dive to catch.",
             "Get up, roll the ball back and reset. Ten strikes, alternating sides."
           ],
           "coaching_points": [
@@ -1755,7 +1763,7 @@
       "media": [
         {
           "kind": "diagram",
-          "caption": "Central volleys at three heights",
+          "caption": "Central volleys at three heights, then a wide one to dive for",
           "diagram": {
             "pitch": {
               "width": 16,
@@ -1829,12 +1837,52 @@
                 ]
               },
               {
-                "label": "Roll it back; next one is high",
+                "label": "Roll it back; after the high one comes a wide one",
                 "actions": [
                   {
                     "pass": {
                       "from": "GK",
                       "to": "S"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Wide volley: step towards the ball and dive to catch",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "S",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        9.4,
+                        0.9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Get up, roll it back and set again",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "S"
+                    }
+                  },
+                  {
+                    "move": {
+                      "who": "GK",
+                      "to": [
+                        8,
+                        1
+                      ]
                     }
                   }
                 ]
@@ -1922,7 +1970,7 @@
         },
         {
           "kind": "diagram",
-          "caption": "Harder: angled strikes, reset the angle and dive to catch",
+          "caption": "Harder: angled strikes, reset the angle and dive for wide ones",
           "diagram": {
             "pitch": {
               "width": 16,
