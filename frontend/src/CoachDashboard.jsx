@@ -266,7 +266,7 @@ export default function CoachDashboard({ user, onLogout }) {
         note: assessmentNote.trim() || null,
         ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null, note: notes[skill.id]?.trim() || null })),
       })
-      setCoach(assessment); setMessage('Assessment saved.')
+      setCoach(assessment); setMessage(assessment.unchanged ? 'No changes to save.' : 'Assessment saved.')
       applyForm(assessment)
       getComparison(teamId, playerId, periodId).then(setComparison)
       getPlayerHistory(teamId, playerId).then(setHistory)

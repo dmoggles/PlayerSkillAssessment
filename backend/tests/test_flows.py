@@ -241,6 +241,15 @@ def test_assessment_versions_history_and_self_link(monkeypatch):
     assert second.status_code == 200, second.text
     assert second.json()["version"] == 2
     assert len(owner.get(f"/teams/{team_id}/assessments/{first.json()['id']}/revisions").json()) == 2
+    # Saving again with nothing changed writes nothing: same version, no new revision.
+    body["version"] = 2
+    unchanged = owner.put(f"/teams/{team_id}/assessments/coach", json={**body, "ratings": body["ratings"] + [{"skill_id": "communication", "score": None}]}, headers=headers)
+    assert unchanged.status_code == 200 and unchanged.json()["version"] == 2 and unchanged.json()["unchanged"] is True
+    assert len(owner.get(f"/teams/{team_id}/assessments/{first.json()['id']}/revisions").json()) == 2
+    noted = owner.put(f"/teams/{team_id}/assessments/coach", json={**body, "note": "Strong week"}, headers=headers).json()
+    assert noted["version"] == 3 and "unchanged" not in noted  # a note alone is a change
+    body["version"] = 3
+    body["note"] = "Strong week"
     period_2 = owner.post(f"/teams/{team_id}/periods", json={"label": "Winter"}, headers=headers).json()["id"]
     history = owner.get(f"/teams/{team_id}/players/{player_id}/history").json()
     assert history[0]["assessments"]["coach"]["ratings"][0]["score"] == 4

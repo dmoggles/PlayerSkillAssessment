@@ -106,6 +106,13 @@ def matrix_version(team_id: int, version_id: int, db: DbSession = Depends(get_db
     return {**rendered(db, version_id, db.get(Team, team_id).player_gender), "version_id": version_id}
 
 
+def assessment_state(position, primary, secondary, frequency, note, ratings) -> tuple:
+    """What a save would record, for spotting a save with no changes. Skills with neither a score nor a note
+    count as not rated, however they were sent."""
+    rated = sorted((r["skill_id"], r["score"], r["note"]) for r in ratings if r["score"] is not None or r["note"])
+    return position, primary, secondary, frequency, note, rated
+
+
 @router.put("/teams/{team_id}/assessments/coach")
 def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
@@ -123,6 +130,13 @@ def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession =
     a = db.query(Assessment).filter_by(player_id=body.player_id, period_id=body.period_id, assessor="coach").with_for_update(of=Assessment).first()
     if a and a.version != body.version or not a and body.version != 0:
         raise HTTPException(409, "Assessment changed. Reload before saving")
+    ratings = [{"skill_id": r.skill_id, "score": r.score, "note": clean_note(r.note)} for r in body.ratings]
+    secondary_frequency = body.secondary_position_frequency if body.secondary_position else None
+    if a and assessment_state(a.position, a.primary_position, a.secondary_position, a.secondary_position_frequency, a.note,
+                              [{"skill_id": r.skill_id, "score": r.score, "note": r.note} for r in a.ratings]) == assessment_state(
+            position, body.primary_position, body.secondary_position, secondary_frequency, clean_note(body.note), ratings):
+        # Nothing changed: no new version, no revision, nothing written.
+        return {**assessment_out(a), "unchanged": True}
     if not a:
         a = Assessment(player_id=body.player_id, period_id=body.period_id, assessor="coach", position=position,
                        version=1, updated_by=user.id, matrix_version=doc["meta"]["version"])
@@ -135,11 +149,10 @@ def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession =
     a.position = position
     a.primary_position = body.primary_position
     a.secondary_position = body.secondary_position
-    a.secondary_position_frequency = body.secondary_position_frequency if body.secondary_position else None
+    a.secondary_position_frequency = secondary_frequency
     a.note = clean_note(body.note)
     a.updated_by = user.id
     a.updated_at = utcnow()
-    ratings = [{"skill_id": r.skill_id, "score": r.score, "note": clean_note(r.note)} for r in body.ratings]
     for r in ratings:
         db.add(Rating(assessment_id=a.id, **r))
     snapshot = {"position": position, "primary_position": a.primary_position,
