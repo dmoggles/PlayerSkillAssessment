@@ -1,0 +1,655 @@
+{
+  "source_version": "drills_v4",
+  "drills": [
+    {
+      "slug": "pass-set-and-play-out",
+      "title": "Pass, set and play out",
+      "summary": "Pass into a central pair who set and play back out, then swap places: passing weight and timing of movement to receive.",
+      "format": "small_group",
+      "players": [
+        7,
+        9,
+        12
+      ],
+      "ages": [
+        9,
+        18
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "session_phase": "technical",
+      "intensity": "medium",
+      "space": [
+        18,
+        18
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 4
+        }
+      ],
+      "setup": "An 18 by 18 m square (about 20 yards). Seven players spaced around the outside, two in the middle. One ball, with spares at a corner.",
+      "instructions": [
+        "An outside player passes into one of the central pair.",
+        "That player sets it first time for the other central player.",
+        "The second central player plays out to any outside player.",
+        "The player who started swaps into the middle in place of the first receiver, who takes their spot outside.",
+        "The outside player who receives starts the next sequence. Keep going until the coach calls a rest."
+      ],
+      "coaching_points": [
+        "Weight and accuracy: pass to the receiver's front foot.",
+        "Time the movement to receive: arrive as the pass is played, not before.",
+        "One touch where you can, to keep the ball moving.",
+        "Use both feet, alternating.",
+        "Talk: call for it, and tell the setter where you are.",
+        "Outside players: be ready to receive at any time, on your toes and open to the middle."
+      ],
+      "tags": {
+        "passing_short": 1.0,
+        "movement_to_receive": 1.0,
+        "communication": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Two touches, walk the swaps",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Two touches allowed for everyone; swaps happen at walking pace once the ball has gone back out.",
+          "instructions": [
+            "An outside player passes into one of the central pair.",
+            "Control, then set it for the other central player.",
+            "Control, then play out to any outside player.",
+            "Once the ball is out, the starter and the first receiver walk to swap places."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "One touch where possible",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "One touch where possible; swaps happen while the ball is moving."
+        },
+        {
+          "kind": "escalator",
+          "title": "Play out to the far side",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The second central player must play out to the side opposite the starter, so the pair has to see the whole square.",
+          "instructions": [
+            "An outside player passes into one of the central pair.",
+            "That player sets it first time for the other central player.",
+            "The second central player plays out to the side opposite the starter.",
+            "The starter swaps into the middle; the next sequence starts from the receiver."
+          ],
+          "coaching_points": [
+            "Central players: check over your shoulder before the ball arrives.",
+            "Open your body so you can play out the far side first time.",
+            "The setter's pass must be weighted for the next player's first touch."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "With a defender in the middle",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "A defender in the middle tries to intercept; the central pair must move away from them before showing for the ball.",
+          "players": [
+            10,
+            10,
+            12
+          ],
+          "setup": "An 18 by 18 m square. Seven players around the outside, two in the middle, and one defender in a bib.",
+          "equipment": [
+            {
+              "item": "cones",
+              "quantity": 4
+            },
+            {
+              "item": "bibs",
+              "quantity": 1
+            },
+            {
+              "item": "balls",
+              "quantity": 4
+            }
+          ],
+          "instructions": [
+            "As before: pass in, set, play out, swap.",
+            "The defender tries to intercept; a central player who loses the ball swaps with the defender.",
+            "Count completed sequences in a minute."
+          ],
+          "coaching_points": [
+            "Check away from the defender first, then show for the ball.",
+            "Don't receive in the defender's shadow: make an angle with the passer.",
+            "Set it away from the defender, onto your partner's far foot."
+          ],
+          "diagram": 1
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Pass in, set, play out, and the starter swaps into the middle",
+          "diagram": {
+            "pitch": {
+              "width": 18,
+              "length": 18,
+              "view": "area"
+            },
+            "objects": {
+              "k1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "k2": {
+                "type": "cone",
+                "at": [
+                  18,
+                  0
+                ]
+              },
+              "k3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  18
+                ]
+              },
+              "k4": {
+                "type": "cone",
+                "at": [
+                  18,
+                  18
+                ]
+              },
+              "O1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  0.5
+                ]
+              },
+              "O2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  17.5,
+                  4.5
+                ]
+              },
+              "O3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  17.5,
+                  13
+                ]
+              },
+              "O4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  17.5
+                ]
+              },
+              "O5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  17.5
+                ]
+              },
+              "O6": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  13
+                ]
+              },
+              "O7": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  4.5
+                ]
+              },
+              "C1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  8
+                ]
+              },
+              "C2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10.5,
+                  11
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "O1"
+              }
+            },
+            "steps": [
+              {
+                "label": "O1 passes into C1, who moves to meet it; C2 shows for the set",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "O1",
+                      "to": "C1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C1",
+                      "to": [
+                        8.6,
+                        6.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C2",
+                      "to": [
+                        11,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "C1 sets it first time for C2",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C1",
+                      "to": "C2"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "C2 plays out to O4. O1 runs in to replace C1, who goes out to O1's spot",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C2",
+                      "to": "O4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "O1",
+                      "to": [
+                        7.5,
+                        8.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C1",
+                      "to": [
+                        9,
+                        0.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "O4 starts the next one: into C2, who moves to meet it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "O4",
+                      "to": "C2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C2",
+                      "to": [
+                        11,
+                        11.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "O1",
+                      "to": [
+                        8.5,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "C2 sets it for O1, now in the middle",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C2",
+                      "to": "O1"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "O1 plays out to O6. O4 runs in to replace C2",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "O1",
+                      "to": "O6"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "O4",
+                      "to": [
+                        11,
+                        10.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C2",
+                      "to": [
+                        12,
+                        17.5
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the central pair moves away from a defender before showing",
+          "diagram": {
+            "pitch": {
+              "width": 18,
+              "length": 18,
+              "view": "area"
+            },
+            "objects": {
+              "k1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "k2": {
+                "type": "cone",
+                "at": [
+                  18,
+                  0
+                ]
+              },
+              "k3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  18
+                ]
+              },
+              "k4": {
+                "type": "cone",
+                "at": [
+                  18,
+                  18
+                ]
+              },
+              "O1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  0.5
+                ]
+              },
+              "O2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  17.5,
+                  4.5
+                ]
+              },
+              "O3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  17.5,
+                  13
+                ]
+              },
+              "O4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  17.5
+                ]
+              },
+              "O5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  17.5
+                ]
+              },
+              "O6": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  13
+                ]
+              },
+              "O7": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.5,
+                  4.5
+                ]
+              },
+              "C1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  8
+                ]
+              },
+              "C2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10.5,
+                  11
+                ]
+              },
+              "D": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  9,
+                  6.5
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "O1"
+              }
+            },
+            "steps": [
+              {
+                "label": "The defender guards the pass into C1; C1 checks away towards the far side",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "C1",
+                      "to": [
+                        7,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        8.4,
+                        7.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Then C1 shows sharply at an angle, out of the defender's shadow; O1 passes",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "O1",
+                      "to": "C1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C1",
+                      "to": [
+                        5.6,
+                        6.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        7.4,
+                        6.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "C1 sets it away from the defender, onto C2's far foot",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C1",
+                      "to": "C2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C2",
+                      "to": [
+                        10.5,
+                        9.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "C2 plays out to O3; O1 swaps in for C1",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C2",
+                      "to": "O3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "O1",
+                      "to": [
+                        8,
+                        4.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "C1",
+                      "to": [
+                        9,
+                        0.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D",
+                      "to": [
+                        9.4,
+                        8.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: @touchtightcoach on Instagram – Pass and move to receive (animated)",
+          "url": "https://www.instagram.com/reel/DeHRFK7j9YH/"
+        }
+      ],
+      "links": [
+        {
+          "to": "check-away-and-show",
+          "relation": "pairs_with"
+        }
+      ]
+    }
+  ]
+}

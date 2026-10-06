@@ -816,9 +816,10 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
         # Later files load on top; drills link across files.
         assert load_file(db, DATA_DIR / "drills_v2.json") == {"added": 6, "updated": 0, "retired": 0}
         assert load_file(db, DATA_DIR / "drills_v3.json") == {"added": 7, "updated": 0, "retired": 0}  # home drills
+        assert load_file(db, DATA_DIR / "drills_v4.json") == {"added": 1, "updated": 0, "retired": 0}
 
     drills = {d["slug"]: d for d in client.get("/drills").json()}
-    assert len(drills) == 18
+    assert len(drills) == 19
     assert sum(d["home_friendly"] for d in drills.values()) == 8
     home = client.get("/drills/home-wall-passes").json()
     assert home["indoors"].startswith("A soft or futsal ball") and client.get("/drills/rondo-4v1").json()["indoors"] is None
