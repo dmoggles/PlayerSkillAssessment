@@ -8,7 +8,7 @@ from ..auth import consume_auth_token, current_user, issue_auth_token, require_m
 from ..config import settings
 from ..database import get_db
 from ..matrix import team_version, version_label
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SkillMatrix, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, SharedPlan, SkillMatrix, Team, User
 from .accounts import delivery_message
 
 
@@ -95,7 +95,7 @@ def scoped_period(db: DbSession, team_id: int, period_id: int) -> Period:
 
 
 def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
-    """Delete assessments, ratings, revisions, priorities, reports and self links for the given players or periods."""
+    """Delete assessments, ratings, revisions, priorities, reports, shared plans and self links for the given players or periods."""
     def scoped(model):
         query = db.query(model)
         if player_ids is not None:
@@ -106,7 +106,7 @@ def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     assessment_ids = scoped(Assessment).with_entities(Assessment.id)
     db.query(Rating).filter(Rating.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
     db.query(AssessmentRevision).filter(AssessmentRevision.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
-    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink):
+    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, SharedPlan):
         scoped(model).delete(synchronize_session=False)
 
 

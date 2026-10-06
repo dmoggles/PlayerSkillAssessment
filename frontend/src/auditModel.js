@@ -21,6 +21,10 @@ export function auditText(event) {
     case 'report_shared': return d.replaced
       ? `${actor} created a new report link for ${d.player} (${d.period}), replacing the previous one`
       : `${actor} shared the report for ${d.player} (${d.period})`
+    case 'plan_shared': return d.replaced
+      ? `${actor} created a new plan link for ${d.player} (${d.period}), replacing the previous one`
+      : `${actor} shared a development plan for ${d.player} (${d.period})`
+    case 'plan_share_revoked': return `${actor} revoked the plan link for ${d.player} (${d.period})`
     case 'report_share_revoked': return `${actor} revoked the report link for ${d.player} (${d.period})`
     default: return `${actor}: ${event.action}`
   }

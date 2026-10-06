@@ -97,14 +97,15 @@ function DrillFilters({ filters, options, onChange }) {
   </div>
 }
 
-function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills' }) {
+// loadDrill fetches the drill; a shared plan's page passes one that goes through the plan's link.
+function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill }) {
   const [drill, setDrill] = useState(null)
   const [variationId, setVariationId] = useState(initialVariationId)
   useEffect(() => {
     let live = true
-    getDrill(slug).then(value => { if (live) setDrill(value) }).catch(e => onMessage(errorMessage(e)))
+    loadDrill(slug).then(value => { if (live) setDrill(value) }).catch(e => onMessage(errorMessage(e)))
     return () => { live = false }
-  }, [slug, onMessage])
+  }, [slug, onMessage, loadDrill])
   const vote = useCallback(async (value, reason = null) => {
     try {
       const votes = await voteOnDrill(slug, value, reason)
@@ -126,7 +127,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     <header><h3>{drill.title}</h3><p>{drill.summary}</p>
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
       <p className="drill-tags">{drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>)}</p>
-      <DrillVote votes={drill.votes} onVote={vote} />
+      {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
     </header>
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
@@ -207,13 +208,13 @@ export function PriorityDrills({ suggestion, onOpen }) {
   </details>
 }
 
-// A drill opened from Development, in a modal dialog. Closing it reports back so suggestions can refresh.
-export function DrillDialog({ drill, onClose, onMessage }) {
+// A drill opened from Development or a shared plan, in a modal dialog. Closing it reports back so suggestions can refresh.
+export function DrillDialog({ drill, onClose, onMessage, loadDrill }) {
   const dialog = useRef(null)
   const [current, setCurrent] = useState(drill)
   useEffect(() => { dialog.current?.showModal() }, [])
   return <dialog ref={dialog} className="drill-dialog" aria-label="Drill" onClose={onClose}>
     <DrillDetail key={current.slug} slug={current.slug} initialVariationId={current.variationId} backLabel="✕ Close"
-      onBack={() => dialog.current?.close()} onOpen={slug => setCurrent({ slug, variationId: null })} onVoted={() => {}} onMessage={onMessage} />
+      onBack={() => dialog.current?.close()} onOpen={slug => setCurrent({ slug, variationId: null })} onVoted={() => {}} onMessage={onMessage} loadDrill={loadDrill} />
   </dialog>
 }

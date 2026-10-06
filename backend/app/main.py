@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine
 from .maintenance import cleanup_loop
-from .routers import accounts, assessments, drills, matrices, teams
+from .routers import accounts, assessments, drills, matrices, plans, teams
 
 
 @asynccontextmanager
@@ -25,6 +25,7 @@ app.include_router(teams.router)
 app.include_router(assessments.router)
 app.include_router(matrices.router)
 app.include_router(drills.router)
+app.include_router(plans.router)
 
 
 @app.middleware("http")

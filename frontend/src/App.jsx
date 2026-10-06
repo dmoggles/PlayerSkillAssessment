@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, useNavigate, useParams } from 'react-router-dom'
 import CoachDashboard from './CoachDashboard'
 import PlayerPage from './PlayerPage'
+import SharedPlanPage from './SharedPlanPage'
 import SharedReportPage from './SharedReportPage'
 import UpdateBanner from './UpdateBanner'
 import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
@@ -79,6 +80,7 @@ function Shell() {
   return <Routes>
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
+    <Route path="/plan/:token" element={<SharedPlanPage />} />
     <Route path="/verify/:token" element={<VerifyPage />} />
     <Route path="/reset/:token" element={<ResetPage />} />
     <Route path="/invite/:token" element={<InvitePage user={user} onSignedIn={setUser} />} />

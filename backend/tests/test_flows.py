@@ -978,6 +978,37 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
     shooting = [(s["slot"], s["drill"]) for s in built["slots"] if s["skill_id"] == "shooting"]
     assert shooting == [("club", "home-target-passing-and-shooting"), ("home", "home-target-passing-and-shooting")] and built["gaps"] == []
     assert owner.get(plan_url, params={"period_id": period_id, "weeks": 9}).status_code == 422
+
+    # Sharing freezes the plan behind an expiring link that needs no login; the link opens only the plan's drills.
+    share_url = f"/teams/{team_id}/players/{player_id}/plan/share"
+    assert owner.get(share_url, params={"period_id": period_id}).json() == {"share": None}
+    made = owner.post(share_url, json={"period_id": period_id, "skills": ["dribbling_carrying", "shooting"]}, headers=headers).json()
+    token = made["url"].rsplit("/", 1)[1]
+    assert made["share"]["skills"] == ["dribbling_carrying", "shooting"] and made["share"]["opened_at"] is None
+    public = TestClient(app)
+    page = public.get(f"/plan/{token}").json()
+    assert page["player"] == "Kit" and page["team"] == "Suggest" and page["plan"]["slots"] == built["slots"]
+    assert owner.get(share_url, params={"period_id": period_id}).json()["share"]["opened_at"] is not None
+    drill = public.get(f"/plan/{token}/drills/cone-slalom-dribble").json()
+    assert drill["title"] == "Cone slalom dribble" and drill["votes"] is None and drill["links"] == [] and drill["variations"]
+    assert public.get(f"/plan/{token}/drills/rondo-4v1").status_code == 404  # not in this plan
+    assert public.get("/plan/not-a-token").status_code == 404
+    # The copy is frozen: changing priorities later does not change what the link shows.
+    second = owner.post(share_url, json={"period_id": period_id, "skills": ["shooting"]}, headers=headers).json()["url"].rsplit("/", 1)[1]
+    assert public.get(f"/plan/{token}").status_code == 404  # a new link replaces the old one
+    from app.models import SharedPlan
+    from datetime import timedelta
+    with SessionLocal() as db:
+        shared = db.query(SharedPlan).one()
+        assert (shared.expires_at - shared.created_at).days == 35  # 4 weeks plus a week's grace
+        shared.expires_at = shared.created_at - timedelta(seconds=1)
+        db.commit()
+    assert public.get(f"/plan/{second}").status_code == 410
+    assert public.get(f"/plan/{second}/drills/home-target-passing-and-shooting").status_code == 410  # drills expire with it
+    events = [(e["action"], e["details"]) for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"].startswith("plan_")]
+    assert events[:2] == [("plan_shared", {"player": "Kit", "period": "Autumn", "replaced": True}), ("plan_shared", {"player": "Kit", "period": "Autumn"})]
+    assert owner.delete(share_url, params={"period_id": period_id}, headers=headers).json() == {"message": "Link revoked"}
+    assert owner.get(share_url, params={"period_id": period_id}).json() == {"share": None}
     assert owner.get(url, params={"period_id": 999999, "skills": "passing_short"}).status_code == 404
     outsider, _ = signed_in("suggest-outsider@example.com", monkeypatch)
     assert outsider.get(url, params={"period_id": period_id}).status_code == 404

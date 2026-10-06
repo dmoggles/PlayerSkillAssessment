@@ -188,6 +188,22 @@ class PlayerReport(Base):
     share_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class SharedPlan(Base):
+    """A frozen copy of a generated development plan, shared through an expiring link that needs no login.
+    The same link opens the plan's drills, and only those, until it expires. One per player and period."""
+    __tablename__ = "shared_plans"
+    __table_args__ = (UniqueConstraint("player_id", "period_id", name="uq_shared_plans_player_period"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
+    period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    plan: Mapped[dict] = mapped_column(JSONB)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class SkillTag(Base):
     """Global taxonomy that skills, drills and training plans share. level_1/3/5 describe Developing, Achieving
     and Excelling on the common scale, relative to the player's age group."""

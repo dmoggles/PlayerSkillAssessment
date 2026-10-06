@@ -701,3 +701,20 @@ test('the plan section explains itself before it is generated', async () => {
   assert.match(html, /4-week plan/)
   assert.match(html, /Generate plan<\/button>/)
 })
+
+test('the plan share line says when it was shared, expires and was opened, and when it is out of date', async () => {
+  const { planShareSummary, shareIsStale } = await loadJsx('src/planModel.js')
+  assert.match(planShareSummary(null), /^Not shared\./)
+  assert.match(planShareSummary({ expired: true, expires_at: '2026-11-10T00:00:00Z' }), /^The link expired on /)
+  assert.match(planShareSummary({ expired: false, created_at: '2026-10-06T00:00:00Z', expires_at: '2026-11-10T00:00:00Z', opened_at: null }), /^Shared .* · expires .* · not opened yet$/)
+  const share = { expired: false, skills: ['a', 'b'] }
+  assert.equal(shareIsStale(share, ['a', 'b']), false)
+  assert.equal(shareIsStale(share, ['b', 'a']), true, 'a different order is a different plan')
+  assert.equal(shareIsStale({ ...share, expired: true }, ['c']), false, 'an expired link is reported as expired, not stale')
+})
+
+test('sharing and revoking a plan show in the activity log', async () => {
+  const { auditText } = await loadJsx('src/auditModel.js')
+  assert.equal(auditText({ action: 'plan_shared', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x shared a development plan for Kit (Autumn)')
+  assert.equal(auditText({ action: 'plan_share_revoked', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x revoked the plan link for Kit (Autumn)')
+})
