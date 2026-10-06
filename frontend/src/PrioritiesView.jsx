@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import DevelopmentPlan from './DevelopmentPlan'
 import { DrillDialog, PriorityDrills } from './DrillLibrary'
 import { ratingMap, completeness, priorityScores, suggestedPriorities } from './assessment'
 import { getDrillSuggestions, getPriorities, setPriorities } from './api'
@@ -158,6 +159,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
       {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
+      <DevelopmentPlan teamId={teamId} playerId={playerId} periodId={periodId} skills={rows.map(r => r.skill_id)} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
       {drillError && <p className="error" role="alert">{drillError}</p>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
       {status === 'error' && <p className="error">Could not save priorities.</p>}

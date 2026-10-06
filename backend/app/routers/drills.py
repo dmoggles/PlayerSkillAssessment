@@ -6,7 +6,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user, require_member
 from ..database import get_db
-from ..matrix import version_tags
+from ..matrix import document, version_tags
+from ..plans import plan as rules_plan
 from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, Rating, SkillTag, Team, User
 
 router = APIRouter(tags=["drills"])
@@ -113,6 +114,34 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
 SUGGESTIONS_PER_SKILL = 3
 
 
+def _library(db: DbSession, team: Team, user: User):
+    """Published drills for a team's age group, with their tags, ladder tags, variations, votes and tag labels."""
+    drills = db.query(Drill).filter_by(status="published").all()
+    if team.age_group:
+        drills = [d for d in drills if d.age_min <= team.age_group <= d.age_max]
+    ids = [d.id for d in drills]
+    drill_tags, ladder_tags = {}, {}
+    for link in db.query(DrillTag).filter(DrillTag.drill_id.in_(ids)):
+        drill_tags.setdefault(link.drill_id, {})[link.tag_id] = link.weight
+        if link.on_ladder:
+            ladder_tags.setdefault(link.drill_id, set()).add(link.tag_id)
+    variations = {}
+    for v in db.query(DrillVariation).filter(DrillVariation.drill_id.in_(ids)).order_by(DrillVariation.position):
+        variations.setdefault(v.drill_id, []).append(v)
+    return drills, drill_tags, ladder_tags, variations, _votes(db, ids, user), _tags(db, ids)
+
+
+def _player_context(db: DbSession, team_id: int, player_id: int, period_id: int, user: User):
+    """The team, the period's skill tags and the coach's ratings for the player, or 404."""
+    require_member(team_id, db, user)
+    team, player, period = db.get(Team, team_id), db.get(Player, player_id), db.get(Period, period_id)
+    if not player or player.team_id != team_id or not period or period.team_id != team_id:
+        raise HTTPException(404, "Not found")
+    coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
+    levels = {r.skill_id: r.score for r in db.query(Rating).filter_by(assessment_id=coach.id)} if coach else {}
+    return team, period, version_tags(db, period.matrix_version_id), levels
+
+
 def variation_for_level(variations: list[DrillVariation], level: int | None) -> DrillVariation:
     """The hardest variation whose level range includes the player's level; the base one when unrated."""
     if level is not None:
@@ -130,30 +159,9 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
     """Drills for a player's priority skills, at the variation that matches the coach's rating of each skill.
     A drill matches through the tags it shares with the skill. The coach's own dislikes are left out, their likes
     come first; then the strength of the match and the other coaches' votes decide."""
-    require_member(team_id, db, user)
-    team = db.get(Team, team_id)
-    player = db.get(Player, player_id)
-    period = db.get(Period, period_id)
-    if not player or player.team_id != team_id or not period or period.team_id != team_id:
-        raise HTTPException(404, "Not found")
-    skill_tags = version_tags(db, period.matrix_version_id)
-    coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
-    levels = {r.skill_id: r.score for r in db.query(Rating).filter_by(assessment_id=coach.id)} if coach else {}
+    team, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
 
-    drills = db.query(Drill).filter_by(status="published").all()
-    if team.age_group:
-        drills = [d for d in drills if d.age_min <= team.age_group <= d.age_max]
-    ids = [d.id for d in drills]
-    drill_tags, ladder_tags = {}, {}
-    for link in db.query(DrillTag).filter(DrillTag.drill_id.in_(ids)):
-        drill_tags.setdefault(link.drill_id, {})[link.tag_id] = link.weight
-        if link.on_ladder:
-            ladder_tags.setdefault(link.drill_id, set()).add(link.tag_id)
-    variations = {}
-    for v in db.query(DrillVariation).filter(DrillVariation.drill_id.in_(ids)).order_by(DrillVariation.position):
-        variations.setdefault(v.drill_id, []).append(v)
-    votes = _votes(db, ids, user)
-    tags = _tags(db, ids)
+    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, team, user)
 
     out = {}
     for skill_id in dict.fromkeys(skills):
@@ -179,3 +187,27 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
                               "ladder_for": [] if follows else [t["label"] for t in tags.get(drill.id, []) if t["on_ladder"]]})
         out[skill_id] = {"tagged": bool(wanted), "level": level, "matches": len(matches), "drills": suggested}
     return out
+
+
+@router.get("/teams/{team_id}/players/{player_id}/plan")
+def development_plan(team_id: int, player_id: int, period_id: int, skills: list[str] = Query(default=[], max_length=5),
+                     weeks: int = Query(default=4, ge=1, le=8), db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """A plan of club and home drills for the player's priorities, in rank order. Generated on request, not stored."""
+    team, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
+    labels = {s["id"]: s["label"] for section in document(db, period.matrix_version_id)["sections"] for s in section["skills"]}
+    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, team, user)
+    data = {
+        "weeks": weeks,
+        "priorities": [{"rank": rank, "skill_id": skill_id, "label": labels.get(skill_id, skill_id),
+                        "level": levels.get(skill_id), "tags": skill_tags.get(skill_id, {})}
+                       for rank, skill_id in enumerate(dict.fromkeys(skills), start=1)],
+        "drills": [{"slug": d.slug, "title": d.title, "home_friendly": d.home_friendly,
+                    "duration": [d.duration_min, d.duration_typical], "tags": drill_tags.get(d.id, {}),
+                    "tag_labels": {t["id"]: t["label"] for t in tags.get(d.id, [])},
+                    "ladder_tags": sorted(ladder_tags.get(d.id, set())),
+                    "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}
+                                   for v in variations.get(d.id, [])],
+                    "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"]}
+                   for d in drills if variations.get(d.id)],
+    }
+    return rules_plan(data)

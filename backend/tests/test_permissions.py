@@ -23,6 +23,7 @@ ACCESS = {
     ("GET", "/drills/{slug}"): (SIGNED_IN, None, None),
     ("PUT", "/drills/{slug}/vote"): (SIGNED_IN, {"vote": 1}, None),
     ("GET", "/teams/{team_id}/players/{player_id}/drill-suggestions"): (MEMBER, None, {"period_id": "{period_id}", "skills": "passing"}),
+    ("GET", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, None, {"period_id": "{period_id}", "skills": "passing"}),
     ("GET", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
     ("PUT", "/teams/{team_id}/matrix/draft"): (OWNER, {"revision": 0, "document": {}}, None),
     ("DELETE", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),

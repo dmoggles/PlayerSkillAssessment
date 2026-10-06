@@ -965,6 +965,19 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
     assert suggest("passing_short")["passing_short"]["drills"] == []
     assert suggest("dribbling_carrying")["dribbling_carrying"]["drills"][0]["slug"] == "cone-slalom-dribble"
 
+    # A development plan uses the same library: club and home drills per priority, stepping up in week 3.
+    with SessionLocal() as db:
+        load_file(db, DATA_DIR / "drills_v3.json")
+    owner.patch(f"/teams/{team_id}", json={"name": "Suggest", "self_assessment_enabled": False, "age_group": None}, headers=headers)
+    plan_url = f"/teams/{team_id}/players/{player_id}/plan"
+    built = owner.get(plan_url, params={"period_id": period_id, "skills": ["dribbling_carrying", "shooting"]}).json()
+    dribbling = [s for s in built["slots"] if s["skill_id"] == "dribbling_carrying"]
+    assert [s["slot"] for s in dribbling] == ["club", "home"] and len(dribbling[0]["weeks"]) == 4
+    assert {s["drill"] for s in dribbling} == {"cone-slalom-dribble", "home-ball-mastery-routine"}  # two different drills
+    # Shooting's only drill here is a home drill (only v1 and v3 are loaded): it covers both places.
+    shooting = [(s["slot"], s["drill"]) for s in built["slots"] if s["skill_id"] == "shooting"]
+    assert shooting == [("club", "home-target-passing-and-shooting"), ("home", "home-target-passing-and-shooting")] and built["gaps"] == []
+    assert owner.get(plan_url, params={"period_id": period_id, "weeks": 9}).status_code == 422
     assert owner.get(url, params={"period_id": 999999, "skills": "passing_short"}).status_code == 404
     outsider, _ = signed_in("suggest-outsider@example.com", monkeypatch)
     assert outsider.get(url, params={"period_id": period_id}).status_code == 404

@@ -885,3 +885,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 
 .update-banner { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; padding: 10px 16px; background: #fbeedd; color: #5c3800; border-bottom: 1px solid #e8cfa6; font-size: .9rem; }
 .update-banner button { padding: 6px 14px; border: 1px solid #c79a55; border-radius: 8px; background: white; color: #5c3800; font-weight: 600; cursor: pointer; }
+
+.development-plan { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.development-plan-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-start; justify-content: space-between; }
+.development-plan-head h3 { margin: 0; }
+.development-plan-head p { margin: 4px 0 0; }
+.development-plan-head > button { padding: 8px 14px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: white; font-weight: 600; cursor: pointer; }
+.development-plan-head > button:disabled { opacity: .6; cursor: default; }
+.plan-cards { display: grid; gap: 12px; margin-top: 12px; }
+.plan-card { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.plan-card h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.plan-rank { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: white; font-size: .75rem; }
+.plan-slot { padding: 8px 0; border-top: 1px dashed var(--border); }
+.plan-slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 6px; }
+.plan-slot-head .status-pill { margin-left: 0; }
+.plan-weeks { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.plan-weeks button { padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px; background: #f6f8fa; color: var(--text); font-size: .82rem; cursor: pointer; }
+.plan-weeks button:hover { border-color: var(--accent); }
+.plan-reasons { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
+.plan-gap { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fbeedd; color: #5c3800; font-size: .85rem; }

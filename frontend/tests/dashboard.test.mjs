@@ -682,3 +682,22 @@ test('an open page asks to be reloaded only when the server runs a different bui
   assert.equal(isOutdated('dev-e93b78e', 'local'), false)
   assert.equal(isOutdated('dev-e93b78e', undefined), false, 'no answer from the server is not a new version')
 })
+
+test('a development plan groups by priority and folds repeated weeks into runs', async () => {
+  const { planByPriority, weekRuns } = await loadJsx('src/planModel.js')
+  const base = { id: 2, title: 'Base' }, hard = { id: 3, title: 'Hard' }
+  assert.deepEqual(weekRuns([base, base, hard, hard]).map(r => `${r.label}: ${r.variation.title}`), ['Weeks 1–2: Base', 'Weeks 3–4: Hard'])
+  assert.deepEqual(weekRuns([hard, hard, hard, hard]).map(r => r.label), ['Weeks 1–4'])
+  assert.deepEqual(weekRuns([base, hard, base]).map(r => r.label), ['Week 1', 'Week 2', 'Week 3'])
+  const plan = { slots: [{ rank: 2, skill_id: 'b', label: 'B', slot: 'club' }, { rank: 1, skill_id: 'a', label: 'A', slot: 'home' }, { rank: 1, skill_id: 'a', label: 'A', slot: 'club' }],
+    gaps: [{ rank: 3, skill_id: 'c', label: 'C', slot: 'club', reason: 'No drills' }] }
+  const grouped = planByPriority(plan)
+  assert.deepEqual(grouped.map(p => [p.rank, Boolean(p.club), Boolean(p.home), p.gaps.length]), [[1, true, true, 0], [2, true, false, 0], [3, false, false, 1]])
+})
+
+test('the plan section explains itself before it is generated', async () => {
+  const { default: DevelopmentPlan } = await loadJsx('src/DevelopmentPlan.jsx')
+  const html = renderToStaticMarkup(React.createElement(DevelopmentPlan, { teamId: 1, playerId: 2, periodId: 3, skills: ['a'], onOpenDrill: () => {} }))
+  assert.match(html, /4-week plan/)
+  assert.match(html, /Generate plan<\/button>/)
+})
