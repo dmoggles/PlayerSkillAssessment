@@ -1,12 +1,13 @@
 """The shared drill library, read by any signed-in coach."""
 from typing import Literal
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, model_validator
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
-from ..auth import current_user
+from ..auth import current_user, require_member
 from ..database import get_db
-from ..models import utcnow, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, SkillTag, User
+from ..matrix import version_tags
+from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, Rating, SkillTag, Team, User
 
 router = APIRouter(tags=["drills"])
 
@@ -106,3 +107,68 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
         db.add(DrillVote(user_id=user.id, drill_id=drill.id, vote=payload.vote, reason=payload.reason, updated_at=utcnow()))
     db.commit()
     return _votes(db, [drill.id], user)[drill.id]
+
+
+SUGGESTIONS_PER_SKILL = 3
+
+
+def variation_for_level(variations: list[DrillVariation], level: int | None) -> DrillVariation:
+    """The hardest variation whose level range includes the player's level; the base one when unrated."""
+    if level is not None:
+        fitting = [v for v in variations if v.level_min <= level <= v.level_max]
+        if fitting:
+            return fitting[-1]
+        # Beyond the drill's range: the nearest end of the ladder.
+        return variations[-1] if level > variations[-1].level_max else variations[0]
+    return next(v for v in variations if v.kind == "base")
+
+
+@router.get("/teams/{team_id}/players/{player_id}/drill-suggestions")
+def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list[str] = Query(default=[], max_length=10),
+                      db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Drills for a player's priority skills, at the variation that matches the coach's rating of each skill.
+    A drill matches through the tags it shares with the skill. The coach's own dislikes are left out, their likes
+    come first; then the strength of the match and the other coaches' votes decide."""
+    require_member(team_id, db, user)
+    team = db.get(Team, team_id)
+    player = db.get(Player, player_id)
+    period = db.get(Period, period_id)
+    if not player or player.team_id != team_id or not period or period.team_id != team_id:
+        raise HTTPException(404, "Not found")
+    skill_tags = version_tags(db, period.matrix_version_id)
+    coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
+    levels = {r.skill_id: r.score for r in db.query(Rating).filter_by(assessment_id=coach.id)} if coach else {}
+
+    drills = db.query(Drill).filter_by(status="published").all()
+    if team.age_group:
+        drills = [d for d in drills if d.age_min <= team.age_group <= d.age_max]
+    ids = [d.id for d in drills]
+    drill_tags = {}
+    for link in db.query(DrillTag).filter(DrillTag.drill_id.in_(ids)):
+        drill_tags.setdefault(link.drill_id, {})[link.tag_id] = link.weight
+    variations = {}
+    for v in db.query(DrillVariation).filter(DrillVariation.drill_id.in_(ids)).order_by(DrillVariation.position):
+        variations.setdefault(v.drill_id, []).append(v)
+    votes = _votes(db, ids, user)
+    tags = _tags(db, ids)
+
+    out = {}
+    for skill_id in dict.fromkeys(skills):
+        wanted = skill_tags.get(skill_id, {})
+        level = levels.get(skill_id)
+        matches = []
+        for drill in drills:
+            strength = sum(weight * drill_tags.get(drill.id, {}).get(tag, 0) for tag, weight in wanted.items())
+            if strength and votes[drill.id]["mine"] != -1:
+                matches.append((drill, strength))
+        matches.sort(key=lambda m: (-votes[m[0].id]["mine"], -m[1], votes[m[0].id]["dislikes"] - votes[m[0].id]["likes"], m[0].title))
+        suggested = []
+        for drill, strength in matches[:SUGGESTIONS_PER_SKILL]:
+            v = variation_for_level(variations[drill.id], level)
+            suggested.append({"slug": drill.slug, "title": drill.title, "summary": drill.summary, "format": drill.format,
+                              "players": [drill.players_min, drill.players_ideal, drill.players_max],
+                              "duration": [drill.duration_min, drill.duration_typical], "votes": votes[drill.id],
+                              "tags": [t for t in tags.get(drill.id, []) if t["id"] in wanted],
+                              "variation": {"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}})
+        out[skill_id] = {"tagged": bool(wanted), "level": level, "matches": len(matches), "drills": suggested}
+    return out

@@ -872,3 +872,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .drill-vote-reason { display: flex; gap: 6px; align-items: center; font-size: .85rem; }
 .drill-vote-reason select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
 .drill-vote > small { flex-basis: 100%; }
+
+.priority-drills { margin-top: 10px; font-size: .85rem; }
+.priority-drills h5 { margin: 0 0 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.priority-drills h5 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.priority-drills ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.priority-drills .status-pill { margin-left: 6px; }
+.priority-drills .hint { margin: 4px 0 0; }
+.drill-dialog { width: min(900px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: 0 16px 48px #14233435; overflow: auto; }
+.drill-dialog::backdrop { background: #101c2a99; }

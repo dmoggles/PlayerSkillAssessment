@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { errorMessage, getDrill, getDrills, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
 import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
@@ -97,9 +97,9 @@ function DrillFilters({ filters, options, onChange }) {
   </div>
 }
 
-function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage }) {
+function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills' }) {
   const [drill, setDrill] = useState(null)
-  const [variationId, setVariationId] = useState(null)
+  const [variationId, setVariationId] = useState(initialVariationId)
   useEffect(() => {
     let live = true
     getDrill(slug).then(value => { if (live) setDrill(value) }).catch(e => onMessage(errorMessage(e)))
@@ -122,7 +122,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage }) {
   const changedTag = field => view.changed.has(field) && <span className="status-pill warn-pill variation-changed">Changed for this variation</span>
 
   return <article className="drill-detail">
-    <button type="button" className="link-btn back-link" onClick={onBack}>← All drills</button>
+    <button type="button" className="link-btn back-link" onClick={onBack}>{backLabel}</button>
     <header><h3>{drill.title}</h3><p>{drill.summary}</p>
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
       <p className="drill-tags">{drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>)}</p>
@@ -178,4 +178,33 @@ function VideoLink({ video }) {
     {/* Closing removes the player entirely, which also stops the video. */}
     {playing && <iframe className={isVerticalVideo(video.url) ? 'vertical' : undefined} src={embed} title={video.caption || 'Drill video'} allow="encrypted-media; picture-in-picture; fullscreen" referrerPolicy="strict-origin-when-cross-origin" />}
   </section>
+}
+
+// Drills for one priority skill, at the variation that matches the player's level. Opens a drill in a dialog,
+// so unsaved priority changes stay put.
+export function PriorityDrills({ suggestion, onOpen }) {
+  if (!suggestion) return null
+  if (!suggestion.tagged) return <p className="muted priority-drills">No drills can be matched: this skill has no tags in the skill matrix.</p>
+  if (!suggestion.drills.length) return <p className="muted priority-drills">No drills for this skill in the library yet.</p>
+  const more = suggestion.matches - suggestion.drills.length
+  return <div className="priority-drills">
+    <h5>Drills{suggestion.level ? <span className="muted"> · matched to level {suggestion.level}</span> : <span className="muted"> · not rated, so base versions</span>}</h5>
+    <ul>{suggestion.drills.map(d => <li key={d.slug}>
+      <button type="button" className="link-btn" onClick={() => onOpen(d.slug, d.variation.id)}>{d.title}</button>
+      <span className="muted"> · {d.variation.kind === 'base' ? d.variation.title : `${d.variation.kind === 'regression' ? 'Easier' : 'Harder'}: ${d.variation.title}`} · {FORMAT_LABELS[d.format]} · {d.duration[1]} min</span>
+      {d.votes.mine === 1 && <span className="status-pill info-pill">You like this</span>}
+    </li>)}</ul>
+    {more > 0 && <p className="muted hint">{more} more in Settings → Drill library.</p>}
+  </div>
+}
+
+// A drill opened from Development, in a modal dialog. Closing it reports back so suggestions can refresh.
+export function DrillDialog({ drill, onClose, onMessage }) {
+  const dialog = useRef(null)
+  const [current, setCurrent] = useState(drill)
+  useEffect(() => { dialog.current?.showModal() }, [])
+  return <dialog ref={dialog} className="drill-dialog" aria-label="Drill" onClose={onClose}>
+    <DrillDetail key={current.slug} slug={current.slug} initialVariationId={current.variationId} backLabel="✕ Close"
+      onBack={() => dialog.current?.close()} onOpen={slug => setCurrent({ slug, variationId: null })} onVoted={() => {}} onMessage={onMessage} />
+  </dialog>
 }

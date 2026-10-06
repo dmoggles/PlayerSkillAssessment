@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { DrillDialog, PriorityDrills } from './DrillLibrary'
 import { ratingMap, completeness, priorityScores, suggestedPriorities } from './assessment'
-import { getPriorities, setPriorities } from './api'
+import { getDrillSuggestions, getPriorities, setPriorities } from './api'
 import FollowUpCard from './FollowUpCard'
 import { PRIORITY_TAGS, keepPriority, priorityTag } from './followUpModel'
 
@@ -15,6 +16,21 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   const [rows, setRows] = useState([])
   const [status, setStatus] = useState('idle')
   const helpDialog = useRef(null)
+  const [suggestions, setSuggestions] = useState({})
+  const [openDrill, setOpenDrill] = useState(null)
+  const [drillError, setDrillError] = useState('')
+  const [drillsVersion, setDrillsVersion] = useState(0)
+  const skillsKey = rows.map(r => r.skill_id).join(',')
+
+  // Drill suggestions follow the chosen skills, and refresh after a drill dialog closes (a vote may change them).
+  useEffect(() => {
+    if (!skillsKey) return
+    let live = true
+    getDrillSuggestions(teamId, playerId, periodId, skillsKey.split(','))
+      .then(value => { if (live) setSuggestions(value) })
+      .catch(() => { if (live) setSuggestions({}) })
+    return () => { live = false }
+  }, [teamId, playerId, periodId, skillsKey, drillsVersion])
 
   useEffect(() => {
     if (!coach) return
@@ -132,6 +148,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
                 value={row.coach_note}
                 onChange={e => updateRow(i, { coach_note: e.target.value })}
               />
+              <PriorityDrills suggestion={suggestions[row.skill_id]} onOpen={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
             </div>
           </div>
         )
@@ -140,6 +157,8 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
       {!readOnly && <button type="button" className="submit-btn" onClick={save} disabled={status === 'saving'}>
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
+      {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
+      {drillError && <p className="error" role="alert">{drillError}</p>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
       {status === 'error' && <p className="error">Could not save priorities.</p>}
     </div>

@@ -894,3 +894,48 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
         assert load_file(db, smaller)["retired"] == 1
     assert "rondo-4v1" not in {d["slug"] for d in client.get("/drills").json()}
     assert client.get("/drills/rondo-4v1").status_code == 404
+
+
+def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):
+    from app.database import SessionLocal
+    from app.drills import DATA_DIR, load_file
+    clean_database()
+    owner, csrf = signed_in("suggest-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    with SessionLocal() as db:
+        load_file(db, DATA_DIR / "drills_v1.json")
+    team_id = owner.post("/teams", json={"name": "Suggest"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Kit"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    scores = {s: 3 for s in starter_skills()} | {"passing_short": 1, "first_touch_body_shape": 5}
+    owner.put(f"/teams/{team_id}/assessments/coach", json={"player_id": player_id, "period_id": period_id, "version": 0,
+              "primary_position": "defender", "ratings": [{"skill_id": s, "score": v} for s, v in scores.items()]}, headers=headers)
+    url = f"/teams/{team_id}/players/{player_id}/drill-suggestions"
+
+    def suggest(*skills):
+        return owner.get(url, params={"period_id": period_id, "skills": list(skills)}).json()
+
+    out = suggest("passing_short", "first_touch_body_shape", "decision_making_open_play", "shooting", "no_such_skill")
+    passing = out["passing_short"]
+    assert passing["tagged"] and passing["level"] == 1 and [d["slug"] for d in passing["drills"]] == ["rondo-4v1"]
+    assert passing["drills"][0]["variation"]["title"] == "5v1 in a bigger square"  # level 1: the easiest rung
+    assert [t["id"] for t in passing["drills"][0]["tags"]] == ["passing_short"]  # only the tags that matched
+    assert out["first_touch_body_shape"]["drills"][0]["slug"] == "receive-and-turn"
+    assert out["first_touch_body_shape"]["drills"][0]["variation"]["levels"][1] == 5  # level 5: the hardest rung
+    # Level 3 sits in two rungs' ranges; the harder one stretches the player.
+    assert out["decision_making_open_play"]["drills"][0]["variation"]["title"] == "Two-touch limit"
+    assert out["shooting"] == {"tagged": True, "level": 3, "matches": 0, "drills": []}  # no shooting drills yet
+    assert out["no_such_skill"]["tagged"] is False
+
+    # The coach's own dislike removes a drill from their suggestions only.
+    owner.put("/drills/rondo-4v1/vote", json={"vote": -1}, headers=headers)
+    assert suggest("passing_short")["passing_short"]["drills"] == []
+    owner.put("/drills/rondo-4v1/vote", json={"vote": 0}, headers=headers)
+    # Drills outside the team's age group are left out.
+    owner.patch(f"/teams/{team_id}", json={"name": "Suggest", "self_assessment_enabled": False, "age_group": 7}, headers=headers)
+    assert suggest("passing_short")["passing_short"]["drills"] == []
+    assert suggest("dribbling_carrying")["dribbling_carrying"]["drills"][0]["slug"] == "cone-slalom-dribble"
+
+    assert owner.get(url, params={"period_id": 999999, "skills": "passing_short"}).status_code == 404
+    outsider, _ = signed_in("suggest-outsider@example.com", monkeypatch)
+    assert outsider.get(url, params={"period_id": period_id}).status_code == 404

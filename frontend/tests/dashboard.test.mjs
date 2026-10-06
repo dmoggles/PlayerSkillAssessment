@@ -647,3 +647,19 @@ test("a coach's own vote outranks the global totals when ordering drills", async
   const order = sortDrills([drill('Popular but I dislike it', 9, 0, -1), drill('B unvoted', 0, 0, 0), drill('Popular', 5, 1, 0), drill('A unvoted', 0, 0, 0), drill('Unpopular but I like it', 0, 4, 1)])
   assert.deepEqual(order.map(d => d.title), ['Unpopular but I like it', 'Popular', 'A unvoted', 'B unvoted', 'Popular but I dislike it'])
 })
+
+test('priority drill suggestions name the variation and explain when nothing matches', async () => {
+  const { PriorityDrills } = await loadJsx('src/DrillLibrary.jsx')
+  const render = suggestion => renderToStaticMarkup(React.createElement(PriorityDrills, { suggestion, onOpen: () => {} }))
+  const drill = { slug: 'rondo-4v1', title: '4v1 rondo', format: 'small_group', duration: [8, 12], votes: { likes: 0, dislikes: 0, mine: 1 }, variation: { id: 7, kind: 'regression', title: '5v1 in a bigger square', levels: [1, 2] } }
+  const html = render({ tagged: true, level: 1, matches: 4, drills: [drill] })
+  assert.match(html, /matched to level 1/)
+  assert.match(html, /4v1 rondo<\/button>/)
+  assert.match(html, /Easier: 5v1 in a bigger square · Small group · 12 min/)
+  assert.match(html, /You like this/)
+  assert.match(html, /3 more in Settings → Drill library/)
+  assert.match(render({ tagged: true, level: null, matches: 1, drills: [{ ...drill, variation: { ...drill.variation, kind: 'base', title: '4v1' } }] }), /not rated, so base versions.*· 4v1 ·/)
+  assert.match(render({ tagged: true, level: 3, matches: 0, drills: [] }), /No drills for this skill in the library yet/)
+  assert.match(render({ tagged: false, level: 3, matches: 0, drills: [] }), /this skill has no tags/)
+  assert.equal(render(undefined), '')
+})
