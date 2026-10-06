@@ -894,6 +894,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     data["drills"][1]["tags"] = {"not_a_tag": 1.0}
     data["drills"][3]["ladder_tags"] = ["dribbling"]
     data["drills"][2]["indoors"] = "A rondo in the living room"  # only home drills have an indoor version
+    data["drills"][2]["needs_better_video"] = "yes"
     data["drills"][2]["variations"][3]["players"] = [7, 6, 18]
     data["drills"][2]["variations"][3]["equipment"] = [{"item": "trampoline", "quantity": 1}]
     data["drills"][2]["variations"][1]["video"] = 0  # media 0 of the rondo is a diagram, not a video
@@ -909,6 +910,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
             assert "video must point at one of this drill's videos" in str(error)
             assert "ladder_tags must be a non-empty list of this drill's tags" in str(error)
             assert "indoors must be text, and only on a home-friendly drill" in str(error)
+            assert "needs_better_video must be true or false" in str(error)
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
     data["drills"] = [d for d in data["drills"] if d["slug"] != "rondo-4v1"]
     smaller = tmp_path / "smaller.json"
@@ -917,6 +919,16 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
         assert load_file(db, smaller)["retired"] == 1
     assert "rondo-4v1" not in {d["slug"] for d in client.get("/drills").json()}
     assert client.get("/drills/rondo-4v1").status_code == 404
+
+
+def test_video_report_lists_flagged_drills_and_drills_without_video(tmp_path):
+    import json
+    from app.drills import video_report
+    path = tmp_path / "drills_v9.json"
+    video = {"kind": "video", "url": "https://www.youtube.com/watch?v=x"}
+    path.write_text(json.dumps({"source_version": "drills_v9", "drills": [
+        {"slug": "fine", "media": [video]}, {"slug": "weak", "media": [video], "needs_better_video": True}, {"slug": "bare", "media": []}]}))
+    assert video_report([path]) == ["drills_v9.json  weak: needs a better video (1 now)", "drills_v9.json  bare: no video"]
 
 
 def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):

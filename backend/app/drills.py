@@ -1,7 +1,7 @@
 """The shared drill library: checks for drill data and animated diagrams, and loading drills from data files.
 
 Drills are content, not schema: app admins edit app/data/drills_vN.json and the loader syncs them on every deploy
-(`python -m app.drills`). A file is applied all or nothing; drills are matched by slug; a drill that disappears
+(`python -m app.drills`; `--video-report` lists drills needing a video). A file is applied all or nothing; drills are matched by slug; a drill that disappears
 from the file it came from is retired, never deleted.
 """
 import json
@@ -142,6 +142,9 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
     for item in raw.get("equipment", []):
         if item.get("item") not in EQUIPMENT:
             p.append(f"unknown equipment {item.get('item')!r}")
+    # Content-team reminder only: never shown in the app. See video_report().
+    if "needs_better_video" in raw and not isinstance(raw["needs_better_video"], bool):
+        p.append("needs_better_video must be true or false")
     if "indoors" in raw and not (isinstance(raw["indoors"], str) and raw["indoors"] and raw.get("home_friendly")):
         p.append("indoors must be text, and only on a home-friendly drill")
     tags = raw.get("tags") or {}
@@ -273,7 +276,23 @@ def load_all(db: DbSession, paths: list[Path] | None = None) -> dict[str, dict]:
     return {path.name: load_file(db, path) for path in (paths or sorted(DATA_DIR.glob("drills_v*.json")))}
 
 
+def video_report(paths: list[Path] | None = None) -> list[str]:
+    """Drills whose videos need attention: flagged as needing a better one, or with no video at all."""
+    lines = []
+    for path in paths or sorted(DATA_DIR.glob("drills_v*.json")):
+        for raw in json.loads(path.read_text())["drills"]:
+            videos = sum(1 for m in raw.get("media", []) if m.get("kind") == "video")
+            if raw.get("needs_better_video"):
+                lines.append(f"{path.name}  {raw['slug']}: needs a better video ({videos} now)")
+            elif not videos:
+                lines.append(f"{path.name}  {raw['slug']}: no video")
+    return lines
+
+
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--video-report"]:
+        print("\n".join(video_report()) or "Every drill has a video, and none is flagged.")
+        sys.exit(0)
     from .database import SessionLocal
     with SessionLocal() as session:
         try:

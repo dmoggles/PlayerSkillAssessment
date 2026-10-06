@@ -97,6 +97,7 @@
             5
           ],
           "change": "Link touches into combinations (pull back and turn, roll and cut, inside-outside and go) as fast as control allows.",
+          "video": 3,
           "instructions": [
             "Pull back with the sole and turn away with the inside of the same foot.",
             "Sole roll across the body, then cut back with the inside of the other foot.",
@@ -120,6 +121,16 @@
           "kind": "link",
           "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
           "url": "https://ussoccerfoundation.org/?p=17506"
+        },
+        {
+          "kind": "video",
+          "caption": "Ball mastery: toe taps, on the spot (Anytime Soccer Training, 25 seconds).",
+          "url": "https://www.youtube.com/watch?v=qH192NcoOv0"
+        },
+        {
+          "kind": "video",
+          "caption": "Toe taps linked with an inside-foot touch: a combination at speed (Anytime Soccer Training, 24 seconds).",
+          "url": "https://www.youtube.com/shorts/FF-aP7BkhOk"
         }
       ]
     },
@@ -532,6 +543,11 @@
           "url": "https://www.supercamps.co.uk/blog/five-exciting-football-drills-for-kids-to-practice-at-home"
         },
         {
+          "kind": "video",
+          "caption": "Three wall drills for first touch and passing in a small space (Train With Nonstop, 137 seconds).",
+          "url": "https://www.youtube.com/watch?v=nv634_GvXHE"
+        },
+        {
           "kind": "link",
           "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
           "url": "https://ussoccerfoundation.org/?p=17506"
@@ -653,6 +669,11 @@
           "kind": "link",
           "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
           "url": "https://ussoccerfoundation.org/?p=17506"
+        },
+        {
+          "kind": "video",
+          "caption": "Learn to juggle a ball step by step, for beginners (SOCCSTER, 58 seconds).",
+          "url": "https://www.youtube.com/watch?v=FNQzD6m7vfg"
         }
       ]
     },
@@ -1178,8 +1199,14 @@
           "kind": "link",
           "caption": "Background: SoccerWire – Indoor workouts youth players can do anywhere",
           "url": "https://www.soccerwire.com/blog/indoor-workouts-youth-soccer-players-can-do-anywhere"
+        },
+        {
+          "kind": "video",
+          "caption": "Dribbling with the head up: three cones and a hand signal (SportRoots, 64 seconds).",
+          "url": "https://www.youtube.com/watch?v=aSSDOrwdRBc"
         }
-      ]
+      ],
+      "needs_better_video": true
     },
     {
       "slug": "home-moves-to-beat",
@@ -1659,6 +1686,16 @@
           "kind": "link",
           "caption": "Background: Coerver Coaching – 1v1 moves with a home training programme",
           "url": "https://coerver.com.au/node/1032"
+        },
+        {
+          "kind": "video",
+          "caption": "The step-over broken down: low, wide, fast (Beestera Soccer, 60 seconds).",
+          "url": "https://www.youtube.com/shorts/uvDDY4rYS5g"
+        },
+        {
+          "kind": "video",
+          "caption": "A drill to beat defenders 1v1 (Ben Nabers, 4 minutes).",
+          "url": "https://www.youtube.com/watch?v=IaBVTGo4qbg"
         }
       ]
     },
@@ -2118,6 +2155,7 @@
             4
           ],
           "change": "On your own: throw the ball against a wall and catch the rebound, moving your feet to get behind it.",
+          "video": 5,
           "players": [
             1,
             1,
@@ -2509,6 +2547,11 @@
           "kind": "link",
           "caption": "Background: Sportsessionplanner – Home instruction GK, moving and handling",
           "url": "https://www.sportsessionplanner.com/s/4Om0h/Home-Instrction-GK---MOVING-AND-HANDLING_session-1.html"
+        },
+        {
+          "kind": "video",
+          "caption": "Wall rebounds on your own (The Keeper Project, 24 seconds). It includes diving saves: dive only outdoors on grass, never indoors.",
+          "url": "https://www.youtube.com/shorts/xoYz_0kba_c"
         }
       ]
     }
