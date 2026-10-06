@@ -982,45 +982,64 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
         load_file(db, DATA_DIR / "drills_v3.json")
     owner.patch(f"/teams/{team_id}", json={"name": "Suggest", "self_assessment_enabled": False, "age_group": None}, headers=headers)
     plan_url = f"/teams/{team_id}/players/{player_id}/plan"
-    built = owner.get(plan_url, params={"period_id": period_id, "skills": ["dribbling_carrying", "shooting"]}).json()
+    assert owner.get(plan_url, params={"period_id": period_id}).json() == {"plan": None}
+    # Plans come from the saved priorities only, so they always match the report's focus areas.
+    assert owner.post(plan_url, json={"period_id": period_id}, headers=headers).status_code == 409
+    confirm = lambda *skills: owner.put(f"/teams/{team_id}/priorities", params={"player_id": player_id, "period_id": period_id}, json={"priorities": [
+        {"skill_id": skill, "rank": rank, "algorithm_suggested": False, "coach_note": None} for rank, skill in enumerate(skills, start=1)]}, headers=headers)
+    assert confirm("dribbling_carrying", "shooting").status_code == 200
+    saved = owner.post(plan_url, json={"period_id": period_id}, headers=headers).json()
+    assert saved["skills"] == ["dribbling_carrying", "shooting"]
+    built = saved["plan"]
+    assert owner.get(plan_url, params={"period_id": period_id}).json()["plan"] == built  # saved, not regenerated
     dribbling = [s for s in built["slots"] if s["skill_id"] == "dribbling_carrying"]
     assert [s["slot"] for s in dribbling] == ["club", "home"] and len(dribbling[0]["weeks"]) == 4
     assert {s["drill"] for s in dribbling} == {"cone-slalom-dribble", "home-ball-mastery-routine"}  # two different drills
     # Shooting's only drill here is a home drill (only v1 and v3 are loaded): it covers both places.
     shooting = [(s["slot"], s["drill"]) for s in built["slots"] if s["skill_id"] == "shooting"]
     assert shooting == [("club", "home-target-passing-and-shooting"), ("home", "home-target-passing-and-shooting")] and built["gaps"] == []
-    assert owner.get(plan_url, params={"period_id": period_id, "weeks": 9}).status_code == 422
+    assert owner.post(plan_url, json={"period_id": period_id, "weeks": 9}, headers=headers).status_code == 422
 
-    # Sharing freezes the plan behind an expiring link that needs no login; the link opens only the plan's drills.
-    share_url = f"/teams/{team_id}/players/{player_id}/plan/share"
-    assert owner.get(share_url, params={"period_id": period_id}).json() == {"share": None}
-    made = owner.post(share_url, json={"period_id": period_id, "skills": ["dribbling_carrying", "shooting"]}, headers=headers).json()
+    # The saved plan is part of the player report; the report's link opens the plan's drills and nothing else.
+    report_url = f"/teams/{team_id}/players/{player_id}/periods/{period_id}/report"
+    assert owner.get(report_url).json()["plan"] == built
+    made = owner.post(f"{report_url}/share", headers=headers).json()
     token = made["url"].rsplit("/", 1)[1]
-    assert made["share"]["skills"] == ["dribbling_carrying", "shooting"] and made["share"]["opened_at"] is None
-    public = TestClient(app)
-    page = public.get(f"/plan/{token}").json()
-    assert page["player"] == "Kit" and page["team"] == "Suggest" and page["plan"]["slots"] == built["slots"]
-    assert owner.get(share_url, params={"period_id": period_id}).json()["share"]["opened_at"] is not None
-    drill = public.get(f"/plan/{token}/drills/cone-slalom-dribble").json()
-    assert drill["title"] == "Cone slalom dribble" and drill["votes"] is None and drill["links"] == [] and drill["variations"]
-    assert public.get(f"/plan/{token}/drills/rondo-4v1").status_code == 404  # not in this plan
-    assert public.get("/plan/not-a-token").status_code == 404
-    # The copy is frozen: changing priorities later does not change what the link shows.
-    second = owner.post(share_url, json={"period_id": period_id, "skills": ["shooting"]}, headers=headers).json()["url"].rsplit("/", 1)[1]
-    assert public.get(f"/plan/{token}").status_code == 404  # a new link replaces the old one
-    from app.models import SharedPlan
-    from datetime import timedelta
+    from datetime import datetime, timedelta, timezone
+    from app.models import PlayerReport
     with SessionLocal() as db:
-        shared = db.query(SharedPlan).one()
-        assert (shared.expires_at - shared.created_at).days == 35  # 4 weeks plus a week's grace
-        shared.expires_at = shared.created_at - timedelta(seconds=1)
+        report = db.query(PlayerReport).one()
+        assert (report.share_expires_at - report.share_issued_at).days == 35  # 4 weeks of plan plus a week
+    public = TestClient(app)
+    page = public.get(f"/report/{token}").json()
+    assert page["plan"]["slots"] == built["slots"]
+    drill = public.get(f"/report/{token}/drills/cone-slalom-dribble").json()
+    assert drill["title"] == "Cone slalom dribble" and drill["votes"] is None and drill["links"] == [] and drill["variations"]
+    assert public.get(f"/report/{token}/drills/rondo-4v1").status_code == 404  # not in this plan
+    # Regenerating replaces the saved plan, and the same link shows the new one.
+    confirm("shooting")
+    owner.post(plan_url, json={"period_id": period_id}, headers=headers)
+    assert [s["skill_id"] for s in public.get(f"/report/{token}").json()["plan"]["slots"]] == ["shooting", "shooting"]
+    assert public.get(f"/report/{token}/drills/cone-slalom-dribble").status_code == 404  # no longer in the plan
+    # Extending keeps the same link open longer, from its expiry, or from now once it has expired.
+    with SessionLocal() as db:
+        before = db.query(PlayerReport).one().share_expires_at
+    extended = owner.post(f"{report_url}/share/extend", json={"weeks": 2}, headers=headers).json()["share"]
+    assert datetime.fromisoformat(extended["expires_at"]) - before == timedelta(weeks=2)
+    with SessionLocal() as db:
+        report = db.query(PlayerReport).one()
+        report.share_expires_at = datetime.now(timezone.utc) - timedelta(days=1)
         db.commit()
-    assert public.get(f"/plan/{second}").status_code == 410
-    assert public.get(f"/plan/{second}/drills/home-target-passing-and-shooting").status_code == 410  # drills expire with it
-    events = [(e["action"], e["details"]) for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"].startswith("plan_")]
-    assert events[:2] == [("plan_shared", {"player": "Kit", "period": "Autumn", "replaced": True}), ("plan_shared", {"player": "Kit", "period": "Autumn"})]
-    assert owner.delete(share_url, params={"period_id": period_id}, headers=headers).json() == {"message": "Link revoked"}
-    assert owner.get(share_url, params={"period_id": period_id}).json() == {"share": None}
+    assert public.get(f"/report/{token}/drills/home-target-passing-and-shooting").status_code == 410  # drills expire with it
+    revived = owner.post(f"{report_url}/share/extend", json={"weeks": 1}, headers=headers).json()["share"]
+    assert not revived["expired"] and public.get(f"/report/{token}").status_code == 200  # same link works again
+    assert owner.post(f"{report_url}/share/extend", json={"weeks": 9}, headers=headers).status_code == 422
+    events = [(e["action"], e["details"]) for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] in ("plan_saved", "report_share_extended")]
+    assert events[:2] == [("report_share_extended", {"player": "Kit", "period": "Autumn", "weeks": 1}),
+                          ("report_share_extended", {"player": "Kit", "period": "Autumn", "weeks": 2})]
+    assert ("plan_saved", {"player": "Kit", "period": "Autumn", "replaced": True}) in events
+    owner.delete(f"{report_url}/share", headers=headers)
+    assert owner.post(f"{report_url}/share/extend", json={"weeks": 1}, headers=headers).status_code == 409
     assert owner.get(url, params={"period_id": 999999, "skills": "passing_short"}).status_code == 404
     outsider, _ = signed_in("suggest-outsider@example.com", monkeypatch)
     assert outsider.get(url, params={"period_id": period_id}).status_code == 404

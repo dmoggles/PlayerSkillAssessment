@@ -9,7 +9,8 @@ from ..config import settings
 from ..database import get_db
 from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
-from ..models import Assessment, AssessmentRevision, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..models import Assessment, AssessmentRevision, Drill, Period, Player, PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from .drills import drill_out
 from .teams import scoped_period, scoped_player
 
 
@@ -196,8 +197,8 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
 
 
 def report_payload(db: DbSession, team: Team, player: Player, period: Period) -> dict:
-    """Player-safe report data: coach ratings and confirmed priorities for this period and earlier ones,
-    plus the coach's message. Coach rating notes, overall notes and self-ratings are deliberately excluded."""
+    """Player-safe report data: coach ratings and confirmed priorities for this period and earlier ones, the coach's
+    message and the saved development plan. Coach rating notes, overall notes and self-ratings are deliberately excluded."""
     periods = db.query(Period).filter(Period.team_id == team.id, Period.created_at <= period.created_at).order_by(
         Period.created_at, Period.id).all()
     periods = [p for p in periods if p.created_at < period.created_at or p.id <= period.id]
@@ -219,8 +220,10 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                             "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings],
                         }} if a else {}})
     annotate_history(db, history, [p.matrix_version_id for p in periods])
+    saved_plan = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
+            "plan": saved_plan.plan if saved_plan else None,
             "matrix": rendered(db, period.matrix_version_id, team.player_gender)}
 
 
@@ -266,6 +269,31 @@ def save_report(team_id: int, player_id: int, period_id: int, body: ReportIn, db
     return coach_report(db, db.get(Team, team_id), player, period)
 
 
+def share_length(db: DbSession, player_id: int, period_id: int) -> timedelta:
+    """A shared report stays open for its plan plus a week, or 30 days when there is no plan."""
+    saved = db.query(PlayerPlan).filter_by(player_id=player_id, period_id=period_id).first()
+    return timedelta(weeks=saved.plan.get("weeks", 4), days=7) if saved else timedelta(days=30)
+
+
+class ExtendIn(BaseModel):
+    weeks: int = Field(ge=1, le=8)
+
+
+@router.post("/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share/extend")
+def extend_report_share(team_id: int, player_id: int, period_id: int, body: ExtendIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Keep the same link open longer, counting from its expiry (or from now, if it has already expired)."""
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    report = db.query(PlayerReport).filter_by(player_id=player_id, period_id=period_id).first()
+    if not report or not report.share_token_hash:
+        raise HTTPException(409, "This report has no link to extend. Create one first")
+    report.share_expires_at = max(report.share_expires_at.replace(tzinfo=timezone.utc), utcnow()) + timedelta(weeks=body.weeks)
+    record(db, team_id, user, "report_share_extended", player=player.name, period=period.label, weeks=body.weeks)
+    db.commit()
+    return {"share": share_status(report)}
+
+
 @router.post("/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share")
 def share_report(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """Create a read-only link to the report, replacing any earlier one. The raw link is only returned here."""
@@ -281,7 +309,7 @@ def share_report(team_id: int, player_id: int, period_id: int, db: DbSession = D
     replaced = bool(report.share_token_hash) and report.share_expires_at.replace(tzinfo=timezone.utc) > now
     report.share_token_hash = digest(raw)
     report.share_issued_at = now
-    report.share_expires_at = now + timedelta(days=30)
+    report.share_expires_at = now + share_length(db, player_id, period_id)
     report.share_opened_at = None
     record(db, team_id, user, "report_shared", player=player.name, period=period.label, **({"replaced": True} if replaced else {}))
     db.commit()
@@ -301,16 +329,31 @@ def revoke_report_share(team_id: int, player_id: int, period_id: int, db: DbSess
     return {"message": "Link revoked"}
 
 
-@router.get("/report/{token}")
-def shared_report(token: str, db: DbSession = Depends(get_db)):
+def open_shared_report(db: DbSession, token: str):
     found = db.query(PlayerReport, Player, Period, Team).join(Player, Player.id == PlayerReport.player_id).join(
         Period, Period.id == PlayerReport.period_id).join(Team, Team.id == Player.team_id).filter(
         PlayerReport.share_token_hash == digest(token)).first()
     if not found:
         raise HTTPException(404, "Link unavailable")
-    report, player, period, team = found
-    if report.share_expires_at.replace(tzinfo=timezone.utc) <= utcnow():
+    if found[0].share_expires_at.replace(tzinfo=timezone.utc) <= utcnow():
         raise HTTPException(410, "This link has expired. Ask the coach for a new one")
+    return found
+
+
+@router.get("/report/{token}/drills/{slug}")
+def shared_report_drill(token: str, slug: str, db: DbSession = Depends(get_db)):
+    """A drill from the report's development plan, through the report's link; other drills are not available."""
+    report, player, period, team = open_shared_report(db, token)
+    saved = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
+    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
+    if not saved or not drill or slug not in {s["drill"] for s in saved.plan["slots"]}:
+        raise HTTPException(404, "Drill not found")
+    return drill_out(db, drill, None)
+
+
+@router.get("/report/{token}")
+def shared_report(token: str, db: DbSession = Depends(get_db)):
+    report, player, period, team = open_shared_report(db, token)
     if not report.share_opened_at:
         report.share_opened_at = utcnow()
         db.commit()

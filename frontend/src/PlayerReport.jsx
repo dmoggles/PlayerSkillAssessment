@@ -1,9 +1,11 @@
+import { PlanCards } from './DevelopmentPlan'
 import { REPORT_TRENDS } from './reportModel'
 
 const fmt = value => (value == null ? '—' : value.toFixed(1))
 
-// The player-facing report. Pure rendering, shared by the coach preview and (later) the shared link.
-export default function PlayerReport({ report }) {
+// The player-facing report. Pure rendering, shared by the coach preview and the shared link; onOpenDrill opens a
+// plan drill (without it, the plan's drills are listed but not openable).
+export default function PlayerReport({ report, onOpenDrill }) {
   return <article className="player-report">
     <header className="report-header">
       <p className="eyebrow">Player report</p>
@@ -24,6 +26,10 @@ export default function PlayerReport({ report }) {
         ? <ol className="report-list">{report.priorities.map(p => <li key={p.rank}><strong>{p.label}</strong>{p.note && <p>{p.note}</p>}</li>)}</ol>
         : <p className="muted">Focus areas will be agreed with your coach.</p>}</section>
     </>}
+    {report.plan && <section className="report-plan"><h3>Development plan <small>{report.plan.weeks} weeks</small></h3>
+      <p className="muted">For each focus area: a drill for training and one to practise at home. Tap a week to see that version of the drill.</p>
+      <PlanCards plan={report.plan} onOpenDrill={onOpenDrill ?? (() => {})} />
+    </section>}
     {report.followUp && <section><h3>Last period's focus <small>{report.followUp.label}</small></h3>
       <ul className="report-follow-up">{report.followUp.items.map(item => <li key={item.skill_id}><span>{item.label}{item.change === 'reworded' && <sup className="matrix-change" title="The skill's wording changed since then">*</sup>}</span><span className={`report-trend trend-${item.trend}`}>{REPORT_TRENDS[item.trend]}</span><small>{item.before ?? '—'} → {item.now ?? '—'}</small></li>)}</ul>
     </section>}

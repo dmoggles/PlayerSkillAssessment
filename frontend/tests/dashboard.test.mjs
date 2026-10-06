@@ -695,26 +695,31 @@ test('a development plan groups by priority and folds repeated weeks into runs',
   assert.deepEqual(grouped.map(p => [p.rank, Boolean(p.club), Boolean(p.home), p.gaps.length]), [[1, true, true, 0], [2, true, false, 0], [3, false, false, 1]])
 })
 
-test('the plan section explains itself before it is generated', async () => {
-  const { default: DevelopmentPlan } = await loadJsx('src/DevelopmentPlan.jsx')
-  const html = renderToStaticMarkup(React.createElement(DevelopmentPlan, { teamId: 1, playerId: 2, periodId: 3, skills: ['a'], onOpenDrill: () => {} }))
-  assert.match(html, /4-week plan/)
-  assert.match(html, /Generate plan<\/button>/)
+test('the player report shows the saved plan, with weeks to open', async () => {
+  const { default: PlayerReport } = await loadJsx('src/PlayerReport.jsx')
+  const plan = { weeks: 4, slots: [{ rank: 1, skill_id: 'a', label: 'Short passing', slot: 'club', drill: 'rondo', title: '4v1 rondo', duration: [8, 12],
+    weeks: [{ id: 1, title: 'Easy' }, { id: 1, title: 'Easy' }, { id: 2, title: 'Base' }, { id: 2, title: 'Base' }], reasons: ['Trains Short passing (priority 1).'] }], gaps: [] }
+  const html = renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', team: 'Falcons', period: 'Autumn', assessed: false, plan }, onOpenDrill: () => {} }))
+  assert.match(html, /Development plan <small>4 weeks<\/small>/)
+  assert.match(html, /4v1 rondo<\/button>/)
+  assert.match(html, /Weeks 1–2<\/span> Easy/)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', assessed: false, plan: null } })), /Development plan/)
 })
 
-test('the plan share line says when it was shared, expires and was opened, and when it is out of date', async () => {
-  const { planShareSummary, shareIsStale } = await loadJsx('src/planModel.js')
-  assert.match(planShareSummary(null), /^Not shared\./)
-  assert.match(planShareSummary({ expired: true, expires_at: '2026-11-10T00:00:00Z' }), /^The link expired on /)
-  assert.match(planShareSummary({ expired: false, created_at: '2026-10-06T00:00:00Z', expires_at: '2026-11-10T00:00:00Z', opened_at: null }), /^Shared .* · expires .* · not opened yet$/)
-  const share = { expired: false, skills: ['a', 'b'] }
-  assert.equal(shareIsStale(share, ['a', 'b']), false)
-  assert.equal(shareIsStale(share, ['b', 'a']), true, 'a different order is a different plan')
-  assert.equal(shareIsStale({ ...share, expired: true }, ['c']), false, 'an expired link is reported as expired, not stale')
+test('a saved plan is out of date once the priorities change, including their order', async () => {
+  const { planIsStale } = await loadJsx('src/planModel.js')
+  const saved = { plan: { weeks: 4 }, skills: ['a', 'b'] }
+  assert.equal(planIsStale(saved, ['a', 'b']), false)
+  assert.equal(planIsStale(saved, ['b', 'a']), true, 'a different order is a different plan')
+  assert.equal(planIsStale({ plan: null }, ['c']), false, 'no plan is not an out-of-date plan')
 })
 
-test('sharing and revoking a plan show in the activity log', async () => {
+test('saving plans and extending report links show in the activity log', async () => {
   const { auditText } = await loadJsx('src/auditModel.js')
+  assert.equal(auditText({ action: 'plan_saved', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x generated the development plan for Kit (Autumn)')
+  assert.equal(auditText({ action: 'plan_saved', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn', replaced: true } }), 'o@x regenerated the development plan for Kit (Autumn)')
+  assert.equal(auditText({ action: 'report_share_extended', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn', weeks: 2 } }), 'o@x extended the report link for Kit (Autumn) by 2 weeks')
+  // Older events from the separate plan links still read sensibly.
   assert.equal(auditText({ action: 'plan_shared', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x shared a development plan for Kit (Autumn)')
   assert.equal(auditText({ action: 'plan_share_revoked', actor_email: 'o@x', details: { player: 'Kit', period: 'Autumn' } }), 'o@x revoked the plan link for Kit (Autumn)')
 })

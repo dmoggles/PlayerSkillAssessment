@@ -23,7 +23,7 @@ export function buildReport(matrix, report) {
   const followUp = priorityFollowUp(newestFirst, history, report.period_id, coach)
   const anchors = scaleAnchors(matrix)
   const base = {
-    player: report.player, team: report.team, period: report.period, message: report.message,
+    player: report.player, team: report.team, period: report.period, message: report.message, plan: report.plan ?? null,
     scale: Object.entries(anchors).map(([point, label]) => `${point} ${label}`).join(', '),
     followUp: followUp && { label: followUp.periodLabel, items: followUp.items.map(item => ({ ...item, label: names[item.skill_id] ?? item.label ?? item.skill_id })) },
   }
@@ -58,7 +58,7 @@ export function buildReport(matrix, report) {
 const longDay = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 
 export function shareSummary(share) {
-  if (!share) return 'Not shared. A link lets the player or a parent view this report for 30 days without signing in.'
+  if (!share) return 'Not shared. A link lets the player or a parent view this report and its plan\'s drills without signing in, until a week after the plan ends (30 days without a plan).'
   if (share.expired) return `The link expired on ${longDay(share.expires_at)}. Create a new one to share again.`
   return [`Shared ${longDay(share.issued_at)}`, `expires ${longDay(share.expires_at)}`, share.opened_at ? `opened ${longDay(share.opened_at)}` : 'not opened yet'].join(' · ')
 }

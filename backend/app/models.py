@@ -188,20 +188,17 @@ class PlayerReport(Base):
     share_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class SharedPlan(Base):
-    """A frozen copy of a generated development plan, shared through an expiring link that needs no login.
-    The same link opens the plan's drills, and only those, until it expires. One per player and period."""
-    __tablename__ = "shared_plans"
-    __table_args__ = (UniqueConstraint("player_id", "period_id", name="uq_shared_plans_player_period"),)
+class PlayerPlan(Base):
+    """A player's saved development plan for a period, in the planner's output format. Regenerating replaces it.
+    It appears in the player report, and the report's share link opens its drills."""
+    __tablename__ = "player_plans"
+    __table_args__ = (UniqueConstraint("player_id", "period_id", name="uq_player_plans_player_period"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
     period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
     plan: Mapped[dict] = mapped_column(JSONB)
-    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SkillTag(Base):

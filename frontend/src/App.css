@@ -905,13 +905,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .plan-reasons { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
 .plan-gap { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fbeedd; color: #5c3800; font-size: .85rem; }
 
-.plan-share { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
-.plan-share h4 { margin: 0 0 4px; }
-.plan-share p { margin: 4px 0 8px; font-size: .88rem; }
-.plan-share-link { display: flex; gap: 8px; margin-top: 8px; }
-.plan-share-link input { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .85rem; }
-.shared-plan-page h1 { margin: 4px 0 8px; }
+.report-plan h3 small { font-weight: 400; color: var(--muted); }
+.report-extend { margin-top: 8px; align-items: center; }
+.report-extend select { margin-left: 6px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
 @media print {
-  .shared-plan-page .shared-report-actions, .shared-plan-page .plan-reasons { display: none; }
-  .shared-plan-page .plan-card { break-inside: avoid; }
+  .player-report .plan-reasons { display: none; }
+  .player-report .plan-card { break-inside: avoid; }
 }

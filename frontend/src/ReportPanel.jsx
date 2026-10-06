@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { errorMessage, getPlayerReport, revokeReportShare, savePlayerReport, shareReport } from './api'
+import { errorMessage, extendReportShare, getPlayerReport, revokeReportShare, savePlayerReport, shareReport } from './api'
+import { DrillDialog } from './DrillLibrary'
 import PlayerReport from './PlayerReport'
 import { buildReport, shareSummary } from './reportModel'
 
@@ -9,6 +10,8 @@ export default function ReportPanel({ matrix, teamId, playerId, periodId, readOn
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const [link, setLink] = useState('')
+  const [extendBy, setExtendBy] = useState('2')
+  const [openDrill, setOpenDrill] = useState(null)
 
   useEffect(() => {
     let live = true
@@ -34,6 +37,9 @@ export default function ReportPanel({ matrix, teamId, playerId, periodId, readOn
     try { await revokeReportShare(teamId, playerId, periodId); setLink(''); onMessage('Link revoked.'); await reload() } catch (e) { onMessage(errorMessage(e)) }
   }
 
+  async function extendLink() {
+    try { await extendReportShare(teamId, playerId, periodId, Number(extendBy)); onMessage(`Link extended by ${extendBy} week${extendBy === '1' ? '' : 's'}; it is the same link.`); await reload() } catch (e) { onMessage(errorMessage(e)) }
+  }
   async function save() {
     setSaving(true)
     try { const value = await savePlayerReport(teamId, playerId, periodId, draft); setReport(value); setDraft(value.message ?? ''); onMessage('Report message saved.') } catch (e) { onMessage(errorMessage(e)) } finally { setSaving(false) }
@@ -49,9 +55,11 @@ export default function ReportPanel({ matrix, teamId, playerId, periodId, readOn
         <h3>Share link</h3>
         <p className="muted">{shareSummary(report.share)}</p>
         <div className="inline-row"><button type="button" onClick={createLink}>{report.share ? 'New link' : 'Create link'}</button>{report.share && !report.share.expired && <button type="button" onClick={revokeLink}>Revoke</button>}</div>
+        {report.share && <div className="inline-row report-extend"><label>Extend the same link by <select aria-label="Extend by" value={extendBy} onChange={e => setExtendBy(e.target.value)}>{['1', '2', '4'].map(w => <option key={w} value={w}>{w} week{w === '1' ? '' : 's'}</option>)}</select></label><button type="button" onClick={extendLink}>Extend</button></div>}
         {link && <div className="field link-field"><label>Copy this link now; it will not be shown again</label><input readOnly value={link} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link).then(() => onMessage('Link copied.'))}>Copy link</button></div>}
       </div>
     </div>
-    <PlayerReport report={view} />
+    <PlayerReport report={view} onOpenDrill={(slug, variationId) => setOpenDrill({ slug, variationId })} />
+    {openDrill && <DrillDialog drill={openDrill} onMessage={onMessage} onClose={() => setOpenDrill(null)} />}
   </div>
 }

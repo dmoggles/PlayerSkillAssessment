@@ -21,6 +21,9 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   const [openDrill, setOpenDrill] = useState(null)
   const [drillError, setDrillError] = useState('')
   const [drillsVersion, setDrillsVersion] = useState(0)
+  // What is saved, and whether the rows differ from it: plans are only generated from saved priorities.
+  const [savedSkills, setSavedSkills] = useState([])
+  const [dirty, setDirty] = useState(false)
   const skillsKey = rows.map(r => r.skill_id).join(',')
 
   // Drill suggestions follow the chosen skills, and refresh after a drill dialog closes (a vote may change them).
@@ -38,16 +41,17 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
     // Seed from existing confirmations, else from the algorithm's suggestions.
     getPriorities(teamId, playerId, periodId)
       .then(existing => {
+        const sorted = [...existing].sort((a, b) => a.rank - b.rank)
         if (existing.length) {
-          setRows(existing
-            .sort((a, b) => a.rank - b.rank)
-            .map(e => ({ skill_id: e.skill_id, coach_note: e.coach_note ?? '' })))
+          setRows(sorted.map(e => ({ skill_id: e.skill_id, coach_note: e.coach_note ?? '' })))
         } else {
           setRows(suggested.map(s => ({ skill_id: s.skill_id, coach_note: '' })))
         }
+        setSavedSkills(sorted.map(e => e.skill_id))
+        setDirty(false)
         onDirtyChange(false)
       })
-      .catch(() => { setRows(suggested.map(s => ({ skill_id: s.skill_id, coach_note: '' }))); onDirtyChange(false) })
+      .catch(() => { setRows(suggested.map(s => ({ skill_id: s.skill_id, coach_note: '' }))); setSavedSkills([]); setDirty(false); onDirtyChange(false) })
   }, [teamId, periodId, playerId, coach, suggested, onDirtyChange])
 
   const followUpCard = <FollowUpCard matrix={matrix} followUp={followUp} />
@@ -70,7 +74,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
     )
   }
 
-  const updateRow = (i, patch) => { setRows(rs => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r))); onDirtyChange(true); setStatus('idle') }
+  const updateRow = (i, patch) => { setRows(rs => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r))); setDirty(true); onDirtyChange(true); setStatus('idle') }
 
   const save = async () => {
     setStatus('saving')
@@ -84,6 +88,8 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
     try {
       await setPriorities(teamId, playerId, periodId, priorities)
       setStatus('saved')
+      setSavedSkills(priorities.map(p => p.skill_id))
+      setDirty(false)
       onDirtyChange(false)
     } catch {
       setStatus('error')
@@ -92,7 +98,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
 
   const chosen = new Set(rows.map(r => r.skill_id))
   const previousIds = followUp?.items.map(item => item.skill_id) ?? []
-  const keep = skillId => { setRows(rs => keepPriority(rs, skillId, previousIds)); onDirtyChange(true); setStatus('idle') }
+  const keep = skillId => { setRows(rs => keepPriority(rs, skillId, previousIds)); setDirty(true); onDirtyChange(true); setStatus('idle') }
 
   return (
     <div className="priorities">
@@ -159,7 +165,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
       {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
-      <DevelopmentPlan teamId={teamId} playerId={playerId} periodId={periodId} skills={rows.map(r => r.skill_id)} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
+      <DevelopmentPlan teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
       {drillError && <p className="error" role="alert">{drillError}</p>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
       {status === 'error' && <p className="error">Could not save priorities.</p>}
