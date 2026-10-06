@@ -85,7 +85,7 @@ function DrillFilters({ filters, options, onChange }) {
         {number('duration', 'Time available (min)', 1, 120)}
       </div>
       {options.equipment.length > 0 && <fieldset className="drill-equipment">
-        <legend>Equipment you have <small>(shows drills that need nothing else)</small></legend>
+        <legend>Equipment you have <small>(besides balls and bibs; shows drills that need nothing else)</small></legend>
         {options.equipment.map(item => <label key={item} className="checkbox"><input type="checkbox" checked={filters.equipment.includes(item)} onChange={() => toggleItem(item)} /> {equipmentLabel(item)}</label>)}
       </fieldset>}
       <div className="drill-equipment">

@@ -72,13 +72,17 @@ export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', players:
 export const activeFilterCount = filters => Object.entries(filters)
   .filter(([key, value]) => key !== 'text' && (Array.isArray(value) ? value.length : value)).length
 
+// Every coach has these, so they are never filter choices and never rule a drill out.
+export const BASIC_EQUIPMENT = ['balls', 'bibs']
+const specialEquipment = drill => (drill.equipment_items ?? []).filter(item => !BASIC_EQUIPMENT.includes(item))
+
 // The tags and equipment that appear in the library, for the filter choices.
 export function filterOptions(drills) {
   const tags = new Map()
   const equipment = new Set()
   for (const drill of drills) {
     for (const tag of drill.tags) tags.set(tag.id, tag)
-    for (const item of drill.equipment_items ?? []) equipment.add(item)
+    for (const item of specialEquipment(drill)) equipment.add(item)
   }
   return { tags: [...tags.values()].sort((a, b) => a.label.localeCompare(b.label)), equipment: [...equipment].sort() }
 }
@@ -96,8 +100,8 @@ export function matchesFilters(drill, filters) {
   if (!within(filters.age, drill.ages) || !within(filters.level, drill.levels)) return false
   // Fits in the time: the drill's shortest useful run is no longer than the time available.
   if (filters.duration !== '' && drill.duration[0] > Number(filters.duration)) return false
-  // Equipment lists what the coach has; the drill must need nothing else.
-  if (filters.equipment.length && !(drill.equipment_items ?? []).every(item => filters.equipment.includes(item))) return false
+  // Equipment lists what the coach has beyond the basics; the drill must need nothing else.
+  if (filters.equipment.length && !specialEquipment(drill).every(item => filters.equipment.includes(item))) return false
   if (filters.home && !drill.home_friendly) return false
   if (filters.liked && drill.votes.mine !== 1) return false
   return true
