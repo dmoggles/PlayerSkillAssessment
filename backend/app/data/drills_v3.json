@@ -1,0 +1,2516 @@
+{
+  "source_version": "drills_v3",
+  "drills": [
+    {
+      "slug": "home-ball-mastery-routine",
+      "title": "Ball mastery routine",
+      "summary": "Short sets of toe taps, sole rolls and inside-outside touches to build close control on both feet.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        1,
+        1,
+        2
+      ],
+      "ages": [
+        5,
+        14
+      ],
+      "duration": [
+        5,
+        10
+      ],
+      "intensity": "low",
+      "space": [
+        2,
+        2
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        }
+      ],
+      "setup": "A ball and a 2 by 2 m space.",
+      "instructions": [
+        "Toe taps: tap the top of the ball with the sole of each foot in turn.",
+        "Sole rolls: roll the ball side to side under the sole, then switch feet.",
+        "Inside-inside: knock the ball between the insides of your feet, staying on your toes.",
+        "Do 30 seconds of each with a short rest between; three rounds."
+      ],
+      "coaching_points": [
+        "Light, quick touches on the balls of your feet.",
+        "Use both feet equally.",
+        "Keep the ball close: it should never leave your 2 by 2 m space."
+      ],
+      "tags": {
+        "dribbling": 1.0,
+        "coordination_balance": 0.5
+      },
+      "indoors": "Works as written on a rug or hard floor with a soft or futsal ball. Socks off or trainers on, not socks alone, so the player doesn't slip.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Slow touches",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Twenty slow touches of each, counting out loud; stop and reset whenever the ball runs away.",
+          "instructions": [
+            "Toe taps: twenty slow taps, alternating feet.",
+            "Sole rolls: ten each way with each foot.",
+            "Inside-inside: twenty touches, slowly.",
+            "Count out loud; reset the ball whenever it gets away."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Timed sets",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Thirty seconds of each touch; count your touches and try to beat it next time."
+        },
+        {
+          "kind": "escalator",
+          "title": "Weaker foot only",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Sole rolls, pull-backs and inside-outside touches with the weaker foot only.",
+          "instructions": [
+            "Sole rolls with the weaker foot: 30 seconds.",
+            "Pull back with the sole and push forward with the laces, weaker foot only: 30 seconds.",
+            "Inside then outside of the weaker foot, moving side to side: 30 seconds.",
+            "Three rounds; count your touches."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Combinations at speed",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Link touches into combinations (pull back and turn, roll and cut, inside-outside and go) as fast as control allows.",
+          "instructions": [
+            "Pull back with the sole and turn away with the inside of the same foot.",
+            "Sole roll across the body, then cut back with the inside of the other foot.",
+            "Inside-outside, then push out two steps and stop the ball dead.",
+            "Thirty seconds per combination, both feet; three rounds."
+          ],
+          "coaching_points": [
+            "Speed comes after control: slow down if the ball leaves your space.",
+            "Look up between combinations.",
+            "Finish each one balanced, ready for the next touch."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "link",
+          "caption": "Background: England Football – How to help 5–11s develop their skills on the ball",
+          "url": "https://learn.englandfootball.com/articles/resources/2023/How-to-help-5-11s-develop-their-skills-on-the-ball"
+        },
+        {
+          "kind": "link",
+          "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
+          "url": "https://ussoccerfoundation.org/?p=17506"
+        }
+      ]
+    },
+    {
+      "slug": "home-wall-passes",
+      "title": "Wall passes and first touch",
+      "summary": "Pass against a wall and control the rebound: two touches, then one, then receiving across the body.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        1,
+        1,
+        2
+      ],
+      "ages": [
+        6,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "intensity": "low",
+      "space": [
+        6,
+        6
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        },
+        {
+          "item": "cones",
+          "quantity": 2
+        }
+      ],
+      "setup": "A flat wall with no windows and a ball. The player stands 3 m from the wall.",
+      "instructions": [
+        "Pass against the wall with the inside of the foot.",
+        "Control the rebound with the first touch out of your feet, to one side.",
+        "Pass again with the second touch; alternate feet.",
+        "Thirty passes, or as many as you can in two minutes."
+      ],
+      "coaching_points": [
+        "Standing foot beside the ball, pointing at the wall.",
+        "Cushion the rebound: a soft, relaxed foot.",
+        "Take the first touch out of your feet, so the second touch is a pass, not another control."
+      ],
+      "tags": {
+        "first_touch": 1.0,
+        "passing_short": 1.0
+      },
+      "indoors": "A soft or futsal ball against a solid wall or the bottom of a sofa, from 2 m, with gentle passes. Or a parent kneels 2 m away and rolls it back instead of a wall.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Parent rolls, you stop it",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "A parent rolls the ball from 4 m; stop it with the sole or inside of the foot, then pass it back.",
+          "players": [
+            2,
+            2,
+            2
+          ],
+          "setup": "A parent kneels or stands 4 m from the player with a ball.",
+          "instructions": [
+            "The parent rolls the ball along the ground to the player.",
+            "Stop it dead with the sole, or with the inside of the foot.",
+            "Pass it back with the inside of the foot; swap feet each time.",
+            "Twenty rolls."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Two-touch wall passes",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Pass, control out of your feet, pass again, from 3 m."
+        },
+        {
+          "kind": "escalator",
+          "title": "One touch, alternating feet",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Pass the rebound straight back first time, alternating feet.",
+          "instructions": [
+            "Pass against the wall and play the rebound straight back first time.",
+            "Alternate feet every pass.",
+            "Count your longest run without a miss; start again after a miss."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Touch across the body",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Receive with the back foot and take the first touch across your body through a cone gate to the side, then pass.",
+          "setup": "A flat wall with no windows and a ball. The player stands 3 m from the wall, with a cone 2 m out to each side.",
+          "instructions": [
+            "Pass against the wall.",
+            "Open your body and take the rebound across you with the back foot, past one cone.",
+            "Pass from there, then go to the other side next time.",
+            "Twenty passes, alternating sides."
+          ],
+          "coaching_points": [
+            "Open your hips to where you want the ball to go before it arrives.",
+            "Receive with the foot furthest from the wall.",
+            "Touch it far enough to pass with the next touch."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Pass against the wall, touch out of your feet, pass again",
+          "diagram": {
+            "pitch": {
+              "width": 6,
+              "length": 5,
+              "view": "area"
+            },
+            "objects": {
+              "wall": {
+                "type": "wall",
+                "at": [
+                  0.5,
+                  0.3
+                ],
+                "to": [
+                  5.5,
+                  0.3
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  3,
+                  3.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Pass against the wall with the inside of the foot",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "P",
+                      "via": [
+                        3,
+                        0.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "First touch out of your feet, to the side",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        3.9,
+                        3.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass again with the other foot",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "P",
+                      "via": [
+                        3.6,
+                        0.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Touch the other way, and keep going",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        3,
+                        3.5
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: a parent rolls, you stop it and pass it back",
+          "diagram": {
+            "pitch": {
+              "width": 6,
+              "length": 6,
+              "view": "area"
+            },
+            "objects": {
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  3,
+                  1
+                ],
+                "label": "PA"
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  3,
+                  5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "PA"
+              }
+            },
+            "steps": [
+              {
+                "label": "The parent rolls the ball along the ground",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "P"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Stop it dead with the sole",
+                "actions": [
+                  {
+                    "move": {
+                      "who": "P",
+                      "to": [
+                        3,
+                        4.9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass it back with the inside of the foot",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "PA"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: receive across the body past a cone, then pass",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 5,
+              "view": "area"
+            },
+            "objects": {
+              "wall": {
+                "type": "wall",
+                "at": [
+                  0.5,
+                  0.3
+                ],
+                "to": [
+                  7.5,
+                  0.3
+                ]
+              },
+              "l": {
+                "type": "cone",
+                "at": [
+                  2,
+                  3.5
+                ]
+              },
+              "r": {
+                "type": "cone",
+                "at": [
+                  6,
+                  3.5
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  3.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Pass against the wall; open your body to the right",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "P",
+                      "via": [
+                        4,
+                        0.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "First touch across your body, past the right-hand cone",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        6.6,
+                        3.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass from there",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "P",
+                      "via": [
+                        6,
+                        0.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Touch across the other way, past the left-hand cone",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        1.4,
+                        3.8
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Background: Supercamps – Football drills for kids to practise at home (wall rebounds)",
+          "url": "https://www.supercamps.co.uk/blog/five-exciting-football-drills-for-kids-to-practice-at-home"
+        },
+        {
+          "kind": "link",
+          "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
+          "url": "https://ussoccerfoundation.org/?p=17506"
+        }
+      ]
+    },
+    {
+      "slug": "home-keep-ups",
+      "title": "Keep-ups",
+      "summary": "Keep the ball off the ground with the feet and thighs, building from one bounce per touch to sequences.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        1,
+        1,
+        1
+      ],
+      "ages": [
+        6,
+        16
+      ],
+      "duration": [
+        5,
+        10
+      ],
+      "intensity": "low",
+      "space": [
+        3,
+        3
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        }
+      ],
+      "setup": "A ball and a 3 by 3 m space with nothing breakable nearby.",
+      "instructions": [
+        "Drop the ball onto your foot and kick it gently up to waist height.",
+        "Keep it up with your feet only, as many touches as you can.",
+        "Count your best and try to beat it each session."
+      ],
+      "coaching_points": [
+        "Lock the ankle with the toes slightly up, so the ball comes straight up.",
+        "Small touches to waist height, not big kicks.",
+        "Stay on your toes and move your feet under the ball."
+      ],
+      "tags": {
+        "coordination_balance": 1.0,
+        "first_touch": 0.5
+      },
+      "indoors": "Use a balloon or a very soft ball; balloon keep-ups are ideal for the youngest players. No heading indoors.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "One bounce between touches",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Let the ball bounce once between touches.",
+          "instructions": [
+            "Drop the ball, let it bounce, then kick it gently up.",
+            "Let it bounce once after every touch.",
+            "Count your best run."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Feet only",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "No bounces: keep it up with the feet only."
+        },
+        {
+          "kind": "escalator",
+          "title": "Alternate feet",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Left, right, left: every touch with the other foot.",
+          "instructions": [
+            "Keep it up, alternating feet every touch.",
+            "If it goes wrong, one extra touch to recover is allowed, then back to alternating.",
+            "Count your best run."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Foot and thigh sequences",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Set sequences: foot, thigh, foot, other foot, other thigh.",
+          "instructions": [
+            "Foot, thigh, foot on one side, then the same on the other.",
+            "Then make up your own sequence of five and repeat it.",
+            "Count complete sequences."
+          ],
+          "coaching_points": [
+            "Thigh level with the hip and flat, so the ball pops straight up.",
+            "Keep each touch the same height.",
+            "No heading at this age in training; keep it to feet and thighs."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "link",
+          "caption": "Background: England Football – How to help 5–11s develop their skills on the ball",
+          "url": "https://learn.englandfootball.com/articles/resources/2023/How-to-help-5-11s-develop-their-skills-on-the-ball"
+        },
+        {
+          "kind": "link",
+          "caption": "Background: U.S. Soccer Foundation – Soccer for Success at Home",
+          "url": "https://ussoccerfoundation.org/?p=17506"
+        }
+      ]
+    },
+    {
+      "slug": "home-head-up-dribbling",
+      "title": "Head-up dribbling with calls",
+      "summary": "Dribble around household items while a parent holds up fingers to call out: control with the head up.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        2,
+        2,
+        2
+      ],
+      "ages": [
+        6,
+        14
+      ],
+      "duration": [
+        5,
+        10
+      ],
+      "intensity": "medium",
+      "space": [
+        8,
+        8
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "Four cones or household items spread around an 8 by 8 m space. A parent stands at the edge.",
+      "instructions": [
+        "Dribble in and around the items with small touches.",
+        "Every few seconds the parent holds up some fingers: call out the number.",
+        "Keep dribbling the whole time; two minutes, then rest."
+      ],
+      "coaching_points": [
+        "Look up between touches, not only when you hear something.",
+        "Use small touches so the ball is still there when you look down.",
+        "Feel the ball with your feet: glance at it, don't stare."
+      ],
+      "tags": {
+        "scanning": 1.0,
+        "dribbling": 0.5
+      },
+      "indoors": "A hallway or cleared room with socks or plastic bottles as the items, a soft ball and walking pace.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Look up at each item",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "On your own: every time you pass an item, look up and name something you can see across the room or garden.",
+          "players": [
+            1,
+            1,
+            2
+          ],
+          "setup": "Four cones or household items spread around an 8 by 8 m space.",
+          "instructions": [
+            "Dribble around the items.",
+            "As you pass each one, look up and name something you can see.",
+            "Two minutes, then rest."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Call the number",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "The parent holds up fingers; call the number while dribbling."
+        },
+        {
+          "kind": "escalator",
+          "title": "Call and change direction",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Call the number, then odd means turn left and even means turn right.",
+          "instructions": [
+            "Dribble around the items.",
+            "When the parent holds up fingers, call the number.",
+            "Odd: turn left. Even: turn right. Then carry on."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Call and pass",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The parent holds up a hand on one side: pass the ball through the gate on that side.",
+          "setup": "Four items spread around an 8 by 8 m space and two 1 m gates of cones at one end. A parent stands between the gates.",
+          "equipment": [
+            {
+              "item": "balls",
+              "quantity": 1
+            },
+            {
+              "item": "cones",
+              "quantity": 8
+            }
+          ],
+          "instructions": [
+            "Dribble around the items.",
+            "The parent raises a hand on one side: pass through the gate on that side.",
+            "The parent passes the ball back; keep going."
+          ],
+          "coaching_points": [
+            "Look up early so you have time to set up the pass.",
+            "Decide before you arrive, not after you stop.",
+            "Pass with the inside of the foot, weighted to arrive at the gate."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Dribble with your head up; call the parent's fingers",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 8,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  6,
+                  3
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  3,
+                  6
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  6.5,
+                  6.5
+                ]
+              },
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  4,
+                  0.5
+                ],
+                "label": "PA"
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  1,
+                  7
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble between the items with small touches",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        4,
+                        4.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The parent holds up three fingers: 'Three!'",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        5,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "move": {
+                      "who": "PA",
+                      "to": [
+                        4.2,
+                        0.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Keep dribbling; look up again between touches",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        7.2,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Two fingers: 'Two!'",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        4.5,
+                        7
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: look up and name something at each item",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 8,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  6,
+                  3
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  3,
+                  6
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  6.5,
+                  6.5
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  1,
+                  7
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble to the first item",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        3,
+                        5.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Passing it: look up and name something you can see",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        4.5,
+                        3.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "On to the next item, and look up again",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        6.8,
+                        5.5
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the parent's raised hand says which gate to pass through",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 9,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  3
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  6,
+                  4
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  3,
+                  7
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  6.5,
+                  7.5
+                ]
+              },
+              "g1": {
+                "type": "cone",
+                "at": [
+                  1.5,
+                  0.5
+                ]
+              },
+              "g2": {
+                "type": "cone",
+                "at": [
+                  2.5,
+                  0.5
+                ]
+              },
+              "g3": {
+                "type": "cone",
+                "at": [
+                  5.5,
+                  0.5
+                ]
+              },
+              "g4": {
+                "type": "cone",
+                "at": [
+                  6.5,
+                  0.5
+                ]
+              },
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  4,
+                  0.5
+                ],
+                "label": "PA"
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  1,
+                  8.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble between the items with your head up",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        4,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The parent raises the right hand",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        5,
+                        3.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Pass through the right-hand gate",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "PA"
+                    }
+                  },
+                  {
+                    "move": {
+                      "who": "PA",
+                      "to": [
+                        6,
+                        0.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The parent passes it back; carry on",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "P"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P",
+                      "to": [
+                        5,
+                        4
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Background: SoccerWire – Indoor workouts youth players can do anywhere",
+          "url": "https://www.soccerwire.com/blog/indoor-workouts-youth-soccer-players-can-do-anywhere"
+        }
+      ]
+    },
+    {
+      "slug": "home-moves-to-beat",
+      "title": "Moves to beat a defender",
+      "summary": "Practise a move to beat a defender against a cone, then against a parent who stands in, then one who leans.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        1,
+        1,
+        2
+      ],
+      "ages": [
+        6,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "intensity": "medium",
+      "space": [
+        4,
+        10
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        },
+        {
+          "item": "cones",
+          "quantity": 3
+        }
+      ],
+      "setup": "A cone as the defender in the middle of a 4 by 10 m strip, with a 2 m gate of two cones at the far end.",
+      "instructions": [
+        "Dribble at the cone at a jog.",
+        "About a metre away, do the move: a step-over, a drag-back turn or a scissors.",
+        "Accelerate away past the cone and through the gate.",
+        "Ten goes with each move; use both feet."
+      ],
+      "coaching_points": [
+        "Do the move a metre before the cone, not on top of it.",
+        "Sell it: drop the shoulder the way you are pretending to go.",
+        "The burst after the move matters as much as the move."
+      ],
+      "tags": {
+        "1v1_attacking": 1.0,
+        "dribbling": 0.5
+      },
+      "indoors": "A hallway with a soft ball and a cushion as the defender. Walk the moves slowly; save the burst for outdoors.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "One move, walking",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "One move only, at walking pace, then a short push past the cone.",
+          "instructions": [
+            "Walk the ball up to the cone.",
+            "Do one move (a step-over or a drag-back) slowly and correctly.",
+            "Push the ball past the cone and stop it at the gate.",
+            "Ten goes on each foot."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Two moves, either foot",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Practise two moves at a jog, on both feet, and burst away after each."
+        },
+        {
+          "kind": "escalator",
+          "title": "Against a still parent",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "A parent stands in for the cone, with feet apart, and may shuffle sideways but never tackles.",
+          "players": [
+            2,
+            2,
+            2
+          ],
+          "setup": "A parent stands in the middle of a 4 by 10 m strip as the defender, with a 2 m gate at the far end.",
+          "instructions": [
+            "Dribble at the parent at a jog.",
+            "Do the move as they shuffle across, then accelerate through the gate.",
+            "The parent never tackles; they just shuffle to block the way.",
+            "Ten goes."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "escalator",
+          "title": "Read the lean",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The parent leans or steps one way at the last moment; go the other way.",
+          "players": [
+            2,
+            2,
+            2
+          ],
+          "setup": "A parent stands in the middle of a 4 by 10 m strip as the defender, with a 2 m gate at the far end.",
+          "instructions": [
+            "Dribble at the parent.",
+            "As you arrive they lean or step to one side.",
+            "Choose a move that takes you the other way, and accelerate through the gate.",
+            "Ten goes."
+          ],
+          "coaching_points": [
+            "Watch the parent's hips, not their feet.",
+            "Keep the ball on the foot you can move it away with.",
+            "Decide late, then go fast."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Dribble at the cone, do the move a metre away, burst through the gate",
+          "diagram": {
+            "pitch": {
+              "width": 4,
+              "length": 10,
+              "view": "area"
+            },
+            "objects": {
+              "cone": {
+                "type": "cone",
+                "at": [
+                  2,
+                  5
+                ]
+              },
+              "g1": {
+                "type": "cone",
+                "at": [
+                  1,
+                  0.3
+                ]
+              },
+              "g2": {
+                "type": "cone",
+                "at": [
+                  3,
+                  0.3
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2,
+                  9.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble at the cone at a jog",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2,
+                        6.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A metre away: a step-over, dropping the left shoulder",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        1.8,
+                        6.2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Push the ball out to the right, past the cone",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        3.1,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Accelerate through the gate",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2.2,
+                        0.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: a parent shuffles across instead of the cone",
+          "diagram": {
+            "pitch": {
+              "width": 4,
+              "length": 10,
+              "view": "area"
+            },
+            "objects": {
+              "g1": {
+                "type": "cone",
+                "at": [
+                  1,
+                  0.3
+                ]
+              },
+              "g2": {
+                "type": "cone",
+                "at": [
+                  3,
+                  0.3
+                ]
+              },
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  2,
+                  5
+                ],
+                "label": "PA"
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2,
+                  9.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble at the parent at a jog",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2,
+                        7
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The parent shuffles left; the player drops the shoulder that way",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        1.6,
+                        6.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "PA",
+                      "to": [
+                        1.6,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Cut right, past the parent",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        3.2,
+                        5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "PA",
+                      "to": [
+                        1.8,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Accelerate through the gate",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2.3,
+                        0.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the parent leans late; go the other way",
+          "diagram": {
+            "pitch": {
+              "width": 4,
+              "length": 10,
+              "view": "area"
+            },
+            "objects": {
+              "g1": {
+                "type": "cone",
+                "at": [
+                  1,
+                  0.3
+                ]
+              },
+              "g2": {
+                "type": "cone",
+                "at": [
+                  3,
+                  0.3
+                ]
+              },
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  2,
+                  5
+                ],
+                "label": "PA"
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2,
+                  9.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribble at the parent; watch their hips",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2,
+                        6.8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "At the last moment the parent steps to the right",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "PA",
+                      "to": [
+                        2.6,
+                        5
+                      ]
+                    }
+                  },
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        2.1,
+                        6.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Go the other way: drag back and cut left",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        0.8,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Accelerate through the gate",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        1.8,
+                        0.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Background: Coerver Coaching – 1v1 moves with a home training programme",
+          "url": "https://coerver.com.au/node/1032"
+        }
+      ]
+    },
+    {
+      "slug": "home-target-passing-and-shooting",
+      "title": "Target passing and shooting",
+      "summary": "Pass into a laundry basket indoors; outdoors, strike low into marked corners of a goal or wall.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        1,
+        1,
+        2
+      ],
+      "ages": [
+        6,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "intensity": "low",
+      "space": [
+        10,
+        12
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 4
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "other",
+          "quantity": 1
+        }
+      ],
+      "setup": "Outdoors: a goal, or a wall with two target squares marked low in the corners with tape or cones. Balls 8 m out.",
+      "instructions": [
+        "Strike low at one corner target, then the other.",
+        "Ten strikes, counting how many hit a target.",
+        "Collect the balls and go again with the other foot."
+      ],
+      "coaching_points": [
+        "Standing foot beside the ball, pointing at the target.",
+        "Laces through the middle of the ball, head over it, to keep it low.",
+        "Pick the target before you strike, and look at it last."
+      ],
+      "tags": {
+        "shooting": 1.0,
+        "passing_short": 0.5
+      },
+      "indoors": "Only the basket version indoors: a laundry basket on its side 2 to 3 m away, a soft ball and inside-foot passes. No full-power strikes inside.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Pass into a basket",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Pass with the inside of the foot into a laundry basket on its side, 3 m away.",
+          "space": [
+            4,
+            5
+          ],
+          "equipment": [
+            {
+              "item": "balls",
+              "quantity": 4
+            },
+            {
+              "item": "other",
+              "quantity": 1
+            }
+          ],
+          "setup": "A laundry basket on its side, or a box, 3 m from a row of balls.",
+          "instructions": [
+            "Pass each ball into the basket with the inside of the foot.",
+            "Ten passes with each foot; count how many go in.",
+            "Move back a step when you get seven out of ten."
+          ],
+          "coaching_points": [
+            "Standing foot beside the ball, pointing at the basket.",
+            "Lock the ankle and push through the middle of the ball.",
+            "Follow through towards the basket."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Strike at corner targets",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Outdoors: strike low with the laces at two corner targets from 8 m."
+        },
+        {
+          "kind": "escalator",
+          "title": "Weaker foot, further out",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "From 12 m, alternating feet; a hit with the weaker foot counts double.",
+          "instructions": [
+            "Strike from 12 m, alternating feet.",
+            "Aim for the corner targets; weaker-foot hits count double.",
+            "Ten strikes per round; beat your score."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Touch and strike off a rebound",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Pass against a side wall (or a parent rolls the ball in), take one touch to set, then strike at a target.",
+          "setup": "Outdoors: a goal or target wall, with a side wall or a parent 6 m to one side. Balls 10 m out.",
+          "instructions": [
+            "Pass against the side wall, or ask a parent to roll the ball in.",
+            "Take one touch to set the ball towards goal.",
+            "Strike low at a corner target.",
+            "Ten goes, then switch sides."
+          ],
+          "coaching_points": [
+            "Set the ball out of your feet and slightly to the side of your shooting foot.",
+            "Look at the target before the ball arrives.",
+            "Strike on the second touch, without stopping the ball."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Strike low into a corner target",
+          "diagram": {
+            "pitch": {
+              "width": 10,
+              "length": 10,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    5,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "t1": {
+                "type": "cone",
+                "at": [
+                  2.9,
+                  0.3
+                ]
+              },
+              "t2": {
+                "type": "cone",
+                "at": [
+                  7.1,
+                  0.3
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  8
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Strike low into the left-hand target",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "P",
+                      "to": [
+                        2.8,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: pass into a laundry basket",
+          "diagram": {
+            "pitch": {
+              "width": 4,
+              "length": 5,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "basket",
+                  "at": [
+                    2,
+                    0.5
+                  ],
+                  "width": 0.6
+                }
+              ]
+            },
+            "objects": {
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2,
+                  3.5
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Inside of the foot, into the basket",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "P",
+                      "to": "basket"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: rebound off a side wall, one touch to set, then strike",
+          "diagram": {
+            "pitch": {
+              "width": 12,
+              "length": 12,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    5,
+                    0
+                  ],
+                  "width": 5
+                }
+              ]
+            },
+            "objects": {
+              "wall": {
+                "type": "wall",
+                "at": [
+                  11.7,
+                  3
+                ],
+                "to": [
+                  11.7,
+                  11
+                ]
+              },
+              "t1": {
+                "type": "cone",
+                "at": [
+                  2.9,
+                  0.3
+                ]
+              },
+              "t2": {
+                "type": "cone",
+                "at": [
+                  7.1,
+                  0.3
+                ]
+              },
+              "P": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  10
+                ],
+                "label": "P"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P"
+              }
+            },
+            "steps": [
+              {
+                "label": "Pass against the side wall and move to meet the rebound",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "P",
+                      "to": "P",
+                      "via": [
+                        11.7,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P",
+                      "to": [
+                        6.5,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "One touch to set the ball towards goal",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P",
+                      "to": [
+                        6,
+                        7
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Strike low into the far target",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "P",
+                      "to": [
+                        2.8,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Background: SoccerWire – Indoor workouts youth players can do anywhere",
+          "url": "https://www.soccerwire.com/blog/indoor-workouts-youth-soccer-players-can-do-anywhere"
+        }
+      ]
+    },
+    {
+      "slug": "home-gk-catches",
+      "title": "Goalkeeper catches at home",
+      "summary": "Catching practice with a parent throwing or a wall rebounding, from kneeling catches to collapse dives on grass.",
+      "format": "individual",
+      "session_phase": "technical",
+      "home_friendly": true,
+      "players": [
+        2,
+        2,
+        2
+      ],
+      "ages": [
+        7,
+        16
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "intensity": "low",
+      "space": [
+        6,
+        6
+      ],
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 1
+        }
+      ],
+      "setup": "A parent with a ball, 4 m from the goalkeeper.",
+      "instructions": [
+        "The parent throws underarm at chest height, then low, then above the head.",
+        "The goalkeeper catches and holds, then throws it back.",
+        "Twenty throws, mixing the heights."
+      ],
+      "coaching_points": [
+        "Get set before each throw: feet shoulder-width, knees bent, hands ready.",
+        "W-shaped hands for chest and high balls; scoop low ones up into the chest.",
+        "Bring every catch into the chest and hold it."
+      ],
+      "tags": {
+        "gk_shot_stopping": 1.0
+      },
+      "indoors": "A soft ball; kneeling catches and gentle wall catches only. No diving indoors.",
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Kneeling catches",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "The goalkeeper kneels; the parent throws gently at the chest and stomach from 3 m.",
+          "setup": "The goalkeeper kneels upright; a parent with a ball kneels or sits 3 m away.",
+          "instructions": [
+            "The parent throws gently at the goalkeeper's chest.",
+            "Catch with W-shaped hands and bring the ball into the chest.",
+            "Then throws at the stomach: scoop it up into the chest.",
+            "Twenty throws."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "Throws at three heights",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Standing, set position; the parent throws at chest, low and high."
+        },
+        {
+          "kind": "escalator",
+          "title": "Wall rebounds",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "On your own: throw the ball against a wall and catch the rebound, moving your feet to get behind it.",
+          "players": [
+            1,
+            1,
+            2
+          ],
+          "setup": "A flat wall with no windows. The goalkeeper stands 3 m from it with a ball.",
+          "instructions": [
+            "Throw the ball against the wall at different heights and angles.",
+            "Move your feet to get your body behind the rebound, then catch and hold.",
+            "Twenty catches; throw harder or stand closer as it gets easy."
+          ],
+          "coaching_points": [
+            "Move your feet first, then your hands.",
+            "Get your body behind the ball, so a fumble still stays in front of you.",
+            "Hold every catch for a second before the next throw."
+          ],
+          "diagram": 2
+        },
+        {
+          "kind": "escalator",
+          "title": "Volleys and collapse dives, outdoors",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Outdoors on grass only: the parent volleys or throws just out of reach to the side, and the goalkeeper collapse-dives to catch.",
+          "setup": "Outdoors on soft grass. A parent with balls 5 m from the goalkeeper.",
+          "instructions": [
+            "The parent throws or volleys low, just out of reach to one side.",
+            "Step towards the ball and collapse onto your side to catch it.",
+            "Get up, set, and go again to the other side.",
+            "Ten each side."
+          ],
+          "coaching_points": [
+            "Step with the near foot, then go down on your side, not your front.",
+            "Hands lead: bottom hand behind the ball, top hand on top.",
+            "Get up quickly and set again before the next one."
+          ],
+          "diagram": 3
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Throws at chest, low and high; catch and hold",
+          "diagram": {
+            "pitch": {
+              "width": 6,
+              "length": 6,
+              "view": "area"
+            },
+            "objects": {
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  3,
+                  5
+                ],
+                "label": "PA"
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  3,
+                  1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "PA"
+              }
+            },
+            "steps": [
+              {
+                "label": "Chest height: W-shaped hands",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Throw it back",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "PA"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Low: scoop it up into the chest",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Throw it back; next one is high",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "PA"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: kneeling catches",
+          "diagram": {
+            "pitch": {
+              "width": 5,
+              "length": 5,
+              "view": "area"
+            },
+            "objects": {
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  2.5,
+                  4
+                ],
+                "label": "PA"
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  2.5,
+                  1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "PA"
+              }
+            },
+            "steps": [
+              {
+                "label": "A gentle throw at the chest",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Catch it into the chest, then throw it back",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "PA"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "At the stomach: scoop it up",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: on your own, off a wall",
+          "diagram": {
+            "pitch": {
+              "width": 6,
+              "length": 5,
+              "view": "area"
+            },
+            "objects": {
+              "wall": {
+                "type": "wall",
+                "at": [
+                  0.5,
+                  0.3
+                ],
+                "to": [
+                  5.5,
+                  0.3
+                ]
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  3,
+                  3.5
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "GK"
+              }
+            },
+            "steps": [
+              {
+                "label": "Throw against the wall, off to the right",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "GK",
+                      "via": [
+                        3.6,
+                        0.3
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        4,
+                        3.3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Feet first: get behind the rebound and catch it",
+                "actions": [
+                  {
+                    "move": {
+                      "who": "GK",
+                      "to": [
+                        4,
+                        3.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Now off to the left",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "GK",
+                      "via": [
+                        2.2,
+                        0.3
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        2,
+                        3.3
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest, outdoors only: collapse dive to catch",
+          "diagram": {
+            "pitch": {
+              "width": 8,
+              "length": 7,
+              "view": "area"
+            },
+            "objects": {
+              "PA": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  4,
+                  6
+                ],
+                "label": "PA"
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  4,
+                  1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "PA"
+              }
+            },
+            "steps": [
+              {
+                "label": "Low, just out of reach to the right: step and collapse onto your side",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        5.4,
+                        1.1
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Get up, set, and throw it back",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "GK",
+                      "to": "PA"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        4,
+                        1
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Now to the left",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "PA",
+                      "to": "GK"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "GK",
+                      "to": [
+                        2.6,
+                        1.1
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Background: Sportsessionplanner – Home instruction GK, moving and handling",
+          "url": "https://www.sportsessionplanner.com/s/4Om0h/Home-Instrction-GK---MOVING-AND-HANDLING_session-1.html"
+        }
+      ]
+    }
+  ]
+}

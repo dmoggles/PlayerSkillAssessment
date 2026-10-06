@@ -815,9 +815,14 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 0, "updated": 5, "retired": 0}  # safe to re-run
         # Later files load on top; drills link across files.
         assert load_file(db, DATA_DIR / "drills_v2.json") == {"added": 6, "updated": 0, "retired": 0}
+        assert load_file(db, DATA_DIR / "drills_v3.json") == {"added": 7, "updated": 0, "retired": 0}  # home drills
 
     drills = {d["slug"]: d for d in client.get("/drills").json()}
-    assert len(drills) == 11
+    assert len(drills) == 18
+    assert sum(d["home_friendly"] for d in drills.values()) == 8
+    home = client.get("/drills/home-wall-passes").json()
+    assert home["indoors"].startswith("A soft or futsal ball") and client.get("/drills/rondo-4v1").json()["indoors"] is None
+    assert client.get("/drills/cone-slalom-dribble").json()["indoors"].startswith("Socks or plastic bottles")
     defending = client.get("/drills/one-v-one-defending-channel").json()
     assert [(t["id"], t["on_ladder"]) for t in defending["tags"]] == [("1v1_defending", True), ("1v1_attacking", False)]
     assert defending["links"] == [{"slug": "one-v-one-end-line", "title": "1v1 to the end line", "relation": "pairs_with"}]
@@ -876,12 +881,18 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": "goal"}}]}]}) == ["step 1: shot at unknown goal goal"]
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": [9, 0]}}]}]}) == []  # at a point
     assert diagram_problems({**base, "steps": [{"label": "x", "actions": [{"shot": {"who": "A", "to": [11, 0]}}]}]}) == ["step 1: shot at unknown goal [11, 0]"]
+    # Walls, and passes that bounce off one (back to the passer, here).
+    walled = {**base, "objects": {**base["objects"], "W": {"type": "wall", "at": [0, 0], "to": [10, 0]}}}
+    assert diagram_problems({**walled, "steps": [{"label": "x", "actions": [{"pass": {"from": "A", "to": "A", "via": [3, 0]}}]}]}) == []
+    assert diagram_problems({**walled, "steps": [{"label": "x", "actions": [{"pass": {"from": "A", "to": "A", "via": [3, -1]}}]}]}) == ["step 1: pass bounces off a point that is off the pitch"]
+    assert diagram_problems({**walled, "objects": {**walled["objects"], "W": {"type": "wall", "at": [0, 0]}}, "steps": [{"label": "x", "actions": [{"move": {"who": "W", "to": [1, 1]}}]}]}) == ["W: a wall runs from 'at' to 'to', both on the pitch", "step 1: cannot move W"]
 
     # A bad file changes nothing; a drill dropped from its file is retired, not deleted.
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
     data["drills"][0]["variations"][0]["levels"] = [4, 5]  # gap before the base variation and out of order
     data["drills"][1]["tags"] = {"not_a_tag": 1.0}
     data["drills"][3]["ladder_tags"] = ["dribbling"]
+    data["drills"][2]["indoors"] = "A rondo in the living room"  # only home drills have an indoor version
     data["drills"][2]["variations"][3]["players"] = [7, 6, 18]
     data["drills"][2]["variations"][3]["equipment"] = [{"item": "trampoline", "quantity": 1}]
     data["drills"][2]["variations"][1]["video"] = 0  # media 0 of the rondo is a diagram, not a video
@@ -896,6 +907,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
             assert "players must be [min, ideal, max]" in str(error) and "unknown equipment 'trampoline'" in str(error)
             assert "video must point at one of this drill's videos" in str(error)
             assert "ladder_tags must be a non-empty list of this drill's tags" in str(error)
+            assert "indoors must be text, and only on a home-friendly drill" in str(error)
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
     data["drills"] = [d for d in data["drills"] if d["slug"] != "rondo-4v1"]
     smaller = tmp_path / "smaller.json"
