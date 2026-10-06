@@ -281,6 +281,8 @@ class DrillTag(Base):
     drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
     tag_id: Mapped[str] = mapped_column(ForeignKey("skill_tags.id"), primary_key=True)
     weight: Mapped[float] = mapped_column(Float)
+    # False when the variation ladder does not describe this skill (a 1v1 drill that escalates for the attacker only).
+    on_ladder: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class DrillMedia(Base):

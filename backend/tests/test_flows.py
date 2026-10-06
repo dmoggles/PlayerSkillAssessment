@@ -873,6 +873,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
     data["drills"][0]["variations"][0]["levels"] = [4, 5]  # gap before the base variation and out of order
     data["drills"][1]["tags"] = {"not_a_tag": 1.0}
+    data["drills"][3]["ladder_tags"] = ["dribbling"]
     data["drills"][2]["variations"][3]["players"] = [7, 6, 18]
     data["drills"][2]["variations"][3]["equipment"] = [{"item": "trampoline", "quantity": 1}]
     data["drills"][2]["variations"][1]["video"] = 0  # media 0 of the rondo is a diagram, not a video
@@ -886,6 +887,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
             assert "unknown or retired tag 'not_a_tag'" in str(error) and "without a gap" in str(error)
             assert "players must be [min, ideal, max]" in str(error) and "unknown equipment 'trampoline'" in str(error)
             assert "video must point at one of this drill's videos" in str(error)
+            assert "ladder_tags must be a non-empty list of this drill's tags" in str(error)
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())
     data["drills"] = [d for d in data["drills"] if d["slug"] != "rondo-4v1"]
     smaller = tmp_path / "smaller.json"
@@ -924,6 +926,12 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
     assert out["first_touch_body_shape"]["drills"][0]["variation"]["levels"][1] == 5  # level 5: the hardest rung
     # Level 3 sits in two rungs' ranges; the harder one stretches the player.
     assert out["decision_making_open_play"]["drills"][0]["variation"]["title"] == "Two-touch limit"
+    # The 1v1 drill escalates for the attacker: a defending priority gets its base version, not a rung.
+    defending = suggest("1v1_defending")["1v1_defending"]["drills"][0]
+    assert defending["variation"]["kind"] == "base" and defending["variation"]["level_matched"] is False
+    assert defending["ladder_for"] == ["1v1 attacking"]
+    attacking = suggest("1v1_attacking")["1v1_attacking"]["drills"][0]
+    assert attacking["variation"]["title"] == "Five-second limit" and attacking["ladder_for"] == []
     assert out["shooting"] == {"tagged": True, "level": 3, "matches": 0, "drills": []}  # no shooting drills yet
     assert out["no_such_skill"]["tagged"] is False
 

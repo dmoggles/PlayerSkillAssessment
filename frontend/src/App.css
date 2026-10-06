@@ -874,8 +874,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .drill-vote > small { flex-basis: 100%; }
 
 .priority-drills { margin-top: 10px; font-size: .85rem; }
-.priority-drills h5 { margin: 0 0 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
-.priority-drills h5 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.priority-drills summary { cursor: pointer; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; padding: 2px 0; }
+.priority-drills p { margin: 4px 0; }
 .priority-drills ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .priority-drills .status-pill { margin-left: 6px; }
 .priority-drills .hint { margin: 4px 0 0; }

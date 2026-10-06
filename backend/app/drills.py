@@ -143,6 +143,10 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
             p.append(f"unknown or retired tag {tag!r}")
         if weight not in (1.0, 0.5):
             p.append(f"tag {tag} weight must be 1.0 or 0.5")
+    # Optional: the tags whose progress the variation ladder describes (default: all of them).
+    ladder = raw.get("ladder_tags")
+    if ladder is not None and not (isinstance(ladder, list) and ladder and set(ladder) <= set(tags)):
+        p.append("ladder_tags must be a non-empty list of this drill's tags")
     variations = raw.get("variations") or []
     kinds = [v.get("kind") for v in variations]
     if kinds.count("base") != 1:
@@ -224,7 +228,8 @@ def load_file(db: DbSession, path: Path) -> dict:
         for model in (DrillVariation, DrillMedia, DrillTag):
             db.query(model).filter_by(drill_id=drill.id).delete()
         db.query(DrillLink).filter_by(from_drill_id=drill.id).delete()
-        db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight) for tag, weight in r["tags"].items())
+        ladder = set(r.get("ladder_tags") or r["tags"])
+        db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight, on_ladder=tag in ladder) for tag, weight in r["tags"].items())
         media = [DrillMedia(drill_id=drill.id, position=i + 1, kind=m["kind"], caption=m.get("caption", ""), url=m.get("url"),
                             video_start_seconds=m.get("start_seconds"), diagram=m.get("diagram")) for i, m in enumerate(r.get("media", []))]
         db.add_all(media)

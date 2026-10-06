@@ -16,7 +16,8 @@ def _tags(db: DbSession, drill_ids: list[int]) -> dict[int, list[dict]]:
     out = {}
     rows = db.query(DrillTag, SkillTag).join(SkillTag, SkillTag.id == DrillTag.tag_id).filter(DrillTag.drill_id.in_(drill_ids))
     for link, tag in rows.order_by(DrillTag.weight.desc(), SkillTag.label):
-        out.setdefault(link.drill_id, []).append({"id": tag.id, "label": tag.label, "area": tag.area, "weight": link.weight})
+        out.setdefault(link.drill_id, []).append({"id": tag.id, "label": tag.label, "area": tag.area, "weight": link.weight,
+                                                   "on_ladder": link.on_ladder})
     return out
 
 
@@ -143,9 +144,11 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
     if team.age_group:
         drills = [d for d in drills if d.age_min <= team.age_group <= d.age_max]
     ids = [d.id for d in drills]
-    drill_tags = {}
+    drill_tags, ladder_tags = {}, {}
     for link in db.query(DrillTag).filter(DrillTag.drill_id.in_(ids)):
         drill_tags.setdefault(link.drill_id, {})[link.tag_id] = link.weight
+        if link.on_ladder:
+            ladder_tags.setdefault(link.drill_id, set()).add(link.tag_id)
     variations = {}
     for v in db.query(DrillVariation).filter(DrillVariation.drill_id.in_(ids)).order_by(DrillVariation.position):
         variations.setdefault(v.drill_id, []).append(v)
@@ -164,11 +167,15 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
         matches.sort(key=lambda m: (-votes[m[0].id]["mine"], -m[1], votes[m[0].id]["dislikes"] - votes[m[0].id]["likes"], m[0].title))
         suggested = []
         for drill, strength in matches[:SUGGESTIONS_PER_SKILL]:
-            v = variation_for_level(variations[drill.id], level)
+            # Rungs only follow the player's level when the ladder describes this skill; otherwise the base version.
+            follows = bool(ladder_tags.get(drill.id, set()) & {t for t in wanted if t in drill_tags[drill.id]})
+            v = variation_for_level(variations[drill.id], level if follows else None)
             suggested.append({"slug": drill.slug, "title": drill.title, "summary": drill.summary, "format": drill.format,
                               "players": [drill.players_min, drill.players_ideal, drill.players_max],
                               "duration": [drill.duration_min, drill.duration_typical], "votes": votes[drill.id],
                               "tags": [t for t in tags.get(drill.id, []) if t["id"] in wanted],
-                              "variation": {"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}})
+                              "variation": {"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max],
+                                            "level_matched": follows and level is not None},
+                              "ladder_for": [] if follows else [t["label"] for t in tags.get(drill.id, []) if t["on_ladder"]]})
         out[skill_id] = {"tagged": bool(wanted), "level": level, "matches": len(matches), "drills": suggested}
     return out

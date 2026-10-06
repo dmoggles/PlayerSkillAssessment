@@ -648,18 +648,21 @@ test("a coach's own vote outranks the global totals when ordering drills", async
   assert.deepEqual(order.map(d => d.title), ['Unpopular but I like it', 'Popular', 'A unvoted', 'B unvoted', 'Popular but I dislike it'])
 })
 
-test('priority drill suggestions name the variation and explain when nothing matches', async () => {
+test('priority drill suggestions are folded away, name the variation and explain when nothing matches', async () => {
   const { PriorityDrills } = await loadJsx('src/DrillLibrary.jsx')
   const render = suggestion => renderToStaticMarkup(React.createElement(PriorityDrills, { suggestion, onOpen: () => {} }))
-  const drill = { slug: 'rondo-4v1', title: '4v1 rondo', format: 'small_group', duration: [8, 12], votes: { likes: 0, dislikes: 0, mine: 1 }, variation: { id: 7, kind: 'regression', title: '5v1 in a bigger square', levels: [1, 2] } }
+  const drill = { slug: 'rondo-4v1', title: '4v1 rondo', format: 'small_group', duration: [8, 12], votes: { likes: 0, dislikes: 0, mine: 1 }, ladder_for: [], variation: { id: 7, kind: 'regression', title: '5v1 in a bigger square', levels: [1, 2], level_matched: true } }
   const html = render({ tagged: true, level: 1, matches: 4, drills: [drill] })
+  assert.match(html, /^<details class="priority-drills"><summary>Drills \(1\)<\/summary>/, 'closed until opened')
   assert.match(html, /matched to level 1/)
   assert.match(html, /4v1 rondo<\/button>/)
   assert.match(html, /Easier: 5v1 in a bigger square · Small group · 12 min/)
   assert.match(html, /You like this/)
   assert.match(html, /3 more in Settings → Drill library/)
-  assert.match(render({ tagged: true, level: null, matches: 1, drills: [{ ...drill, variation: { ...drill.variation, kind: 'base', title: '4v1' } }] }), /not rated, so base versions.*· 4v1 ·/)
-  assert.match(render({ tagged: true, level: 3, matches: 0, drills: [] }), /No drills for this skill in the library yet/)
+  const offLadder = { ...drill, title: '1v1 to the end line', ladder_for: ['1v1 attacking'], variation: { ...drill.variation, kind: 'base', title: 'Live 1v1', level_matched: false } }
+  assert.match(render({ tagged: true, level: 4, matches: 1, drills: [offLadder] }), /Base version; its levels follow 1v1 attacking/)
+  assert.match(render({ tagged: true, level: null, matches: 1, drills: [{ ...drill, variation: { ...drill.variation, kind: 'base', title: '4v1', level_matched: false } }] }), /Not rated, so base versions/)
+  assert.match(render({ tagged: true, level: 3, matches: 0, drills: [] }), /Drills \(0\).*No drills for this skill in the library yet/)
   assert.match(render({ tagged: false, level: 3, matches: 0, drills: [] }), /this skill has no tags/)
   assert.equal(render(undefined), '')
 })

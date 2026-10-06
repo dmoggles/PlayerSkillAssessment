@@ -131,7 +131,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
         <h4 id="ladder-title">Variations</h4>
-        <p className="muted hint">From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.</p>
+        <p className="muted hint">From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.{drill.tags.some(t => !t.on_ladder) ? ` Levels follow ${drill.tags.filter(t => t.on_ladder).map(t => t.label).join(' and ')}.` : ''}</p>
         <ol>{drill.variations.map(v => <li key={v.id}><button type="button" className={selected?.id === v.id ? 'active' : ''} aria-pressed={selected?.id === v.id} onClick={() => setVariationId(v.id)}>
           <span className={`ladder-kind ladder-${v.kind}`}>{v.kind === 'base' ? 'Base' : v.kind === 'regression' ? 'Easier' : 'Harder'}</span>
           <strong>{v.title}</strong><span className="ladder-levels">Levels {v.levels[0]}–{v.levels[1]}</span>
@@ -180,22 +180,30 @@ function VideoLink({ video }) {
   </section>
 }
 
-// Drills for one priority skill, at the variation that matches the player's level. Opens a drill in a dialog,
-// so unsaved priority changes stay put.
+// Drills for one priority skill, at the variation that matches the player's level, folded away until asked for.
+// Opens a drill in a dialog, so unsaved priority changes stay put.
 export function PriorityDrills({ suggestion, onOpen }) {
   if (!suggestion) return null
-  if (!suggestion.tagged) return <p className="muted priority-drills">No drills can be matched: this skill has no tags in the skill matrix.</p>
-  if (!suggestion.drills.length) return <p className="muted priority-drills">No drills for this skill in the library yet.</p>
-  const more = suggestion.matches - suggestion.drills.length
-  return <div className="priority-drills">
-    <h5>Drills{suggestion.level ? <span className="muted"> · matched to level {suggestion.level}</span> : <span className="muted"> · not rated, so base versions</span>}</h5>
-    <ul>{suggestion.drills.map(d => <li key={d.slug}>
-      <button type="button" className="link-btn" onClick={() => onOpen(d.slug, d.variation.id)}>{d.title}</button>
-      <span className="muted"> · {d.variation.kind === 'base' ? d.variation.title : `${d.variation.kind === 'regression' ? 'Easier' : 'Harder'}: ${d.variation.title}`} · {FORMAT_LABELS[d.format]} · {d.duration[1]} min</span>
-      {d.votes.mine === 1 && <span className="status-pill info-pill">You like this</span>}
-    </li>)}</ul>
-    {more > 0 && <p className="muted hint">{more} more in Settings → Drill library.</p>}
-  </div>
+  const count = suggestion.drills.length
+  const more = suggestion.matches - count
+  const rung = d => {
+    if (!d.variation.level_matched) return d.ladder_for.length ? `Base version; its levels follow ${d.ladder_for.join(' and ')}` : 'Base version'
+    return d.variation.kind === 'base' ? d.variation.title : `${d.variation.kind === 'regression' ? 'Easier' : 'Harder'}: ${d.variation.title}`
+  }
+  return <details className="priority-drills">
+    <summary>Drills ({count})</summary>
+    {!suggestion.tagged ? <p className="muted">No drills can be matched: this skill has no tags in the skill matrix.</p>
+      : !count ? <p className="muted">No drills for this skill in the library yet.</p>
+      : <>
+        <p className="muted hint">{suggestion.level ? `Versions matched to level ${suggestion.level}.` : 'Not rated, so base versions.'}</p>
+        <ul>{suggestion.drills.map(d => <li key={d.slug}>
+          <button type="button" className="link-btn" onClick={() => onOpen(d.slug, d.variation.id)}>{d.title}</button>
+          <span className="muted"> · {rung(d)} · {FORMAT_LABELS[d.format]} · {d.duration[1]} min</span>
+          {d.votes.mine === 1 && <span className="status-pill info-pill">You like this</span>}
+        </li>)}</ul>
+        {more > 0 && <p className="muted hint">{more} more in Settings → Drill library.</p>}
+      </>}
+  </details>
 }
 
 // A drill opened from Development, in a modal dialog. Closing it reports back so suggestions can refresh.

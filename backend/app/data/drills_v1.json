@@ -1676,6 +1676,9 @@
         "1v1_attacking": 1.0,
         "1v1_defending": 0.5
       },
+      "ladder_tags": [
+        "1v1_attacking"
+      ],
       "variations": [
         {
           "kind": "regression",
