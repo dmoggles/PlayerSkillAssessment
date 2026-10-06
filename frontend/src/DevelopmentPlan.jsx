@@ -26,7 +26,7 @@ export default function DevelopmentPlan({ teamId, playerId, periodId, skills, un
   return <section className="development-plan" aria-labelledby="plan-title">
     <div className="development-plan-head">
       <div><h3 id="plan-title">4-week plan</h3><p className="muted hint">{plan
-        ? `Saved ${new Date(saved.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}. It is part of the player report; share the report to send it to the player or a parent.`
+        ? `Saved ${new Date(saved.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}. The player report shows its home drills; share the report to send them to the player or a parent.`
         : 'Club and home drills for the priorities above, stepping up after two weeks. Generating saves it to the player report.'}</p></div>
       {!readOnly && <button type="button" onClick={generate} disabled={busy || unsaved || !skills.length}>{busy ? 'Generating…' : plan ? 'Regenerate' : 'Generate plan'}</button>}
     </div>

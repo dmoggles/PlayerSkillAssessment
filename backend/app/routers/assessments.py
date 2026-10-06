@@ -10,6 +10,7 @@ from ..database import get_db
 from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
 from ..models import Assessment, AssessmentRevision, Drill, Period, Player, PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..plans import home_view
 from .drills import drill_out
 from .teams import scoped_period, scoped_player
 
@@ -223,7 +224,7 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
     saved_plan = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
-            "plan": saved_plan.plan if saved_plan else None,
+            "plan": home_view(saved_plan.plan) if saved_plan else None,  # home drills only
             "matrix": rendered(db, period.matrix_version_id, team.player_gender)}
 
 
@@ -342,11 +343,11 @@ def open_shared_report(db: DbSession, token: str):
 
 @router.get("/report/{token}/drills/{slug}")
 def shared_report_drill(token: str, slug: str, db: DbSession = Depends(get_db)):
-    """A drill from the report's development plan, through the report's link; other drills are not available."""
+    """A home drill from the report's development plan, through the report's link; no other drill is available."""
     report, player, period, team = open_shared_report(db, token)
     saved = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
     drill = db.query(Drill).filter_by(slug=slug, status="published").first()
-    if not saved or not drill or slug not in {s["drill"] for s in saved.plan["slots"]}:
+    if not saved or not drill or slug not in {s["drill"] for s in home_view(saved.plan)["slots"]}:
         raise HTTPException(404, "Drill not found")
     return drill_out(db, drill, None)
 

@@ -65,3 +65,13 @@ def test_a_home_drill_that_is_the_only_option_covers_training_and_home():
     out = plan({"priorities": [priority(1, "shooting", {"shooting": 1.0})], "drills": [drill("targets", {"shooting": 1.0}, home=True)]})
     assert [(s["slot"], s["drill"]) for s in out["slots"]] == [("club", "targets"), ("home", "targets")] and out["gaps"] == []
     assert out["slots"][1]["reasons"][-1] == "Same drill as at training: there is no other home drill for this skill yet."
+
+
+def test_the_report_view_keeps_home_drills_only():
+    from app.plans import home_view
+    out = plan({"priorities": [priority(1, "passing", {"passing": 1.0}), priority(2, "defending", {"defending": 1.0}), priority(3, "talk", {})],
+                "drills": [drill("rondo", {"passing": 1.0}), drill("wall", {"passing": 1.0}, home=True), drill("channel", {"defending": 1.0})]})
+    view = home_view(out)
+    assert [(s["rank"], s["drill"]) for s in view["slots"]] == [(1, "wall")]
+    assert [(g["rank"], g["slot"], g["reason"]) for g in view["gaps"]] == [(2, "home", "No home drill for this skill yet."), (3, "home", "No home drill for this skill yet.")]
+    assert len(out["slots"]) == 3  # the saved plan still has the training drills

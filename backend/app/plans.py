@@ -106,3 +106,14 @@ def plan(data: dict) -> dict:
         else:
             gap("home", "No home drill for this skill yet.")
     return {"planner": PLANNER, "weeks": weeks, "slots": slots, "gaps": gaps}
+
+
+def home_view(plan: dict) -> dict:
+    """The plan as the player report shows it: home drills only. The saved plan keeps both sets; training drills are
+    for the coach. A priority without a home drill says so."""
+    home = [s for s in plan["slots"] if s["slot"] == "home"]
+    covered = {s["rank"] for s in home}
+    priorities = sorted({(i["rank"], i["skill_id"], i["label"]) for i in plan["slots"] + plan["gaps"]})
+    gaps = [{"rank": rank, "skill_id": skill, "label": label, "slot": "home", "reason": "No home drill for this skill yet."}
+            for rank, skill, label in priorities if rank not in covered]
+    return {**plan, "slots": home, "gaps": gaps}

@@ -700,10 +700,10 @@ test('the player report shows the saved plan, with weeks to open', async () => {
   const plan = { weeks: 4, slots: [{ rank: 1, skill_id: 'a', label: 'Short passing', slot: 'club', drill: 'rondo', title: '4v1 rondo', duration: [8, 12],
     weeks: [{ id: 1, title: 'Easy' }, { id: 1, title: 'Easy' }, { id: 2, title: 'Base' }, { id: 2, title: 'Base' }], reasons: ['Trains Short passing (priority 1).'] }], gaps: [] }
   const html = renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', team: 'Falcons', period: 'Autumn', assessed: false, plan }, onOpenDrill: () => {} }))
-  assert.match(html, /Development plan <small>4 weeks<\/small>/)
+  assert.match(html, /Practice at home <small>4 weeks<\/small>/)
   assert.match(html, /4v1 rondo<\/button>/)
   assert.match(html, /Weeks 1–2<\/span> Easy/)
-  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', assessed: false, plan: null } })), /Development plan/)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', assessed: false, plan: null } })), /Practice at home/)
 })
 
 test('a saved plan is out of date once the priorities change, including their order', async () => {

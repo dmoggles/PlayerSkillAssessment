@@ -1002,7 +1002,8 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
 
     # The saved plan is part of the player report; the report's link opens the plan's drills and nothing else.
     report_url = f"/teams/{team_id}/players/{player_id}/periods/{period_id}/report"
-    assert owner.get(report_url).json()["plan"] == built
+    # The report shows the home drills only; the saved plan keeps the training drills for the coach.
+    assert [s["slot"] for s in owner.get(report_url).json()["plan"]["slots"]] == ["home", "home"]
     made = owner.post(f"{report_url}/share", headers=headers).json()
     token = made["url"].rsplit("/", 1)[1]
     from datetime import datetime, timedelta, timezone
@@ -1012,15 +1013,18 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
         assert (report.share_expires_at - report.share_issued_at).days == 35  # 4 weeks of plan plus a week
     public = TestClient(app)
     page = public.get(f"/report/{token}").json()
-    assert page["plan"]["slots"] == built["slots"]
-    drill = public.get(f"/report/{token}/drills/cone-slalom-dribble").json()
-    assert drill["title"] == "Cone slalom dribble" and drill["votes"] is None and drill["links"] == [] and drill["variations"]
+    assert page["plan"]["slots"] == [s for s in built["slots"] if s["slot"] == "home"]
+    home_drill = next(s["drill"] for s in built["slots"] if s["slot"] == "home" and s["skill_id"] == "dribbling_carrying")
+    club_drill = next(s["drill"] for s in built["slots"] if s["slot"] == "club" and s["skill_id"] == "dribbling_carrying")
+    assert public.get(f"/report/{token}/drills/{club_drill}").status_code == 404  # training drills stay with the coach
+    drill = public.get(f"/report/{token}/drills/{home_drill}").json()
+    assert drill["votes"] is None and drill["links"] == [] and drill["variations"]
     assert public.get(f"/report/{token}/drills/rondo-4v1").status_code == 404  # not in this plan
     # Regenerating replaces the saved plan, and the same link shows the new one.
     confirm("shooting")
     owner.post(plan_url, json={"period_id": period_id}, headers=headers)
-    assert [s["skill_id"] for s in public.get(f"/report/{token}").json()["plan"]["slots"]] == ["shooting", "shooting"]
-    assert public.get(f"/report/{token}/drills/cone-slalom-dribble").status_code == 404  # no longer in the plan
+    assert [(s["skill_id"], s["slot"]) for s in public.get(f"/report/{token}").json()["plan"]["slots"]] == [("shooting", "home")]
+    assert public.get(f"/report/{token}/drills/{home_drill}").status_code == 404  # no longer in the plan
     # Extending keeps the same link open longer, from its expiry, or from now once it has expired.
     with SessionLocal() as db:
         before = db.query(PlayerReport).one().share_expires_at

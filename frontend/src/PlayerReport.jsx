@@ -26,8 +26,8 @@ export default function PlayerReport({ report, onOpenDrill }) {
         ? <ol className="report-list">{report.priorities.map(p => <li key={p.rank}><strong>{p.label}</strong>{p.note && <p>{p.note}</p>}</li>)}</ol>
         : <p className="muted">Focus areas will be agreed with your coach.</p>}</section>
     </>}
-    {report.plan && <section className="report-plan"><h3>Development plan <small>{report.plan.weeks} weeks</small></h3>
-      <p className="muted">For each focus area: a drill for training and one to practise at home. Tap a week to see that version of the drill.</p>
+    {report.plan && <section className="report-plan"><h3>Practice at home <small>{report.plan.weeks} weeks</small></h3>
+      <p className="muted">A drill to practise at home for each focus area, getting a little harder after two weeks. Tap a week to see that version of the drill.</p>
       <PlanCards plan={report.plan} onOpenDrill={onOpenDrill ?? (() => {})} />
     </section>}
     {report.followUp && <section><h3>Last period's focus <small>{report.followUp.label}</small></h3>
