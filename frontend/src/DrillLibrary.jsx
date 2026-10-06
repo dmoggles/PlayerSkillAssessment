@@ -79,13 +79,13 @@ function DrillFilters({ filters, options, onChange }) {
         {select('tag', 'Skill', options.tags.filter(t => !filters.area || t.area === filters.area).map(t => [t.id, t.label]))}
         {select('format', 'Format', Object.entries(FORMAT_LABELS))}
         {select('intensity', 'Intensity', Object.entries(INTENSITY_LABELS))}
-        {number('players', 'Players', 1, 40, 'How many you have')}
+        {number('players', 'Players', 1, 40, 'Bigger squads split into groups')}
         {number('age', 'Age group (U)', 5, 21, 'For example 12 for U12')}
         {number('level', 'Player level', 1, 5, '1–5 skill scale')}
         {number('duration', 'Time available (min)', 1, 120)}
       </div>
       {options.equipment.length > 0 && <fieldset className="drill-equipment">
-        <legend>Equipment you have <small>(besides balls and bibs; shows drills that need nothing else)</small></legend>
+        <legend>Equipment you have <small>(besides balls, bibs and cones; shows drills that need nothing else)</small></legend>
         {options.equipment.map(item => <label key={item} className="checkbox"><input type="checkbox" checked={filters.equipment.includes(item)} onChange={() => toggleItem(item)} /> {equipmentLabel(item)}</label>)}
       </fieldset>}
       <div className="drill-equipment">

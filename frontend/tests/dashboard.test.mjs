@@ -615,7 +615,7 @@ test('a variation shows its own video first, plus drill-wide videos no variation
   assert.deepEqual(visibleVideos(drill, drill.variations[1]).map(v => [v.id, Boolean(v.forVariation)]), [[3, true], [2, false]])
 })
 
-test('drill filters combine, and equipment means "needs nothing beyond what I have" (balls and bibs assumed)', async () => {
+test('drill filters combine, and equipment means "needs nothing beyond what I have" (balls, bibs and cones assumed)', async () => {
   const { EMPTY_FILTERS, activeFilterCount, filterOptions, matchesFilters } = await loadJsx('src/drillModel.js')
   const rondo = { title: 'Rondo 4v1', summary: 'Keep the ball', format: 'small_group', intensity: 'medium', players: [5, 5, 15], ages: [8, 16], levels: [1, 5], duration: [10, 15], home_friendly: false, equipment_items: ['balls', 'bibs', 'cones', 'mannequins'], tags: [{ id: 'passing_short', label: 'Short passing', area: 'technical' }], votes: { likes: 0, dislikes: 0, mine: 1 } }
   const slalom = { ...rondo, title: 'Cone slalom', summary: 'Dribble', format: 'individual', players: [1, 1, 20], home_friendly: true, equipment_items: ['balls', 'cones'], tags: [{ id: 'dribbling', label: 'Dribbling', area: 'technical' }], votes: { likes: 0, dislikes: 0, mine: 0 } }
@@ -623,14 +623,15 @@ test('drill filters combine, and equipment means "needs nothing beyond what I ha
   assert.deepEqual(match({}), ['Rondo 4v1', 'Cone slalom'])
   assert.deepEqual(match({ text: 'short PASS' }), ['Rondo 4v1'], 'search covers skill labels, ignoring case')
   assert.deepEqual(match({ players: '3' }), ['Cone slalom'], 'too few players for the rondo')
-  assert.deepEqual(match({ equipment: ['cones'] }), ['Cone slalom'], 'the rondo also needs mannequins; balls and bibs are assumed')
-  assert.deepEqual(match({ equipment: ['cones', 'mannequins'] }), ['Rondo 4v1', 'Cone slalom'])
+  assert.deepEqual(match({ players: '30' }), ['Rondo 4v1', 'Cone slalom'], 'a big squad splits into groups')
+  assert.deepEqual(match({ equipment: ['goals'] }), ['Cone slalom'], 'the rondo also needs mannequins; balls, bibs and cones are assumed')
+  assert.deepEqual(match({ equipment: ['mannequins'] }), ['Rondo 4v1', 'Cone slalom'])
   assert.deepEqual(match({ age: '17' }), [])
   assert.deepEqual(match({ duration: '8' }), [], 'both need at least 10 minutes')
   assert.deepEqual(match({ home: true, liked: true }), [])
   assert.deepEqual(match({ liked: true, area: 'technical', tag: 'passing_short', level: '3' }), ['Rondo 4v1'])
   assert.equal(activeFilterCount({ ...EMPTY_FILTERS, text: 'x', age: '12', equipment: ['balls'] }), 2, 'search is not counted as a filter')
-  assert.deepEqual(filterOptions([rondo, slalom]).equipment, ['cones', 'mannequins'], 'balls and bibs are never choices')
+  assert.deepEqual(filterOptions([rondo, slalom]).equipment, ['mannequins'], 'balls, bibs and cones are never choices')
   assert.deepEqual(filterOptions([rondo, slalom]).tags.map(t => t.label), ['Dribbling', 'Short passing'])
 })
 

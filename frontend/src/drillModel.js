@@ -73,7 +73,7 @@ export const activeFilterCount = filters => Object.entries(filters)
   .filter(([key, value]) => key !== 'text' && (Array.isArray(value) ? value.length : value)).length
 
 // Every coach has these, so they are never filter choices and never rule a drill out.
-export const BASIC_EQUIPMENT = ['balls', 'bibs']
+export const BASIC_EQUIPMENT = ['balls', 'bibs', 'cones']
 const specialEquipment = drill => (drill.equipment_items ?? []).filter(item => !BASIC_EQUIPMENT.includes(item))
 
 // The tags and equipment that appear in the library, for the filter choices.
@@ -96,7 +96,8 @@ export function matchesFilters(drill, filters) {
   if (filters.tag && !drill.tags.some(t => t.id === filters.tag)) return false
   if (filters.format && drill.format !== filters.format) return false
   if (filters.intensity && drill.intensity !== filters.intensity) return false
-  if (!within(filters.players, [drill.players[0], drill.players[2]])) return false
+  // Players is the squad on hand: a drill needs at least its minimum, and larger squads split into groups.
+  if (filters.players !== '' && drill.players[0] > Number(filters.players)) return false
   if (!within(filters.age, drill.ages) || !within(filters.level, drill.levels)) return false
   // Fits in the time: the drill's shortest useful run is no longer than the time available.
   if (filters.duration !== '' && drill.duration[0] > Number(filters.duration)) return false
