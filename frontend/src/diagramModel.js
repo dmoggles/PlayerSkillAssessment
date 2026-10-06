@@ -33,7 +33,7 @@ export function buildTimeline(diagram) {
         const target = ends[spec.to] ?? positions[spec.to]
         ballMove = { kind: 'pass', from: ball, to: [target[0] + BALL_OFFSET[0], target[1] + BALL_OFFSET[1]], receiver: spec.to }
       } else if (kind === 'shot') {
-        ballMove = { kind: 'shot', from: ball, to: [...goals[spec.to].at], receiver: null }
+        ballMove = { kind: 'shot', from: ball, to: Array.isArray(spec.to) ? [...spec.to] : [...goals[spec.to].at], receiver: null }
       }
     }
     for (const [name, to] of Object.entries(ends)) positions[name] = [...to]

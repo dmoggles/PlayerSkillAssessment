@@ -94,7 +94,9 @@ def diagram_problems(diagram) -> list[str]:
             elif kind == "shot":
                 if spec.get("who") != holder:
                     problems.append(f"{where}: {spec.get('who')} shoots without the ball")
-                if spec.get("to") not in goals:
+                # A shot goes to a goal's centre, or to a point (a corner of the goal, a target).
+                target = spec.get("to")
+                if not (_is_point(target, pitch) or (isinstance(target, str) and target in goals)):
                     problems.append(f"{where}: shot at unknown goal {spec.get('to')}")
                 new_holder = None
             else:

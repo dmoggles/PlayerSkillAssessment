@@ -559,6 +559,7 @@ test('animated diagrams replay passes, runs, dribbles and shots into positions o
   assert.deepEqual(frameAt(timeline, 1, 0).positions.B, [8, 12])
   assert.deepEqual(frameAt(timeline, 1, 1).positions.B, [6, 16])
   assert.deepEqual(frameAt(timeline, 2, 1).ball, [5, 20], 'shots end in the goal')
+  assert.deepEqual(buildTimeline({ ...diagram, steps: [{ label: 'Corner', actions: [{ shot: { who: 'A', to: [6, 20] } }] }] }).steps[0].ballMove.to, [6, 20], 'or at a point, such as a corner of the goal')
   assert.deepEqual(stepArrows(timeline, 0).map(a => a.kind), ['run', 'pass'])
   assert.equal(ease(0), 0); assert.equal(ease(1), 1); assert.equal(ease(0.5), 0.5)
 
