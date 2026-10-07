@@ -736,3 +736,22 @@ test('with self-assessment off, the summary is the coach\'s alone', async () => 
   assert.match(on, /<span class="cmp-cell">Player<\/span>/)
   assert.doesNotMatch(off, /Disagreements|>Player<|Combined|self-assessment/)
 })
+
+test('playing groups: one shared group filters the library, a mixed squad shows its span, a new season moves everyone up', async () => {
+  const { squadGroups, movedUp } = await loadJsx('src/dashboardModel.js')
+  const players = [{ id: 1, active: true }, { id: 2, active: true }, { id: 3, active: true }, { id: 4, active: false }]
+  assert.deepEqual(squadGroups(players, { 1: 11, 2: 11 }), { single: 11, span: null })
+  assert.deepEqual(squadGroups(players, { 1: 10, 2: 12, 3: 11, 4: 15 }), { single: null, span: [10, 12] }, 'archived players do not count')
+  assert.deepEqual(squadGroups(players, {}), { single: null, span: null })
+  assert.deepEqual(movedUp(players, { 1: 10, 2: 21 }), { 1: '11', 2: '21', 3: '' }, 'capped at U21; no group stays unset; archived left out')
+  const { auditText } = await loadJsx('src/auditModel.js')
+  assert.equal(auditText({ action: 'playing_group_changed', actor_email: 'o@x', details: { player: 'Ana', period: 'Fall', from: 10, to: 11 } }), "o@x set Ana's playing group to U11 (Fall), was U10")
+  assert.equal(auditText({ action: 'playing_group_changed', actor_email: 'o@x', details: { player: 'Ana', period: 'Fall', from: 11, to: null } }), "o@x cleared Ana's playing group (Fall)")
+})
+
+test('the period form asks whether a new season starts', async () => {
+  const { default: PeriodForm } = await loadJsx('src/PeriodForm.jsx')
+  const html = renderToStaticMarkup(React.createElement(PeriodForm, { teamId: 1, players: [], latestPeriod: null, onCreated: () => {}, onMessage: () => {} }))
+  assert.match(html, /This period starts a new season/)
+  assert.match(html, /Add period<\/button>/)
+})

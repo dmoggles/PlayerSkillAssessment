@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.exc import IntegrityError
@@ -8,7 +8,7 @@ from ..auth import consume_auth_token, current_user, issue_auth_token, require_m
 from ..config import settings
 from ..database import get_db
 from ..matrix import team_version, version_label
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerPlan, SkillMatrix, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, SkillMatrix, Team, User
 from .accounts import delivery_message
 
 
@@ -23,8 +23,6 @@ class TeamSettings(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     self_assessment_enabled: bool
     player_gender: Literal["girls", "boys", "mixed"] | None = None
-    # Omitted leaves it unchanged; null clears it.
-    age_group: int | None = Field(default=None, ge=5, le=21)
 
 
 class TeamDelete(BaseModel):
@@ -47,9 +45,20 @@ class PlayerBody(BaseModel):
     name: str = Field(min_length=1, max_length=100)
 
 
+AgeGroup = Annotated[int, Field(ge=5, le=21)]
+
+
 class PeriodBody(BaseModel):
     label: str = Field(min_length=1, max_length=100)
     is_active: bool = True
+    starts_season: bool = False
+    # Playing groups the coach reviewed (player id -> U-number, or null for not set). Players left out carry over
+    # from the previous period, moved up a year when the period starts a season.
+    groups: dict[int, AgeGroup | None] | None = None
+
+
+class GroupBody(BaseModel):
+    age_group: AgeGroup | None
 
 
 class PeriodRename(BaseModel):
@@ -58,7 +67,7 @@ class PeriodRename(BaseModel):
 
 def team_out(team: Team, role: str):
     return {"id": team.id, "name": team.name, "self_assessment_enabled": team.self_assessment_enabled,
-            "player_gender": team.player_gender, "age_group": team.age_group, "role": role}
+            "player_gender": team.player_gender, "role": role}
 
 
 def player_out(player: Player):
@@ -67,7 +76,7 @@ def player_out(player: Player):
 
 def period_out(period: Period, db: DbSession | None = None):
     out = {"id": period.id, "label": period.label, "is_active": period.is_active, "created_at": period.created_at,
-           "matrix_version_id": period.matrix_version_id}
+           "matrix_version_id": period.matrix_version_id, "starts_season": period.starts_season}
     if db is not None:
         out["matrix_label"] = version_label(db, period.matrix_version_id)
     return out
@@ -95,7 +104,7 @@ def scoped_period(db: DbSession, team_id: int, period_id: int) -> Period:
 
 
 def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
-    """Delete assessments, ratings, revisions, priorities, reports, saved plans and self links for the given players or periods."""
+    """Delete assessments, ratings, revisions, priorities, reports, saved plans, playing groups and self links for the given players or periods."""
     def scoped(model):
         query = db.query(model)
         if player_ids is not None:
@@ -106,7 +115,7 @@ def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     assessment_ids = scoped(Assessment).with_entities(Assessment.id)
     db.query(Rating).filter(Rating.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
     db.query(AssessmentRevision).filter(AssessmentRevision.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
-    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, PlayerPlan):
+    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, PlayerPlan, PlayerGroup):
         scoped(model).delete(synchronize_session=False)
 
 
@@ -143,9 +152,6 @@ def update_team(team_id: int, body: TeamSettings, db: DbSession = Depends(get_db
     if body.player_gender and body.player_gender != team.player_gender:
         record(db, team_id, user, "player_gender_changed", **{"from": team.player_gender, "to": body.player_gender})
         team.player_gender = body.player_gender
-    if "age_group" in body.model_fields_set and body.age_group != team.age_group:
-        record(db, team_id, user, "age_group_changed", **{"from": team.age_group, "to": body.age_group})
-        team.age_group = body.age_group
     team.name = name
     team.self_assessment_enabled = body.self_assessment_enabled
     if not body.self_assessment_enabled:
@@ -319,15 +325,57 @@ def list_periods(team_id: int, db: DbSession = Depends(get_db), user: User = Dep
     return [period_out(p, db) for p in db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc()).all()]
 
 
+def carried_groups(db: DbSession, team_id: int, previous: Period | None, starts_season: bool) -> dict[int, int]:
+    """Each player's playing group carried from the previous period; a new season moves everyone up a year."""
+    if not previous:
+        return {}
+    rows = db.query(PlayerGroup).filter_by(period_id=previous.id).all()
+    return {g.player_id: min(g.age_group + 1, 21) if starts_season else g.age_group for g in rows}
+
+
+@router.get("/teams/{team_id}/periods/{period_id}/groups")
+def period_groups(team_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Playing groups in a period: player id -> U-number (players without one are left out)."""
+    require_member(team_id, db, user)
+    scoped_period(db, team_id, period_id)
+    return {str(g.player_id): g.age_group for g in db.query(PlayerGroup).filter_by(period_id=period_id)}
+
+
+@router.put("/teams/{team_id}/players/{player_id}/group")
+def set_player_group(team_id: int, player_id: int, period_id: int, body: GroupBody, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    player = scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    current = db.query(PlayerGroup).filter_by(player_id=player_id, period_id=period_id).first()
+    before = current.age_group if current else None
+    if before != body.age_group:
+        if body.age_group is None:
+            db.delete(current)
+        elif current:
+            current.age_group = body.age_group
+        else:
+            db.add(PlayerGroup(player_id=player_id, period_id=period_id, age_group=body.age_group))
+        record(db, team_id, user, "playing_group_changed", player=player.name, period=period.label, **{"from": before, "to": body.age_group})
+        db.commit()
+    return {"player_id": player_id, "age_group": body.age_group}
+
+
 @router.post("/teams/{team_id}/periods", status_code=201)
 def create_period(team_id: int, body: PeriodBody, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
     db.query(Team).filter_by(id=team_id).with_for_update().first()
     if body.is_active:
         db.query(Period).filter_by(team_id=team_id).update({"is_active": False})
-    period = Period(team_id=team_id, label=nonblank(body.label), is_active=body.is_active,
+    previous = db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc(), Period.id.desc()).first()
+    period = Period(team_id=team_id, label=nonblank(body.label), is_active=body.is_active, starts_season=body.starts_season,
                     matrix_version_id=team_version(db, db.get(Team, team_id)).id)
     db.add(period)
+    db.flush()
+    groups = carried_groups(db, team_id, previous, body.starts_season)
+    for player_id, age in (body.groups or {}).items():
+        scoped_player(db, team_id, player_id)
+        groups[player_id] = age
+    db.add_all(PlayerGroup(player_id=player_id, period_id=period.id, age_group=age) for player_id, age in groups.items() if age)
     try:
         db.commit()
     except IntegrityError:

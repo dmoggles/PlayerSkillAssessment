@@ -19,8 +19,17 @@ export const PLAYER_GENDERS = [
   ['mixed', 'Mixed (they / them)'],
 ]
 
-// U5 to U21; the team age group is the "U" number.
+// U5 to U21; a playing group is the "U" number.
 export const AGE_GROUPS = Array.from({ length: 17 }, (_, i) => i + 5)
+
+// The playing groups of the active players: one group (the drill library filters by it), a span, or none set.
+export function squadGroups(players, groups) {
+  const ages = [...new Set(players.filter(p => p.active).map(p => groups[p.id]).filter(Boolean))].sort((a, b) => a - b)
+  return { single: ages.length === 1 ? ages[0] : null, span: ages.length > 1 ? [ages[0], ages.at(-1)] : null }
+}
+
+// A new season's proposal: every active player one age group up from the latest period (empty where none was set).
+export const movedUp = (players, groups) => Object.fromEntries(players.filter(p => p.active).map(p => [p.id, groups[p.id] ? String(Math.min(groups[p.id] + 1, 21)) : '']))
 
 export const PLAYER_DATA_TABS = [
   ['summary', 'Summary'],

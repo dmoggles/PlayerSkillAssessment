@@ -19,8 +19,8 @@ export function DrillLibrarySummary({ onOpen }) {
 
 // The shared drill library: a filterable list of drills and a detail view with the variation ladder and diagrams.
 // Filters live here, so they survive opening a drill and coming back.
-// The age filter starts at the team's age group when it has one.
-export default function DrillLibrary({ ageGroup, onMessage }) {
+// The age filter starts at the squad's playing group when everyone shares one; a mixed squad starts unfiltered.
+export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
   const [drills, setDrills] = useState(null)
   const [open, setOpen] = useState(null)
   const [filters, setFilters] = useState(() => ({ ...EMPTY_FILTERS, age: ageGroup ? String(ageGroup) : '' }))
@@ -37,6 +37,7 @@ export default function DrillLibrary({ ageGroup, onMessage }) {
   const shown = sortDrills(drills.filter(d => matchesFilters(d, filters)))
   return <>
     <DrillFilters filters={filters} options={options} onChange={setFilters} />
+    {ageSpan && !filters.age && <p className="muted hint">Your squad spans U{ageSpan[0]}–U{ageSpan[1]}, so drills are not filtered by age. Set an age group under Filters to narrow them.</p>}
     <p className="muted drill-count" role="status">{shown.length === drills.length ? `${drills.length} drills` : `${shown.length} of ${drills.length} drills`}</p>
     {shown.length === 0 && <p className="muted">No drills match these filters.</p>}
     <ul className="drill-list">{shown.map(d => <li key={d.slug}>
@@ -81,7 +82,7 @@ function DrillFilters({ filters, options, onChange }) {
         {select('format', 'Format', Object.entries(FORMAT_LABELS))}
         {select('intensity', 'Intensity', Object.entries(INTENSITY_LABELS))}
         {number('players', 'Players', 1, 40, 'Bigger squads split into groups')}
-        {number('age', 'Age group (U)', 5, 21, 'For example 12 for U12; set your team\'s in Settings')}
+        {number('age', 'Age group (U)', 5, 21, 'For example 12 for U12')}
         {number('level', 'Player level', 1, 5, '1–5 skill scale')}
         {number('duration', 'Time available (min)', 1, 120)}
       </div>

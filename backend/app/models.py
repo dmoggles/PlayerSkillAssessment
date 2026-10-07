@@ -54,8 +54,6 @@ class Team(Base):
     self_assessment_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     # Fills pronoun placeholders in skill descriptions: girls, boys or mixed (they/their).
     player_gender: Mapped[str] = mapped_column(String(10), default="mixed")
-    # The "U" number (12 for U12); unset until the owner chooses it. Defaults the drill library's age filter.
-    age_group: Mapped[int | None] = mapped_column(SmallInteger)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -86,6 +84,8 @@ class Period(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
     label: Mapped[str] = mapped_column(String(100))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Set by the coach when the period opens a new season, the point where players usually move up an age group.
+    starts_season: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # The skill matrix version everyone in this period is rated on.
     matrix_version_id: Mapped[int] = mapped_column(ForeignKey("matrix_versions.id"), index=True)
@@ -186,6 +186,17 @@ class PlayerReport(Base):
     share_issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     share_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     share_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PlayerGroup(Base):
+    """The age group a player competes in during a period (the "U" number). Ratings are judged against this
+    cohort, and drills are matched to it. Carried into each new period; moved up a year when a season starts."""
+    __tablename__ = "player_groups"
+    __table_args__ = (UniqueConstraint("player_id", "period_id", name="uq_player_groups_player_period"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
+    period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    age_group: Mapped[int] = mapped_column(SmallInteger)
 
 
 class PlayerPlan(Base):

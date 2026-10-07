@@ -915,3 +915,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 .summary .cmp-row.coach-only { grid-template-columns: minmax(0, 1fr) 80px; }
+
+.period-form .checkbox { margin: 8px 0 0; }
+.season-review { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+.season-review p { margin: 0 0 8px; font-size: .88rem; }
+.season-review-row select, .group-select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: .85rem; }

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import version_tags
-from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, Rating, SkillTag, Team, User
+from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
 
 router = APIRouter(tags=["drills"])
 
@@ -118,11 +118,12 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
 SUGGESTIONS_PER_SKILL = 3
 
 
-def _library(db: DbSession, team: Team, user: User):
-    """Published drills for a team's age group, with their tags, ladder tags, variations, votes and tag labels."""
+def _library(db: DbSession, age_group: int | None, user: User):
+    """Published drills for an age group (all of them when it is not known), with their tags, ladder tags,
+    variations, votes and tag labels."""
     drills = db.query(Drill).filter_by(status="published").all()
-    if team.age_group:
-        drills = [d for d in drills if d.age_min <= team.age_group <= d.age_max]
+    if age_group:
+        drills = [d for d in drills if d.age_min <= age_group <= d.age_max]
     ids = [d.id for d in drills]
     drill_tags, ladder_tags = {}, {}
     for link in db.query(DrillTag).filter(DrillTag.drill_id.in_(ids)):
@@ -136,14 +137,15 @@ def _library(db: DbSession, team: Team, user: User):
 
 
 def _player_context(db: DbSession, team_id: int, player_id: int, period_id: int, user: User):
-    """The team, the period's skill tags and the coach's ratings for the player, or 404."""
+    """The player's playing group, the period, its skill tags and the coach's ratings for the player, or 404."""
     require_member(team_id, db, user)
-    team, player, period = db.get(Team, team_id), db.get(Player, player_id), db.get(Period, period_id)
+    player, period = db.get(Player, player_id), db.get(Period, period_id)
     if not player or player.team_id != team_id or not period or period.team_id != team_id:
         raise HTTPException(404, "Not found")
     coach = db.query(Assessment).filter_by(player_id=player_id, period_id=period_id, assessor="coach").first()
     levels = {r.skill_id: r.score for r in db.query(Rating).filter_by(assessment_id=coach.id)} if coach else {}
-    return team, period, version_tags(db, period.matrix_version_id), levels
+    group = db.query(PlayerGroup).filter_by(player_id=player_id, period_id=period_id).first()
+    return group.age_group if group else None, period, version_tags(db, period.matrix_version_id), levels
 
 
 def variation_for_level(variations: list[DrillVariation], level: int | None) -> DrillVariation:
@@ -162,7 +164,8 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
                       db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """Drills for a player's priority skills, at the variation that matches the coach's rating of each skill.
     A drill matches through the tags it shares with the skill. The coach's own dislikes are left out, their likes
-    come first; then the strength of the match and the other coaches' votes decide."""
+    come first; then the strength of the match and the other coaches' votes decide. Drills outside the player's
+    playing group in that period are left out."""
     team, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
 
     drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, team, user)

@@ -623,14 +623,36 @@ def test_pronoun_placeholders_render_for_each_team_gender(monkeypatch):
     gender_events = [e["details"] for e in owner.get(f"/teams/{team['id']}/audit").json() if e["action"] == "player_gender_changed"]
     assert gender_events == [{"from": "girls", "to": "boys"}, {"from": "mixed", "to": "girls"}]
 
-    # Age group: unset at first, omitted leaves it alone, null clears it.
-    assert team["age_group"] is None
-    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": 4}, headers=headers).status_code == 422
-    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": 12}, headers=headers).json()["age_group"] == 12
-    assert owner.patch(f"/teams/{team['id']}", json=settings, headers=headers).json()["age_group"] == 12
-    assert owner.patch(f"/teams/{team['id']}", json={**settings, "age_group": None}, headers=headers).json()["age_group"] is None
-    age_events = [e["details"] for e in owner.get(f"/teams/{team['id']}/audit").json() if e["action"] == "age_group_changed"]
-    assert age_events == [{"from": 12, "to": None}, {"from": None, "to": 12}]
+
+def test_playing_groups_carry_over_and_move_up_when_a_season_starts(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("groups-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Mixed"}, headers=headers).json()["id"]
+    ids = {name: owner.post(f"/teams/{team_id}/players", json={"name": name}, headers=headers).json()["id"] for name in ("Ana", "Bea", "Cat", "Dee")}
+    fall = owner.post(f"/teams/{team_id}/periods", json={"label": "Fall"}, headers=headers).json()
+    assert fall["starts_season"] is False
+    groups = lambda period: owner.get(f"/teams/{team_id}/periods/{period}/groups").json()
+    assert groups(fall["id"]) == {}
+    set_group = lambda name, period, age: owner.put(f"/teams/{team_id}/players/{ids[name]}/group", params={"period_id": period}, json={"age_group": age}, headers=headers)
+    for name, age in (("Ana", 10), ("Bea", 11), ("Cat", 12)):
+        assert set_group(name, fall["id"], age).status_code == 200
+    assert set_group("Ana", fall["id"], 4).status_code == 422
+    # A period within the season carries everyone's group over unchanged; Dee has none to carry.
+    winter = owner.post(f"/teams/{team_id}/periods", json={"label": "Winter"}, headers=headers).json()
+    assert groups(winter["id"]) == {str(ids["Ana"]): 10, str(ids["Bea"]): 11, str(ids["Cat"]): 12}
+    # A new season moves everyone up a year, except where the coach's review says otherwise.
+    spring = owner.post(f"/teams/{team_id}/periods", json={"label": "Next fall", "starts_season": True,
+                        "groups": {ids["Bea"]: 11, ids["Dee"]: 9}}, headers=headers).json()
+    assert spring["starts_season"] is True
+    assert groups(spring["id"]) == {str(ids["Ana"]): 11, str(ids["Bea"]): 11, str(ids["Cat"]): 13, str(ids["Dee"]): 9}
+    assert owner.post(f"/teams/{team_id}/periods", json={"label": "Bad", "groups": {999999: 10}}, headers=headers).status_code == 404
+    # Clearing a group; changes are in the activity log.
+    assert set_group("Cat", spring["id"], None).json() == {"player_id": ids["Cat"], "age_group": None}
+    assert str(ids["Cat"]) not in groups(spring["id"])
+    events = [e["details"] for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "playing_group_changed"]
+    assert events[0] == {"player": "Cat", "period": "Next fall", "from": 13, "to": None}
+    assert "age_group" not in owner.get("/teams").json()[0]  # the team-wide age group is gone
 
 
 def test_starter_matrix_has_no_hard_coded_gendered_words():
@@ -993,15 +1015,15 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
     owner.put("/drills/rondo-4v1/vote", json={"vote": -1}, headers=headers)
     assert suggest("passing_short")["passing_short"]["drills"] == []
     owner.put("/drills/rondo-4v1/vote", json={"vote": 0}, headers=headers)
-    # Drills outside the team's age group are left out.
-    owner.patch(f"/teams/{team_id}", json={"name": "Suggest", "self_assessment_enabled": False, "age_group": 7}, headers=headers)
+    # Drills outside the player's playing group are left out.
+    owner.put(f"/teams/{team_id}/players/{player_id}/group", params={"period_id": period_id}, json={"age_group": 7}, headers=headers)
     assert suggest("passing_short")["passing_short"]["drills"] == []
     assert suggest("dribbling_carrying")["dribbling_carrying"]["drills"][0]["slug"] == "cone-slalom-dribble"
 
     # A development plan uses the same library: club and home drills per priority, stepping up in week 3.
     with SessionLocal() as db:
         load_file(db, DATA_DIR / "drills_v3.json")
-    owner.patch(f"/teams/{team_id}", json={"name": "Suggest", "self_assessment_enabled": False, "age_group": None}, headers=headers)
+    owner.put(f"/teams/{team_id}/players/{player_id}/group", params={"period_id": period_id}, json={"age_group": None}, headers=headers)
     plan_url = f"/teams/{team_id}/players/{player_id}/plan"
     assert owner.get(plan_url, params={"period_id": period_id}).json() == {"plan": None}
     # Plans come from the saved priorities only, so they always match the report's focus areas.

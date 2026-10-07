@@ -15,9 +15,9 @@ router = APIRouter(tags=["plans"])
 
 
 def build_plan(db: DbSession, team_id: int, player_id: int, period_id: int, skills: list[str], weeks: int, user: User) -> dict:
-    team, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
+    age_group, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
     labels = {s["id"]: s["label"] for section in document(db, period.matrix_version_id)["sections"] for s in section["skills"]}
-    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, team, user)
+    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, age_group, user)
     return rules_plan({
         "weeks": weeks,
         "priorities": [{"rank": rank, "skill_id": skill_id, "label": labels.get(skill_id, skill_id),
