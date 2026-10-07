@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getPlayerHistory } from './api'
 import FollowUpCard from './FollowUpCard'
-import { priorityFollowUp } from './followUpModel'
+import { CHECKIN, priorityFollowUp } from './followUpModel'
 
 const MEDALS = {
   1: { icon: '🥇', label: 'Gold medal' },
@@ -25,7 +25,7 @@ function EarlierCycles({ row, names }) {
   if (!row?.earlier_cycles?.length) return null
   const day = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
   return <div className="earlier-cycles"><h4>Earlier cycles this period</h4><ul>{row.earlier_cycles.map(c => <li key={c.number}>
-    <strong>Cycle {c.number}</strong> <span className="muted">from {day(c.started_at)}</span>: {[...c.priorities].sort((a, b) => a.rank - b.rank).map(p => names[p.skill_id] ?? p.skill_id).join(', ') || 'no focus areas saved'}
+    <strong>Cycle {c.number}</strong> <span className="muted">from {day(c.started_at)}</span>: {[...c.priorities].sort((a, b) => a.rank - b.rank).map(p => `${names[p.skill_id] ?? p.skill_id}${c.checkin?.[p.skill_id] ? ` (${CHECKIN[c.checkin[p.skill_id].trend].label.toLowerCase()})` : ''}`).join(', ') || 'no focus areas saved'}
   </li>)}</ul></div>
 }
 

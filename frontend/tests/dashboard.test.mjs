@@ -787,3 +787,19 @@ test('earlier development cycles show in the report as one line, and in confirme
   assert.match(view, /Earlier cycles this period/)
   assert.match(view, /Cycle 1<\/strong>.*Short passing/)
 })
+
+test('a check-in asks better, same or worse for each focus skill, and results show in cycle history', async () => {
+  const { default: CheckinForm } = await loadJsx('src/CheckinForm.jsx')
+  const cycle = { number: 1, priorities: [{ skill_id: 'a', rank: 1 }, { skill_id: 'b', rank: 2 }] }
+  const html = renderToStaticMarkup(React.createElement(CheckinForm, { cycle, names: { a: 'Short passing', b: 'Dribbling' }, onSubmit: () => {}, onSkip: () => {}, onCancel: () => {} }))
+  assert.match(html, /Check-in: how did cycle 1 go\?/)
+  assert.equal((html.match(/type="radio"/g) ?? []).length, 6, 'three choices for each of two skills')
+  assert.match(html, /<button type="submit" disabled="">Save check-in and start cycle 2<\/button>/, 'disabled until every skill has a result')
+  assert.match(html, /Skip check-in/)
+  const { ConfirmedPrioritiesView } = await loadJsx('src/ConfirmedPrioritiesView.jsx')
+  const matrix = { sections: [{ id: 't', skills: [{ id: 'a', label: 'Short passing' }, { id: 'b', label: 'Dribbling' }] }] }
+  const history = [{ period_id: 1, label: 'Fall', priorities: [], assessments: {},
+    earlier_cycles: [{ number: 1, started_at: '2026-09-01T00:00:00Z', priorities: [{ skill_id: 'a', rank: 1 }, { skill_id: 'b', rank: 2 }], checkin: { a: { trend: 'better', note: null } } }] }]
+  const view = renderToStaticMarkup(React.createElement(ConfirmedPrioritiesView, { matrix, history, periodId: 1, periods: [{ id: 1, label: 'Fall' }] }))
+  assert.match(view, /Short passing \(better\), Dribbling<\/li>/)
+})

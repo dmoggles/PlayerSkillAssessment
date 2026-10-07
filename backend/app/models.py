@@ -149,6 +149,20 @@ class DevelopmentCycle(Base):
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
 
 
+class CycleCheckin(Base):
+    """How one focus skill went over a development cycle, recorded as the next cycle starts: better, same or
+    worse, with an optional note. Kept apart from the period assessment."""
+    __tablename__ = "cycle_checkins"
+    __table_args__ = (UniqueConstraint("cycle_id", "skill_id", name="uq_cycle_checkins_skill"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cycle_id: Mapped[int] = mapped_column(ForeignKey("development_cycles.id"), index=True)
+    skill_id: Mapped[str] = mapped_column(String(80))
+    trend: Mapped[str] = mapped_column(String(6))
+    note: Mapped[str | None] = mapped_column(String(300))
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class PriorityConfirmation(Base):
     __tablename__ = "priority_confirmations"
     __table_args__ = (UniqueConstraint("cycle_id", "rank", name="uq_priority_confirmations_cycle_rank"),

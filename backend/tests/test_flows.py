@@ -1013,8 +1013,13 @@ def test_development_cycles_keep_earlier_focus_areas_and_plans(monkeypatch):
     assert [(c["number"], c["current"], c["plan"]) for c in first] == [(1, True, None)]
     assert owner.post(cycles_url, json={"period_id": period_id}, headers=headers).status_code == 409  # no plan yet
     owner.post(plan_url, json={"period_id": period_id}, headers=headers)
-    started = owner.post(cycles_url, json={"period_id": period_id}, headers=headers)
-    assert started.status_code == 201 and started.json()["number"] == 2 and started.json()["priorities"] == []
+    # The check-in covers the ending cycle's focus skills only, once each.
+    bad = owner.post(cycles_url, json={"period_id": period_id, "checkin": [{"skill_id": "shooting", "trend": "better"}]}, headers=headers)
+    assert bad.status_code == 422
+    assert owner.post(cycles_url, json={"period_id": period_id, "checkin": [{"skill_id": "passing_short", "trend": "great"}]}, headers=headers).status_code == 422
+    started = owner.post(cycles_url, json={"period_id": period_id, "checkin": [
+        {"skill_id": "passing_short", "trend": "better", "note": " Much calmer on the ball "}, {"skill_id": "dribbling_carrying", "trend": "same"}]}, headers=headers)
+    assert started.status_code == 201 and started.json()["number"] == 2 and started.json()["priorities"] == [] and started.json()["checkin"] == {}
     # The new cycle starts empty; the first keeps its focus areas and plan as history.
     assert owner.get(f"/teams/{team_id}/priorities", params=pp).json() == []
     assert owner.get(plan_url, params={"period_id": period_id}).json() == {"plan": None}
@@ -1026,12 +1031,18 @@ def test_development_cycles_keep_earlier_focus_areas_and_plans(monkeypatch):
     row = owner.get(f"/teams/{team_id}/players/{player_id}/history").json()[0]
     assert [p["skill_id"] for p in row["priorities"]] == ["1v1_defending"]
     assert [(c["number"], [p["skill_id"] for p in c["priorities"]]) for c in row["earlier_cycles"]] == [(1, ["passing_short", "dribbling_carrying"])]
+    assert row["earlier_cycles"][0]["checkin"] == {"passing_short": {"trend": "better", "note": "Much calmer on the ball"}, "dribbling_carrying": {"trend": "same", "note": None}}
+    assert listed[1]["checkin"]["passing_short"]["trend"] == "better" and listed[0]["checkin"] == {}
     report = owner.get(f"/teams/{team_id}/players/{player_id}/periods/{period_id}/report").json()
     assert report["plan"] is None and report["history"][0]["earlier_cycles"][0]["number"] == 1
     insights = owner.get(f"/teams/{team_id}/insights", params={"period_id": period_id}).json()
     assert [p["skill_id"] for p in insights["period"]["priorities"]] == ["1v1_defending"]
     events = [e["details"] for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "cycle_started"]
-    assert events == [{"player": "Kit", "period": "Fall", "number": 2}]
+    assert events == [{"player": "Kit", "period": "Fall", "number": 2, "checked_in": True}]
+    # Skipping the check-in still starts the next cycle.
+    owner.post(plan_url, json={"period_id": period_id}, headers=headers)
+    third = owner.post(cycles_url, json={"period_id": period_id}, headers=headers).json()
+    assert third["number"] == 3 and owner.get(cycles_url, params={"period_id": period_id}).json()[1]["checkin"] == {}
 
 
 def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):

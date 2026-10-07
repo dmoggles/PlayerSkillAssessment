@@ -9,7 +9,7 @@ from ..config import settings
 from ..database import get_db
 from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
-from ..models import Assessment, AssessmentRevision, DevelopmentCycle, Drill, Period, Player, PlayerGroup, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..models import Assessment, AssessmentRevision, CycleCheckin, DevelopmentCycle, Drill, Period, Player, PlayerGroup, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from ..cycles import current_plan, current_priorities, ensure_cycle, latest_cycle_ids
 from ..plans import home_view
 from .drills import drill_out
@@ -226,7 +226,7 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
 
 
 def add_earlier_cycles(db: DbSession, player_id: int, rows) -> None:
-    """Each history row gets its period's earlier cycles: number, start and priorities in rank order."""
+    """Each history row gets its period's earlier cycles: number, start, priorities in rank order and check-in."""
     cycles = db.query(DevelopmentCycle).filter_by(player_id=player_id).order_by(DevelopmentCycle.number).all()
     latest = {}
     for c in cycles:
@@ -235,9 +235,12 @@ def add_earlier_cycles(db: DbSession, player_id: int, rows) -> None:
     priorities = {}
     for p in db.query(PriorityConfirmation).filter(PriorityConfirmation.cycle_id.in_([c.id for c in earlier])).order_by(PriorityConfirmation.rank):
         priorities.setdefault(p.cycle_id, []).append({"skill_id": p.skill_id, "rank": p.rank})
+    checkins = {}
+    for c in db.query(CycleCheckin).filter(CycleCheckin.cycle_id.in_([c.id for c in earlier])):
+        checkins.setdefault(c.cycle_id, {})[c.skill_id] = {"trend": c.trend, "note": c.note}
     for row in rows:
-        row["earlier_cycles"] = [{"number": c.number, "started_at": c.started_at, "priorities": priorities.get(c.id, [])}
-                                 for c in earlier if c.period_id == row["period_id"]]
+        row["earlier_cycles"] = [{"number": c.number, "started_at": c.started_at, "priorities": priorities.get(c.id, []),
+                                  "checkin": checkins.get(c.id, {})} for c in earlier if c.period_id == row["period_id"]]
 
 
 def add_playing_groups(db: DbSession, player_id: int, rows) -> None:

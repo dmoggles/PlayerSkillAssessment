@@ -11,6 +11,13 @@ export const TRENDS = {
   retired: 'No longer assessed',
 }
 
+// Check-in results at the end of a development cycle, with the follow-up trend style each one shares.
+export const CHECKIN = {
+  better: { label: 'Better', css: 'improved' },
+  same: { label: 'Same', css: 'unchanged' },
+  worse: { label: 'Worse', css: 'worse' },
+}
+
 const trend = (before, now) => now == null || before == null ? 'pending' : now > before ? 'improved' : now < before ? 'worse' : 'unchanged'
 
 // periods: newest first, as the API returns them. history: the player's history rows.

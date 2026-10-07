@@ -1,6 +1,7 @@
 """Development plans: generated from a player's priorities and saved, one per player and period. The saved plan
 appears in the player report, so the report's share link is how players and parents see it."""
 from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
 from ..audit import record
@@ -8,7 +9,7 @@ from ..auth import current_user
 from ..database import get_db
 from ..matrix import document
 from ..cycles import current_cycle, current_plan
-from ..models import DevelopmentCycle, Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
+from ..models import CycleCheckin, DevelopmentCycle, Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
 from ..plans import plan as rules_plan
 from .drills import _library, _player_context
 
@@ -82,9 +83,10 @@ def generate_plan(team_id: int, player_id: int, body: PlanIn, db: DbSession = De
 def cycle_out(db: DbSession, cycle: DevelopmentCycle, current: bool) -> dict:
     plan = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first()
     priorities = db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id).order_by(PriorityConfirmation.rank).all()
+    checkins = {c.skill_id: {"trend": c.trend, "note": c.note} for c in db.query(CycleCheckin).filter_by(cycle_id=cycle.id)}
     return {"id": cycle.id, "number": cycle.number, "started_at": cycle.started_at, "current": current,
             "priorities": [{"skill_id": p.skill_id, "rank": p.rank, "coach_note": p.coach_note} for p in priorities],
-            "plan": plan.plan if plan else None}
+            "plan": plan.plan if plan else None, "checkin": checkins}
 
 
 @router.get("/teams/{team_id}/players/{player_id}/cycles")
@@ -95,8 +97,16 @@ def list_cycles(team_id: int, player_id: int, period_id: int, db: DbSession = De
     return [cycle_out(db, c, i == 0) for i, c in enumerate(cycles)]
 
 
+class CheckinIn(BaseModel):
+    skill_id: str
+    trend: Literal["better", "same", "worse"]
+    note: str | None = Field(default=None, max_length=300)
+
+
 class CycleIn(BaseModel):
     period_id: int
+    # How the ending cycle's focus skills went; empty when the coach skips the check-in.
+    checkin: list[CheckinIn] = Field(default=[], max_length=5)
 
 
 @router.post("/teams/{team_id}/players/{player_id}/cycles", status_code=201)
@@ -107,9 +117,15 @@ def start_cycle(team_id: int, player_id: int, body: CycleIn, db: DbSession = Dep
     cycle = current_cycle(db, player_id, body.period_id)
     if not cycle or not db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first():
         raise HTTPException(409, "Generate a plan for the current cycle before starting the next one")
+    focus = {p.skill_id for p in db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id)}
+    skills = [c.skill_id for c in body.checkin]
+    if len(skills) != len(set(skills)) or not set(skills) <= focus:
+        raise HTTPException(422, "A check-in covers the current cycle's focus skills, once each")
+    for c in body.checkin:
+        db.add(CycleCheckin(cycle_id=cycle.id, skill_id=c.skill_id, trend=c.trend, note=(c.note or "").strip() or None, created_by=user.id))
     nxt = DevelopmentCycle(player_id=player_id, period_id=body.period_id, number=cycle.number + 1, created_by=user.id)
     db.add(nxt)
     player, period = db.get(Player, player_id), db.get(Period, body.period_id)
-    record(db, team_id, user, "cycle_started", player=player.name, period=period.label, number=nxt.number)
+    record(db, team_id, user, "cycle_started", player=player.name, period=period.label, number=nxt.number, checked_in=bool(body.checkin))
     db.commit()
     return cycle_out(db, nxt, True)
