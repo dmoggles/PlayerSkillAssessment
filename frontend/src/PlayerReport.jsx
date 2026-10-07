@@ -34,8 +34,9 @@ export default function PlayerReport({ report, onOpenDrill }) {
       <ul className="report-follow-up">{report.followUp.items.map(item => <li key={item.skill_id}><span>{item.label}{item.change === 'reworded' && <sup className="matrix-change" title="The skill's wording changed since then">*</sup>}</span><span className={`report-trend trend-${item.trend}`}>{REPORT_TRENDS[item.trend]}</span><small>{item.before ?? '—'} → {item.now ?? '—'}</small></li>)}</ul>
     </section>}
     {report.assessed && report.trend.periods.length > 1 && <section><h3>Progress</h3>
-      <div className="report-table-scroll"><table className="report-table"><thead><tr><th>Skill area</th>{report.trend.periods.map(label => <th key={label}>{label}</th>)}</tr></thead>
+      <div className="report-table-scroll"><table className="report-table"><thead><tr><th>Skill area</th>{report.trend.periods.map((label, i) => <th key={label}>{label}{report.trend.groups?.[i]?.age && <small> U{report.trend.groups[i].age}{report.trend.groups[i].moved && <sup className="matrix-change">†</sup>}</small>}</th>)}</tr></thead>
         <tbody>{report.trend.rows.map(row => <tr key={row.label}><td>{row.label}</td>{row.values.map((value, i) => <td key={i}>{fmt(value)}{row.changed?.[i] && <sup className="matrix-change">*</sup>}</td>)}</tr>)}</tbody></table></div>
+      {report.trend.groups?.some(g => g.moved) && <p className="report-footnote">† Moved to another age group: from here, ratings are compared with that age group.</p>}
       {report.trend.rows.some(row => row.changed?.some(Boolean)) && <p className="report-footnote">* The skills in this area changed from this period, so it is not directly comparable with earlier periods.</p>}
     </section>}
     {report.scale && <footer className="report-footer">Ratings use a 1–5 scale: {report.scale}.</footer>}

@@ -1,5 +1,5 @@
 from datetime import timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
@@ -9,7 +9,7 @@ from ..config import settings
 from ..database import get_db
 from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
-from ..models import Assessment, AssessmentRevision, Drill, Period, Player, PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..models import Assessment, AssessmentRevision, Drill, Period, Player, PlayerGroup, PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
 from ..plans import home_view
 from .drills import drill_out
 from .teams import scoped_period, scoped_player
@@ -216,7 +216,16 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     for priority in priorities:
         if priority.period_id in by_period:
             by_period[priority.period_id]["priorities"].append({"skill_id": priority.skill_id, "rank": priority.rank, "coach_note": priority.coach_note})
+    add_playing_groups(db, player_id, by_period.values())
     return annotate_history(db, list(by_period.values()), [versions[pid] for pid in by_period])
+
+
+def add_playing_groups(db: DbSession, player_id: int, rows) -> None:
+    """Each history row gets the player's playing group in that period (or None), so views can flag a change of
+    cohort: ratings before and after a move up are judged against different players."""
+    groups = {g.period_id: g.age_group for g in db.query(PlayerGroup).filter_by(player_id=player_id)}
+    for row in rows:
+        row["age_group"] = groups.get(row["period_id"])
 
 
 def report_payload(db: DbSession, team: Team, player: Player, period: Period) -> dict:
@@ -243,6 +252,7 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                             "ratings": [{"skill_id": r.skill_id, "score": r.score} for r in a.ratings],
                         }} if a else {}})
     annotate_history(db, history, [p.matrix_version_id for p in periods])
+    add_playing_groups(db, player.id, history)
     saved_plan = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
@@ -384,13 +394,14 @@ def shared_report(token: str, db: DbSession = Depends(get_db)):
 
 
 @router.get("/teams/{team_id}/insights")
-def insights(team_id: int, period_id: int | None = None, position: str | None = None, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+def insights(team_id: int, period_id: int | None = None, position: str | None = None, group: int | None = Query(default=None, ge=5, le=21),
+             db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """Squad trends across periods, plus common priorities and position groups for the given period.
-    position limits trends and priorities to one primary position."""
+    position limits trends and priorities to one primary position; group limits everything to one playing group."""
     require_member(team_id, db, user)
     if position is not None and position not in POSITION_ORDER:
         raise HTTPException(422, "Unknown position")
-    return team_insights(db, team_id, scoped_period(db, team_id, period_id) if period_id else None, position)
+    return team_insights(db, team_id, scoped_period(db, team_id, period_id) if period_id else None, position, group)
 
 
 @router.get("/teams/{team_id}/assessments/{assessment_id}/revisions")

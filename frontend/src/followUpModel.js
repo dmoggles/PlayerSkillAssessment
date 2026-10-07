@@ -41,7 +41,10 @@ export function priorityFollowUp(periods, history, periodId, currentCoach) {
       change,
     }
   })
-  return { periodId: earlier.id, periodLabel: earlier.label, items }
+  // A move to another playing group since then: the scores are judged against different cohorts.
+  const nowRow = history.find(row => row.period_id === Number(periodId))
+  const groupChange = previous.age_group && nowRow?.age_group && previous.age_group !== nowRow.age_group ? { from: previous.age_group, to: nowRow.age_group } : null
+  return { periodId: earlier.id, periodLabel: earlier.label, items, groupChange }
 }
 
 // Why a priority row holds its skill: the algorithm's pick for that rank, one of last

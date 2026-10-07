@@ -755,3 +755,21 @@ test('the period form asks whether a new season starts', async () => {
   assert.match(html, /This period starts a new season/)
   assert.match(html, /Add period<\/button>/)
 })
+
+test('team data defaults to the largest playing group, and moves between groups are flagged', async () => {
+  const { groupCounts } = await loadJsx('src/dashboardModel.js')
+  const players = [1, 2, 3, 4, 5].map(id => ({ id, active: id !== 5 }))
+  assert.deepEqual(groupCounts(players, { 1: 11, 2: 11, 3: 10, 4: 12, 5: 12 }), [{ age: 11, players: 2 }, { age: 10, players: 1 }, { age: 12, players: 1 }], 'largest first, then younger; archived ignored')
+  const { priorityFollowUp } = await loadJsx('src/followUpModel.js')
+  const history = [
+    { period_id: 1, label: 'Fall', age_group: 11, priorities: [{ skill_id: 'a', rank: 1 }], assessments: { coach: { ratings: [{ skill_id: 'a', score: 2 }] } } },
+    { period_id: 2, label: 'Spring', age_group: 12, priorities: [], assessments: { coach: { ratings: [{ skill_id: 'a', score: 2 }] } } },
+  ]
+  const periods = [{ id: 2, label: 'Spring' }, { id: 1, label: 'Fall' }]
+  assert.deepEqual(priorityFollowUp(periods, history, 2, history[1].assessments.coach).groupChange, { from: 11, to: 12 })
+  assert.equal(priorityFollowUp(periods, history.map(r => ({ ...r, age_group: 11 })), 2, history[1].assessments.coach).groupChange, null)
+  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const html = renderToStaticMarkup(React.createElement(ProgressView, { matrix: { sections: [] }, history }))
+  assert.match(html, /Spring<small>U12<sup class="matrix-change"/)
+  assert.match(html, /moved to another playing group/)
+})

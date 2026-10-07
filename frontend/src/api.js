@@ -78,7 +78,7 @@ export const getCoachAssessment = (id, playerId, periodId) => data(api.get(`${te
 export const submitCoachAssessment = (id, value) => data(api.put(`${team(id)}/assessments/coach`, value))
 export const getComparison = (id, playerId, periodId) => data(api.get(`${team(id)}/assessments/compare`, { params: { player_id: playerId, period_id: periodId } }))
 export const getPeriodAssessments = (id, periodId) => data(api.get(`${team(id)}/assessments/period/${periodId}`))
-export const getInsights = (id, periodId, position) => data(api.get(`${team(id)}/insights`, { params: { ...(periodId ? { period_id: periodId } : {}), ...(position ? { position } : {}) } }))
+export const getInsights = (id, periodId, position, group) => data(api.get(`${team(id)}/insights`, { params: { ...(periodId ? { period_id: periodId } : {}), ...(position ? { position } : {}), ...(group ? { group } : {}) } }))
 export const getPlayerHistory = (id, playerId) => data(api.get(`${team(id)}/players/${playerId}/history`))
 export const getRevisions = (id, assessmentId) => data(api.get(`${team(id)}/assessments/${assessmentId}/revisions`))
 export const getPriorities = (id, playerId, periodId) => data(api.get(`${team(id)}/priorities`, { params: { player_id: playerId, period_id: periodId } }))

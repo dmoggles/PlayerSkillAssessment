@@ -7,6 +7,7 @@ export default function FollowUpCard({ matrix, followUp, chosen = new Set(), can
   const names = Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
   return <section className="follow-up" aria-labelledby="follow-up-title">
     <h3 id="follow-up-title">Last period's priorities <small>{followUp.periodLabel}</small></h3>
+    {followUp.groupChange && <p className="follow-up-change">Moved from U{followUp.groupChange.from} to U{followUp.groupChange.to} since then, so these scores are judged against different age groups.</p>}
     <ol>{followUp.items.map(item => <li key={item.skill_id} className={`follow-up-item trend-${item.trend}`}>
       <span className="follow-up-rank">{item.rank}</span>
       <div className="follow-up-body">

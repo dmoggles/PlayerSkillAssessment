@@ -3,13 +3,14 @@
 Each player counts once per period (squad averages are averages of player averages). Section averages use each
 period's own matrix; tag levels go through each version's tag mapping, so they compare across matrix versions.
 An optional position filter limits trends and priorities to players whose primary position in that period matches;
-the position breakdown always covers the whole squad.
+the position breakdown always covers the whole squad. An optional playing group limits everything, positions
+included, to players in that group in each period: ratings in different groups are judged against different cohorts.
 """
 from collections import defaultdict
 from statistics import mean
 from sqlalchemy.orm import Session as DbSession
 from .matrix import document, skill_changes, version_skills, version_tags
-from .models import Assessment, Period, Player, PriorityConfirmation, SkillTag
+from .models import Assessment, Period, Player, PlayerGroup, PriorityConfirmation, SkillTag
 
 POSITION_ORDER = ["goalkeeper", "defender", "midfielder", "winger", "striker"]
 
@@ -51,10 +52,14 @@ def squad(rows: list[dict]) -> dict:
     return {key: {"average": _round(mean(v)), "players": len(v)} for key, v in values.items()}
 
 
-def team_insights(db: DbSession, team_id: int, period: Period | None, position: str | None = None) -> dict:
+def team_insights(db: DbSession, team_id: int, period: Period | None, position: str | None = None, group: int | None = None) -> dict:
     periods = db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at, Period.id).all()
     assessments = db.query(Assessment).join(Player, Player.id == Assessment.player_id).filter(
         Player.team_id == team_id, Assessment.assessor == "coach").all()
+    if group is not None:
+        in_group = {(g.player_id, g.period_id) for g in db.query(PlayerGroup).filter(
+            PlayerGroup.period_id.in_([p.id for p in periods]), PlayerGroup.age_group == group)}
+        assessments = [a for a in assessments if (a.player_id, a.period_id) in in_group]
     by_period, filtered = defaultdict(list), defaultdict(list)
     for a in assessments:
         by_period[a.period_id].append(a)
@@ -82,13 +87,15 @@ def team_insights(db: DbSession, team_id: int, period: Period | None, position: 
         previous_version = p.matrix_version_id
 
     tag_info = {t.id: {"label": t.label, "area": t.area} for t in db.query(SkillTag).filter(SkillTag.id.in_(used_tags | {"_"}))}
-    result = {"trend": trend, "section_labels": labels, "tags": tag_info, "period": None, "position": position}
+    result = {"trend": trend, "section_labels": labels, "tags": tag_info, "period": None, "position": position, "group": group}
     if period is None:
         return result
 
     doc, tags = document(db, period.matrix_version_id), version_tags(db, period.matrix_version_id)
     skill_labels = {s["id"]: s["label"] for section in doc["sections"] for s in section["skills"]}
     players = {pl.id: pl.name for pl in db.query(Player).filter_by(team_id=team_id)}
+    if group is not None:
+        players = {a.player_id: players[a.player_id] for a in by_period.get(period.id, [])}
     if position:
         players = {a.player_id: players[a.player_id] for a in filtered.get(period.id, [])}
     by_skill, by_tag = defaultdict(list), defaultdict(dict)

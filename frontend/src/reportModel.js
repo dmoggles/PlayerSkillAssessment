@@ -43,6 +43,8 @@ export function buildReport(matrix, report) {
     priorities: [...(current.priorities ?? [])].sort((a, b) => a.rank - b.rank).map(p => ({ rank: p.rank, label: names[p.skill_id] ?? p.skill_id, note: p.coach_note })),
     trend: {
       periods: assessed.map(row => row.label),
+      // Each period's playing group, and whether the player had moved to another group by then.
+      groups: assessed.map((row, k) => ({ age: row.age_group ?? null, moved: k > 0 && Boolean(row.age_group && assessed[k - 1].age_group && row.age_group !== assessed[k - 1].age_group) })),
       rows: sections.map(section => ({
         label: section.label,
         changed: changedAreas.map(areas => areas.has(section.id)),

@@ -28,6 +28,14 @@ export function squadGroups(players, groups) {
   return { single: ages.length === 1 ? ages[0] : null, span: ages.length > 1 ? [ages[0], ages.at(-1)] : null }
 }
 
+// Playing groups present among the active players, with counts, largest first (ties: younger first). The first is
+// the default for Team data, so its views do not mix ratings judged against different cohorts.
+export function groupCounts(players, groups) {
+  const counts = {}
+  for (const p of players.filter(p => p.active)) if (groups[p.id]) counts[groups[p.id]] = (counts[groups[p.id]] ?? 0) + 1
+  return Object.entries(counts).map(([age, n]) => ({ age: Number(age), players: n })).sort((a, b) => b.players - a.players || a.age - b.age)
+}
+
 // A new season's proposal: every active player one age group up from the latest period (empty where none was set).
 export const movedUp = (players, groups) => Object.fromEntries(players.filter(p => p.active).map(p => [p.id, groups[p.id] ? String(Math.min(groups[p.id] + 1, 21)) : '']))
 

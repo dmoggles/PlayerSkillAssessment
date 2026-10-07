@@ -7,17 +7,18 @@ const CHANGE_NOTE = '* Skills in this area changed in the skill matrix from this
 
 // Squad-level views for Team Data: trends across periods, common priorities, and position groups.
 // position filters Trends and Priorities; Positions always compares the whole squad.
-export default function TeamInsights({ teamId, periodId, view, position, onPositionChange, onMessage }) {
+// group limits every view, positions included, to one playing group (null for all).
+export default function TeamInsights({ teamId, periodId, view, position, group = null, onPositionChange, onMessage }) {
   const [data, setData] = useState(null)
   const filter = view === 'positions' ? '' : position
   useEffect(() => {
     let live = true
-    getInsights(teamId, periodId, filter).then(value => { if (live) setData(value) }).catch(e => onMessage(errorMessage(e)))
+    getInsights(teamId, periodId, filter, group).then(value => { if (live) setData(value) }).catch(e => onMessage(errorMessage(e)))
     return () => { live = false }
-  }, [teamId, periodId, filter, onMessage])
+  }, [teamId, periodId, filter, group, onMessage])
   const control = view !== 'positions' && <label className="field insights-filter">Position<select value={position} onChange={e => { setData(null); onPositionChange(e.target.value) }}>
     {POSITION_FILTERS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
-  const stale = !data || (data.position ?? '') !== filter
+  const stale = !data || (data.position ?? '') !== filter || (data.group ?? null) !== group
   return <>
     {control}
     {stale ? <p className="muted" role="status">Loading squad insights…</p>

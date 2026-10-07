@@ -846,6 +846,19 @@ def test_team_insights_average_players_group_priorities_by_tag_and_split_positio
     assert strikers["trend"] == [] and strikers["period"]["priorities"] == [] and strikers["period"]["assessed"] == 0
     assert owner.get(f"/teams/{team_id}/insights", params={"position": "sweeper"}).status_code == 422
 
+    # Playing group filter: everything, positions included, covers players in that group in each period.
+    group = lambda name, period, age: owner.put(f"/teams/{team_id}/players/{ids[name]}/group", params={"period_id": period}, json={"age_group": age}, headers=headers)
+    group("Ada", p1, 10), group("Bea", p1, 11), group("Cy", p1, 11), group("Ada", p2, 11)
+    u11 = owner.get(f"/teams/{team_id}/insights", params={"period_id": p1, "group": 11}).json()
+    assert u11["group"] == 11 and [(row["label"], row["players"]) for row in u11["trend"]] == [("P1", 2), ("P2", 1)]  # Ada joins U11 in P2
+    assert u11["trend"][0]["sections"]["technical"] == {"average": 4.0, "players": 1}  # Bea only; Ada was U10 in P1
+    assert [(g["position"], g["players"]) for g in u11["period"]["positions"]] == [("goalkeeper", 1), ("winger", 1)]
+    assert [p["skill_id"] for p in u11["period"]["priorities"]] == ["first_touch_body_shape"]  # Bea's; Ada's are U10
+    assert owner.get(f"/teams/{team_id}/insights", params={"group": 4}).status_code == 422
+    # A player's history carries their playing group per period, so views can flag a move up.
+    history = owner.get(f"/teams/{team_id}/players/{ids['Ada']}/history").json()
+    assert [(row["label"], row["age_group"]) for row in history] == [("P1", 10), ("P2", 11)]
+
 
 def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     import json
