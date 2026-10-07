@@ -650,6 +650,912 @@
           "relation": "pairs_with"
         }
       ]
+    },
+    {
+      "slug": "create-chances-around-the-box",
+      "title": "Combine to create chances around the box",
+      "summary": "Four attackers combine against a back four held in zones and must get a shot away within ten seconds; defenders who win the ball counter to mini goals.",
+      "format": "unit",
+      "players": [
+        9,
+        13,
+        18
+      ],
+      "ages": [
+        10,
+        18
+      ],
+      "duration": [
+        15,
+        20
+      ],
+      "session_phase": "opposed",
+      "intensity": "high",
+      "space": [
+        32,
+        41
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "goals",
+          "quantity": 1
+        },
+        {
+          "item": "mini_goals",
+          "quantity": 2
+        },
+        {
+          "item": "cones",
+          "quantity": 8
+        },
+        {
+          "item": "bibs",
+          "quantity": 8
+        },
+        {
+          "item": "balls",
+          "quantity": 12
+        }
+      ],
+      "setup": "A 32 by 41 m area (about 35 by 45 yards) in front of a goal with a goalkeeper, split lengthways into three zones, with two mini goals on the far line. Two centre backs stay in the middle zone and a fullback in each outside zone; four attackers move freely. Spare attackers and defenders wait to rotate in.",
+      "instructions": [
+        "An attacker starts with the ball at the far end; the four attackers have 10 seconds to combine and get a shot away.",
+        "Defenders stay in their zones. If they win the ball they break out and score in either mini goal.",
+        "The defending four switch after every two completed attacks, the attackers after every three."
+      ],
+      "coaching_points": [
+        "Quick combinations to get in behind: one and two touches.",
+        "A sharp movement creates the yard of space to finish.",
+        "Exploit the fullbacks being stuck in their zones: attack the gaps beside them.",
+        "Weight the penetrating pass and time the run in behind together.",
+        "Defenders: move as a unit and keep talking."
+      ],
+      "tags": {
+        "movement_to_receive": 1.0,
+        "support_play": 1.0,
+        "passing_short": 0.5,
+        "shooting": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "4v2 against the centre backs",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "No fullbacks and 12 seconds to shoot: more space to find the combination.",
+          "players": [
+            7,
+            9,
+            16
+          ],
+          "setup": "A 32 by 41 m area in front of a goal with a goalkeeper, split into three zones, with two mini goals on the far line. Two centre backs stay in the middle zone; four attackers move freely.",
+          "instructions": [
+            "An attacker starts with the ball at the far end; the four have 12 seconds to combine and shoot.",
+            "If the centre backs win the ball they break out and score in either mini goal.",
+            "Swap the centre backs after every two completed attacks."
+          ],
+          "diagram": 1
+        },
+        {
+          "kind": "base",
+          "title": "4v4 in zones, 10 seconds",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "The back four hold their zones; ten seconds to get the shot away."
+        },
+        {
+          "kind": "escalator",
+          "title": "8 seconds",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Only eight seconds: the first forward pass and the run in behind have to be on straight away."
+        },
+        {
+          "kind": "escalator",
+          "title": "Fullbacks may tuck in",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Fullbacks can leave their zones to cover inside, so attackers must switch play to the space they leave.",
+          "instructions": [
+            "An attacker starts with the ball at the far end; the four have 10 seconds to combine and shoot.",
+            "Fullbacks may now move inside; centre backs still stay in the middle zone.",
+            "If the defenders win the ball they break out and score in either mini goal.",
+            "The defending four switch after every two completed attacks, the attackers after every three."
+          ],
+          "coaching_points": [
+            "When a fullback tucks in, the space is outside: switch play early.",
+            "Look up before receiving: is the gap inside or out?",
+            "Defenders: fullback and centre back pass the runner on with a call."
+          ],
+          "diagram": 2
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Drop to receive, lay off inside, then the run in behind",
+          "diagram": {
+            "pitch": {
+              "width": 32,
+              "length": 41,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    16,
+                    0
+                  ],
+                  "width": 6
+                },
+                {
+                  "id": "m1",
+                  "at": [
+                    8,
+                    41
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "m2",
+                  "at": [
+                    24,
+                    41
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "z1": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  0.5
+                ]
+              },
+              "z2": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  40.5
+                ]
+              },
+              "z3": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  0.5
+                ]
+              },
+              "z4": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  40.5
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  31
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  22
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  26,
+                  22
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  18
+                ]
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  1
+                ]
+              },
+              "CB1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  13,
+                  10
+                ],
+                "label": "CB"
+              },
+              "CB2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  19,
+                  10
+                ],
+                "label": "CB"
+              },
+              "FB1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  12
+                ],
+                "label": "FB"
+              },
+              "FB2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  27,
+                  12
+                ],
+                "label": "FB"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 plays into A4, who drops off the centre backs to receive",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        15,
+                        21.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB1",
+                      "to": [
+                        14,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A4 lays it off first time to A2, coming inside where the fullback cannot follow",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A4",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        19
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "FB1",
+                      "to": [
+                        9.5,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB2",
+                      "to": [
+                        18,
+                        12
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 runs in behind, between centre back and fullback; A2 slips the pass through",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        20.5,
+                        6.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB2",
+                      "to": [
+                        18.5,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "FB2",
+                      "to": [
+                        23,
+                        11.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 finishes inside the time limit",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "A3",
+                      "to": [
+                        13.6,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Easier: 4v2 against the centre backs only",
+          "diagram": {
+            "pitch": {
+              "width": 32,
+              "length": 41,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    16,
+                    0
+                  ],
+                  "width": 6
+                },
+                {
+                  "id": "m1",
+                  "at": [
+                    8,
+                    41
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "m2",
+                  "at": [
+                    24,
+                    41
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "z1": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  0.5
+                ]
+              },
+              "z2": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  40.5
+                ]
+              },
+              "z3": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  0.5
+                ]
+              },
+              "z4": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  40.5
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  31
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  22
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  26,
+                  22
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  18
+                ]
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  1
+                ]
+              },
+              "CB1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  13,
+                  10
+                ],
+                "label": "CB"
+              },
+              "CB2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  19,
+                  10
+                ],
+                "label": "CB"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 plays into A4, who drops to receive",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        15,
+                        21.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB1",
+                      "to": [
+                        14,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A4 lays it off to A2 coming inside",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A4",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        11,
+                        18
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB2",
+                      "to": [
+                        17,
+                        12
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 runs in behind the second centre back; A2 plays it through",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        21,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 finishes",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "A3",
+                      "to": [
+                        13.6,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the fullback tucks in, so switch play to the space outside",
+          "diagram": {
+            "pitch": {
+              "width": 32,
+              "length": 41,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    16,
+                    0
+                  ],
+                  "width": 6
+                },
+                {
+                  "id": "m1",
+                  "at": [
+                    8,
+                    41
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "m2",
+                  "at": [
+                    24,
+                    41
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "z1": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  0.5
+                ]
+              },
+              "z2": {
+                "type": "cone",
+                "at": [
+                  10.5,
+                  40.5
+                ]
+              },
+              "z3": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  0.5
+                ]
+              },
+              "z4": {
+                "type": "cone",
+                "at": [
+                  21.5,
+                  40.5
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  31
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  22
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  26,
+                  22
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  18
+                ]
+              },
+              "GK": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  1
+                ]
+              },
+              "CB1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  13,
+                  10
+                ],
+                "label": "CB"
+              },
+              "CB2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  19,
+                  10
+                ],
+                "label": "CB"
+              },
+              "FB1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  12
+                ],
+                "label": "FB"
+              },
+              "FB2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  27,
+                  12
+                ],
+                "label": "FB"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 plays into A4, who drops to receive",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A4"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        15,
+                        21.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "CB1",
+                      "to": [
+                        14,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A4 lays it off to A2 coming inside",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A4",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        19
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "FB1",
+                      "to": [
+                        10,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The right fullback tucks in to cover the gap, so A2 switches play to A3, now free wide",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "FB2",
+                      "to": [
+                        21,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        27.5,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 drives in from the outside",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A3",
+                      "to": [
+                        24.5,
+                        7.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "FB2",
+                      "to": [
+                        22.5,
+                        9.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "And finishes at the near post",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "A3",
+                      "to": [
+                        18.6,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "link",
+          "caption": "Source: @touchtightcoach on Instagram – Create chances around the box (animated)",
+          "url": "https://www.instagram.com/reel/DdRMcnCiqN6/"
+        }
+      ],
+      "links": [
+        {
+          "to": "pass-set-and-play-out",
+          "relation": "pairs_with"
+        }
+      ]
     }
   ]
 }
