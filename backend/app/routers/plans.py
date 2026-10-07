@@ -7,7 +7,8 @@ from ..audit import record
 from ..auth import current_user
 from ..database import get_db
 from ..matrix import document
-from ..models import Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
+from ..cycles import current_cycle, current_plan
+from ..models import DevelopmentCycle, Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
 from ..plans import plan as rules_plan
 from .drills import _library, _player_context
 
@@ -48,7 +49,7 @@ def plan_out(saved: PlayerPlan | None) -> dict:
 @router.get("/teams/{team_id}/players/{player_id}/plan")
 def saved_plan(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     _player_context(db, team_id, player_id, period_id, user)
-    return plan_out(db.query(PlayerPlan).filter_by(player_id=player_id, period_id=period_id).first())
+    return plan_out(current_plan(db, player_id, period_id))
 
 
 class PlanIn(BaseModel):
@@ -61,18 +62,54 @@ def generate_plan(team_id: int, player_id: int, body: PlanIn, db: DbSession = De
     """Generate a plan from the player's confirmed priorities and save it, replacing their plan for the period.
     Only saved priorities count, so the plan always matches the focus areas in the report, which shows it at once."""
     _player_context(db, team_id, player_id, body.period_id, user)
-    skills = [p.skill_id for p in db.query(PriorityConfirmation).filter_by(player_id=player_id, period_id=body.period_id)
-              .order_by(PriorityConfirmation.rank)]
+    cycle = current_cycle(db, player_id, body.period_id)
+    skills = [p.skill_id for p in db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id).order_by(PriorityConfirmation.rank)] if cycle else []
     if not skills:
         raise HTTPException(409, "Save the player's priorities before generating a plan")
     built = build_plan(db, team_id, player_id, body.period_id, skills, body.weeks, user)
-    saved = db.query(PlayerPlan).filter_by(player_id=player_id, period_id=body.period_id).first()
+    saved = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first()
     replaced = saved is not None
     if not saved:
-        saved = PlayerPlan(player_id=player_id, period_id=body.period_id)
+        saved = PlayerPlan(player_id=player_id, period_id=body.period_id, cycle_id=cycle.id)
         db.add(saved)
     saved.plan, saved.created_by, saved.created_at = built, user.id, utcnow()
     player, period = db.get(Player, player_id), db.get(Period, body.period_id)
     record(db, team_id, user, "plan_saved", player=player.name, period=period.label, **({"replaced": True} if replaced else {}))
     db.commit()
     return plan_out(saved)
+
+
+def cycle_out(db: DbSession, cycle: DevelopmentCycle, current: bool) -> dict:
+    plan = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first()
+    priorities = db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id).order_by(PriorityConfirmation.rank).all()
+    return {"id": cycle.id, "number": cycle.number, "started_at": cycle.started_at, "current": current,
+            "priorities": [{"skill_id": p.skill_id, "rank": p.rank, "coach_note": p.coach_note} for p in priorities],
+            "plan": plan.plan if plan else None}
+
+
+@router.get("/teams/{team_id}/players/{player_id}/cycles")
+def list_cycles(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The player's development cycles in a period, newest first; the first is the current one."""
+    _player_context(db, team_id, player_id, period_id, user)
+    cycles = db.query(DevelopmentCycle).filter_by(player_id=player_id, period_id=period_id).order_by(DevelopmentCycle.number.desc()).all()
+    return [cycle_out(db, c, i == 0) for i, c in enumerate(cycles)]
+
+
+class CycleIn(BaseModel):
+    period_id: int
+
+
+@router.post("/teams/{team_id}/players/{player_id}/cycles", status_code=201)
+def start_cycle(team_id: int, player_id: int, body: CycleIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Start the next development cycle: new focus areas and a new plan, keeping the current cycle as history.
+    Only once the current cycle has a saved plan, so cycles are not skipped by accident."""
+    _player_context(db, team_id, player_id, body.period_id, user)
+    cycle = current_cycle(db, player_id, body.period_id)
+    if not cycle or not db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first():
+        raise HTTPException(409, "Generate a plan for the current cycle before starting the next one")
+    nxt = DevelopmentCycle(player_id=player_id, period_id=body.period_id, number=cycle.number + 1, created_by=user.id)
+    db.add(nxt)
+    player, period = db.get(Player, player_id), db.get(Period, body.period_id)
+    record(db, team_id, user, "cycle_started", player=player.name, period=period.label, number=nxt.number)
+    db.commit()
+    return cycle_out(db, nxt, True)

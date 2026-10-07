@@ -8,7 +8,7 @@ from ..auth import consume_auth_token, current_user, issue_auth_token, require_m
 from ..config import settings
 from ..database import get_db
 from ..matrix import team_version, version_label
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, SkillMatrix, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, SkillMatrix, Team, User
 from .accounts import delivery_message
 
 
@@ -115,7 +115,7 @@ def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     assessment_ids = scoped(Assessment).with_entities(Assessment.id)
     db.query(Rating).filter(Rating.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
     db.query(AssessmentRevision).filter(AssessmentRevision.assessment_id.in_(assessment_ids)).delete(synchronize_session=False)
-    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, PlayerPlan, PlayerGroup):
+    for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, PlayerPlan, PlayerGroup, DevelopmentCycle):
         scoped(model).delete(synchronize_session=False)
 
 

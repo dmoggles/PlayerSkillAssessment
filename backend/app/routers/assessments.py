@@ -9,7 +9,8 @@ from ..config import settings
 from ..database import get_db
 from ..insights import POSITION_ORDER, team_insights
 from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
-from ..models import Assessment, AssessmentRevision, Drill, Period, Player, PlayerGroup, PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..models import Assessment, AssessmentRevision, DevelopmentCycle, Drill, Period, Player, PlayerGroup, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow
+from ..cycles import current_plan, current_priorities, ensure_cycle, latest_cycle_ids
 from ..plans import home_view
 from .drills import drill_out
 from .teams import scoped_period, scoped_player
@@ -207,7 +208,10 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     rows = db.query(Assessment, Period).join(Period, Period.id == Assessment.period_id).filter(
         Assessment.player_id == player_id, Period.team_id == team_id,
         Assessment.assessor.in_(visible_assessors(db, team_id))).order_by(Period.created_at, Period.id).all()
-    priorities = db.query(PriorityConfirmation).filter_by(player_id=player_id).all()
+    # Each period's priorities are its current cycle's; earlier cycles are listed separately.
+    current = latest_cycle_ids(db, player_id=player_id)
+    priorities = db.query(PriorityConfirmation).filter(PriorityConfirmation.player_id == player_id,
+                                                       PriorityConfirmation.cycle_id.in_(current)).all()
     by_period, versions = {}, {}
     for a, p in rows:
         versions[p.id] = p.matrix_version_id
@@ -217,7 +221,23 @@ def player_history(team_id: int, player_id: int, db: DbSession = Depends(get_db)
         if priority.period_id in by_period:
             by_period[priority.period_id]["priorities"].append({"skill_id": priority.skill_id, "rank": priority.rank, "coach_note": priority.coach_note})
     add_playing_groups(db, player_id, by_period.values())
+    add_earlier_cycles(db, player_id, by_period.values())
     return annotate_history(db, list(by_period.values()), [versions[pid] for pid in by_period])
+
+
+def add_earlier_cycles(db: DbSession, player_id: int, rows) -> None:
+    """Each history row gets its period's earlier cycles: number, start and priorities in rank order."""
+    cycles = db.query(DevelopmentCycle).filter_by(player_id=player_id).order_by(DevelopmentCycle.number).all()
+    latest = {}
+    for c in cycles:
+        latest[c.period_id] = max(latest.get(c.period_id, 0), c.number)
+    earlier = [c for c in cycles if c.number < latest[c.period_id]]
+    priorities = {}
+    for p in db.query(PriorityConfirmation).filter(PriorityConfirmation.cycle_id.in_([c.id for c in earlier])).order_by(PriorityConfirmation.rank):
+        priorities.setdefault(p.cycle_id, []).append({"skill_id": p.skill_id, "rank": p.rank})
+    for row in rows:
+        row["earlier_cycles"] = [{"number": c.number, "started_at": c.started_at, "priorities": priorities.get(c.id, [])}
+                                 for c in earlier if c.period_id == row["period_id"]]
 
 
 def add_playing_groups(db: DbSession, player_id: int, rows) -> None:
@@ -238,8 +258,9 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
     coach = {a.period_id: a for a in db.query(Assessment).filter(
         Assessment.player_id == player.id, Assessment.assessor == "coach", Assessment.period_id.in_(ids))}
     priorities = {}
-    for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.player_id == player.id,
-                                                     PriorityConfirmation.period_id.in_(ids)).order_by(PriorityConfirmation.rank):
+    current = latest_cycle_ids(db, player_id=player.id)
+    for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.player_id == player.id, PriorityConfirmation.period_id.in_(ids),
+                                                     PriorityConfirmation.cycle_id.in_(current)).order_by(PriorityConfirmation.rank):
         priorities.setdefault(row.period_id, []).append({"skill_id": row.skill_id, "rank": row.rank, "coach_note": row.coach_note})
     report = db.query(PlayerReport).filter_by(player_id=player.id, period_id=period.id).first()
     history = []
@@ -253,7 +274,8 @@ def report_payload(db: DbSession, team: Team, player: Player, period: Period) ->
                         }} if a else {}})
     annotate_history(db, history, [p.matrix_version_id for p in periods])
     add_playing_groups(db, player.id, history)
-    saved_plan = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
+    add_earlier_cycles(db, player.id, history)
+    saved_plan = current_plan(db, player.id, period.id)
     return {"team": team.name, "player": player.name, "period_id": period.id, "period": period.label,
             "message": report.message if report else None, "history": history,
             "plan": home_view(saved_plan.plan) if saved_plan else None,  # home drills only
@@ -304,7 +326,7 @@ def save_report(team_id: int, player_id: int, period_id: int, body: ReportIn, db
 
 def share_length(db: DbSession, player_id: int, period_id: int) -> timedelta:
     """A shared report stays open for its plan plus a week, or 30 days when there is no plan."""
-    saved = db.query(PlayerPlan).filter_by(player_id=player_id, period_id=period_id).first()
+    saved = current_plan(db, player_id, period_id)
     return timedelta(weeks=saved.plan.get("weeks", 4), days=7) if saved else timedelta(days=30)
 
 
@@ -377,7 +399,7 @@ def open_shared_report(db: DbSession, token: str):
 def shared_report_drill(token: str, slug: str, db: DbSession = Depends(get_db)):
     """A home drill from the report's development plan, through the report's link; no other drill is available."""
     report, player, period, team = open_shared_report(db, token)
-    saved = db.query(PlayerPlan).filter_by(player_id=player.id, period_id=period.id).first()
+    saved = current_plan(db, player.id, period.id)
     drill = db.query(Drill).filter_by(slug=slug, status="published").first()
     if not saved or not drill or slug not in {s["drill"] for s in home_view(saved.plan)["slots"]}:
         raise HTTPException(404, "Drill not found")
@@ -420,7 +442,7 @@ def get_priorities(team_id: int, player_id: int, period_id: int, db: DbSession =
     require_member(team_id, db, user)
     scoped_player(db, team_id, player_id)
     scoped_period(db, team_id, period_id)
-    rows = db.query(PriorityConfirmation).filter_by(player_id=player_id, period_id=period_id).order_by(PriorityConfirmation.rank).all()
+    rows = current_priorities(db, player_id, period_id)
     return [{"skill_id": r.skill_id, "rank": r.rank, "algorithm_suggested": r.algorithm_suggested, "coach_note": r.coach_note} for r in rows]
 
 
@@ -437,9 +459,11 @@ def set_priorities(team_id: int, player_id: int, period_id: int, body: Prioritie
     ranks = [p.rank for p in body.priorities]
     if len(ids) > 3 or len(ids) != len(set(ids)) or sorted(ranks) != list(range(1, len(ranks) + 1)) or not set(ids).issubset(skills):
         raise HTTPException(422, "Invalid priorities")
-    db.query(PriorityConfirmation).filter_by(player_id=player_id, period_id=period_id).delete()
+    cycle = ensure_cycle(db, player_id, period_id, user)
+    db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id).delete()
+    db.flush()
     for p in body.priorities:
-        db.add(PriorityConfirmation(player_id=player_id, period_id=period_id, **p.model_dump()))
+        db.add(PriorityConfirmation(player_id=player_id, period_id=period_id, cycle_id=cycle.id, **p.model_dump()))
     db.commit()
     return get_priorities(team_id, player_id, period_id, db, user)
 

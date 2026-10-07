@@ -136,12 +136,27 @@ class AssessmentRevision(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
-class PriorityConfirmation(Base):
-    __tablename__ = "priority_confirmations"
-    __table_args__ = (UniqueConstraint("player_id", "period_id", "rank"), UniqueConstraint("player_id", "period_id", "skill_id"))
+class DevelopmentCycle(Base):
+    """One round of focus areas and a plan for a player within a period (numbered from 1). A period can hold
+    several, since periods often run half a season and plans about four weeks; the latest is the current one."""
+    __tablename__ = "development_cycles"
+    __table_args__ = (UniqueConstraint("player_id", "period_id", "number", name="uq_development_cycles_number"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
     period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    number: Mapped[int] = mapped_column(SmallInteger)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+
+
+class PriorityConfirmation(Base):
+    __tablename__ = "priority_confirmations"
+    __table_args__ = (UniqueConstraint("cycle_id", "rank", name="uq_priority_confirmations_cycle_rank"),
+                      UniqueConstraint("cycle_id", "skill_id", name="uq_priority_confirmations_cycle_skill"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
+    period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    cycle_id: Mapped[int] = mapped_column(ForeignKey("development_cycles.id"), index=True)
     skill_id: Mapped[str] = mapped_column(String(80))
     rank: Mapped[int] = mapped_column(SmallInteger)
     algorithm_suggested: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -200,13 +215,14 @@ class PlayerGroup(Base):
 
 
 class PlayerPlan(Base):
-    """A player's saved development plan for a period, in the planner's output format. Regenerating replaces it.
+    """A player's saved development plan for a development cycle, in the planner's output format. Regenerating replaces it.
     It appears in the player report, and the report's share link opens its drills."""
     __tablename__ = "player_plans"
-    __table_args__ = (UniqueConstraint("player_id", "period_id", name="uq_player_plans_player_period"),)
+    __table_args__ = (UniqueConstraint("cycle_id", name="uq_player_plans_cycle"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
     period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    cycle_id: Mapped[int] = mapped_column(ForeignKey("development_cycles.id"), index=True)
     plan: Mapped[dict] = mapped_column(JSONB)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

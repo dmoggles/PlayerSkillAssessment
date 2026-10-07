@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import DevelopmentPlan from './DevelopmentPlan'
 import { DrillDialog, PriorityDrills } from './DrillLibrary'
 import { ratingMap, completeness, priorityScores, suggestedPriorities } from './assessment'
-import { getDrillSuggestions, getPriorities, setPriorities } from './api'
+import { errorMessage, getCycles, getDrillSuggestions, getPriorities, setPriorities, startCycle } from './api'
 import FollowUpCard from './FollowUpCard'
 import { PRIORITY_TAGS, keepPriority, priorityTag } from './followUpModel'
 
@@ -24,6 +24,16 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   // What is saved, and whether the rows differ from it: plans are only generated from saved priorities.
   const [savedSkills, setSavedSkills] = useState([])
   const [dirty, setDirty] = useState(false)
+  // Development cycles in this period, newest (current) first; refreshed when a plan is saved or a cycle starts.
+  const [cycles, setCycles] = useState([])
+  const [cyclesVersion, setCyclesVersion] = useState(0)
+  const currentCycle = cycles[0] ?? null
+  const previousCycle = cycles[1] ?? null
+  useEffect(() => {
+    let live = true
+    getCycles(teamId, playerId, periodId).then(value => { if (live) setCycles(value) }).catch(() => { if (live) setCycles([]) })
+    return () => { live = false }
+  }, [teamId, playerId, periodId, cyclesVersion])
   const skillsKey = rows.map(r => r.skill_id).join(',')
 
   // Drill suggestions follow the chosen skills, and refresh after a drill dialog closes (a vote may change them).
@@ -52,7 +62,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         onDirtyChange(false)
       })
       .catch(() => { setRows(suggested.map(s => ({ skill_id: s.skill_id, coach_note: '' }))); setSavedSkills([]); setDirty(false); onDirtyChange(false) })
-  }, [teamId, periodId, playerId, coach, suggested, onDirtyChange])
+  }, [teamId, periodId, playerId, coach, suggested, onDirtyChange, currentCycle?.id])
 
   const followUpCard = <FollowUpCard matrix={matrix} followUp={followUp} />
   if (!coach) {
@@ -97,12 +107,21 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   }
 
   const chosen = new Set(rows.map(r => r.skill_id))
-  const previousIds = followUp?.items.map(item => item.skill_id) ?? []
+  // In a later cycle, the last cycle's focus areas can be kept; in the first, last period's.
+  const previousIds = previousCycle ? previousCycle.priorities.map(p => p.skill_id) : followUp?.items.map(item => item.skill_id) ?? []
+  const startNextCycle = async () => {
+    if (dirty && !window.confirm('Your unsaved priority changes will be lost. Start the next cycle anyway?')) return
+    if (!window.confirm(`Start cycle ${currentCycle.number + 1}? This cycle's focus areas and plan are kept as history, and you choose new focus areas.`)) return
+    try { await startCycle(teamId, playerId, periodId); setCyclesVersion(v => v + 1) } catch (e) { setDrillError(errorMessage(e)) }
+  }
   const keep = skillId => { setRows(rs => keepPriority(rs, skillId, previousIds)); setDirty(true); onDirtyChange(true); setStatus('idle') }
 
   return (
     <div className="priorities">
-      <FollowUpCard matrix={matrix} followUp={followUp} chosen={chosen} canKeep={skillId => Boolean(byId[skillId])} onKeep={readOnly ? null : keep} />
+      {currentCycle && <p className="cycle-line"><strong>Cycle {currentCycle.number}</strong> · started {shortDay(currentCycle.started_at)}</p>}
+      {previousCycle
+        ? <LastCycleCard matrix={matrix} cycle={previousCycle} chosen={chosen} canKeep={skillId => Boolean(byId[skillId])} onKeep={readOnly ? null : keep} />
+        : <FollowUpCard matrix={matrix} followUp={followUp} chosen={chosen} canKeep={skillId => Boolean(byId[skillId])} onKeep={readOnly ? null : keep} />}
       <div className="priorities-toolbar"><button type="button" className="priority-help-button" aria-label="How priorities work" onClick={() => helpDialog.current?.showModal()}>?</button></div>
       <dialog ref={helpDialog} className="priority-help-dialog" aria-labelledby="priority-help-title">
         <form method="dialog">
@@ -165,10 +184,42 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
       {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
-      <DevelopmentPlan teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
+      <DevelopmentPlan key={currentCycle?.id ?? 'none'} teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onSaved={() => setCyclesVersion(v => v + 1)} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
+      {!readOnly && currentCycle?.plan && <div className="next-cycle"><button type="button" onClick={startNextCycle}>Start cycle {currentCycle.number + 1}</button><span className="muted">When this plan is done: keep this cycle as history and choose new focus areas.</span></div>}
+      {cycles.length > 1 && <EarlierCycles matrix={matrix} cycles={cycles.slice(1)} />}
       {drillError && <p className="error" role="alert">{drillError}</p>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
       {status === 'error' && <p className="error">Could not save priorities.</p>}
     </div>
   )
+}
+
+const shortDay = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+const skillNames = matrix => Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
+
+// The previous cycle's focus areas, any of which can be kept for this cycle.
+function LastCycleCard({ matrix, cycle, chosen, canKeep, onKeep }) {
+  const names = skillNames(matrix)
+  return <section className="follow-up" aria-labelledby="last-cycle-title">
+    <h3 id="last-cycle-title">Last cycle's focus <small>Cycle {cycle.number}, from {shortDay(cycle.started_at)}</small></h3>
+    <ol>{cycle.priorities.map(p => <li key={p.skill_id} className="follow-up-item">
+      <span className="follow-up-rank">{p.rank}</span>
+      <div className="follow-up-body"><div className="follow-up-line"><strong>{names[p.skill_id] ?? p.skill_id}</strong></div>{p.coach_note && <p className="follow-up-note">{p.coach_note}</p>}</div>
+      {onKeep && (chosen.has(p.skill_id) ? <span className="follow-up-kept">In this cycle</span>
+        : <button type="button" disabled={!canKeep(p.skill_id)} onClick={() => onKeep(p.skill_id)}>Keep</button>)}
+    </li>)}</ol>
+  </section>
+}
+
+// Earlier cycles in this period, newest first: focus areas and the drills their plan used.
+function EarlierCycles({ matrix, cycles }) {
+  const names = skillNames(matrix)
+  return <details className="earlier-cycles">
+    <summary>Earlier cycles this period ({cycles.length})</summary>
+    <ol>{cycles.map(c => <li key={c.id}>
+      <strong>Cycle {c.number}</strong> <span className="muted">from {shortDay(c.started_at)}</span>
+      <p>{c.priorities.map(p => names[p.skill_id] ?? p.skill_id).join(', ') || 'No focus areas saved'}</p>
+      {c.plan && <p className="muted">Plan: {[...new Set(c.plan.slots.map(slot => slot.title))].join(', ')}</p>}
+    </li>)}</ol>
+  </details>
 }

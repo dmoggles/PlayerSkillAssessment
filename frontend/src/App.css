@@ -920,3 +920,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .season-review { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
 .season-review p { margin: 0 0 8px; font-size: .88rem; }
 .season-review-row select, .group-select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: .85rem; }
+
+.cycle-line { margin: 0 0 10px; font-size: .9rem; color: var(--muted); }
+.cycle-line strong { color: var(--text); }
+.next-cycle { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 14px; }
+.next-cycle button { padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-weight: 600; cursor: pointer; }
+.next-cycle .muted { font-size: .82rem; }
+.earlier-cycles { margin-top: 14px; }
+.earlier-cycles summary { cursor: pointer; font-weight: 600; }
+.earlier-cycles ol { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.earlier-cycles p { margin: 2px 0; font-size: .88rem; }
+.report-earlier-focus { margin: 8px 0 0; color: var(--muted); font-size: .9rem; }
+.earlier-cycles h4 { margin: 12px 0 4px; font-size: .9rem; }
+.earlier-cycles ul { margin: 0; padding-left: 18px; font-size: .88rem; }

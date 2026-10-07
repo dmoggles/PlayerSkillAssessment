@@ -9,6 +9,7 @@ included, to players in that group in each period: ratings in different groups a
 from collections import defaultdict
 from statistics import mean
 from sqlalchemy.orm import Session as DbSession
+from .cycles import latest_cycle_ids
 from .matrix import document, skill_changes, version_skills, version_tags
 from .models import Assessment, Period, Player, PlayerGroup, PriorityConfirmation, SkillTag
 
@@ -99,8 +100,8 @@ def team_insights(db: DbSession, team_id: int, period: Period | None, position: 
     if position:
         players = {a.player_id: players[a.player_id] for a in filtered.get(period.id, [])}
     by_skill, by_tag = defaultdict(list), defaultdict(dict)
-    for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.period_id == period.id,
-                                                    PriorityConfirmation.player_id.in_(players)).order_by(PriorityConfirmation.rank):
+    for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.period_id == period.id, PriorityConfirmation.player_id.in_(players),
+                                                    PriorityConfirmation.cycle_id.in_(latest_cycle_ids(db, period_id=period.id))).order_by(PriorityConfirmation.rank):
         name = players[row.player_id]
         by_skill[row.skill_id].append({"player": name, "rank": row.rank})
         for tag, weight in tags.get(row.skill_id, {}).items():

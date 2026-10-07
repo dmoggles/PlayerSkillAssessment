@@ -7,7 +7,7 @@ const SLOT_LABELS = { club: 'At training', home: 'At home' }
 // The player's saved 4-week plan of club and home drills for the priorities above. Generating saves it; it also
 // appears in the player report, so the report's share link is how the player or a parent sees it.
 // skills are the saved priorities in rank order; unsaved says the coach has changed them without saving.
-export default function DevelopmentPlan({ teamId, playerId, periodId, skills, unsaved = false, onOpenDrill, readOnly = false }) {
+export default function DevelopmentPlan({ teamId, playerId, periodId, skills, unsaved = false, onOpenDrill, onSaved = () => {}, readOnly = false }) {
   const [saved, setSaved] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -19,7 +19,7 @@ export default function DevelopmentPlan({ teamId, playerId, periodId, skills, un
   const generate = async () => {
     if (saved?.plan && !window.confirm('Replace the saved plan? If the player report is shared, its link will show the new plan.')) return
     setBusy(true); setError('')
-    try { setSaved(await generatePlan(teamId, playerId, periodId)) } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
+    try { setSaved(await generatePlan(teamId, playerId, periodId)); onSaved() } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   if (saved === undefined) return <section className="development-plan"><p className="muted" role="status">Loading plan…</p></section>
   const plan = saved.plan

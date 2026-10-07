@@ -773,3 +773,17 @@ test('team data defaults to the largest playing group, and moves between groups 
   assert.match(html, /Spring<small>U12<sup class="matrix-change"/)
   assert.match(html, /moved to another playing group/)
 })
+
+test('earlier development cycles show in the report as one line, and in confirmed priorities', async () => {
+  const { default: PlayerReport } = await loadJsx('src/PlayerReport.jsx')
+  const html = renderToStaticMarkup(React.createElement(PlayerReport, { report: { player: 'Kit', assessed: true, sections: [], strengths: [], priorities: [{ rank: 1, label: '1v1 defending' }],
+    earlierFocus: ['Short passing', 'Dribbling'], trend: { periods: [], rows: [] }, plan: null } }))
+  assert.match(html, /Earlier this period: Short passing, Dribbling/)
+  const { ConfirmedPrioritiesView } = await loadJsx('src/ConfirmedPrioritiesView.jsx')
+  const matrix = { sections: [{ id: 't', skills: [{ id: 'a', label: 'Short passing' }, { id: 'b', label: '1v1 defending' }] }] }
+  const history = [{ period_id: 1, label: 'Fall', priorities: [{ skill_id: 'b', rank: 1 }], assessments: {},
+    earlier_cycles: [{ number: 1, started_at: '2026-09-01T00:00:00Z', priorities: [{ skill_id: 'a', rank: 1 }] }] }]
+  const view = renderToStaticMarkup(React.createElement(ConfirmedPrioritiesView, { matrix, history, periodId: 1, periods: [{ id: 1, label: 'Fall' }] }))
+  assert.match(view, /Earlier cycles this period/)
+  assert.match(view, /Cycle 1<\/strong>.*Short passing/)
+})

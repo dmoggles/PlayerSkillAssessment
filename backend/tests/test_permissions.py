@@ -25,6 +25,8 @@ ACCESS = {
     ("GET", "/teams/{team_id}/players/{player_id}/drill-suggestions"): (MEMBER, None, {"period_id": "{period_id}", "skills": "passing"}),
     ("GET", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, None, {"period_id": "{period_id}"}),
     ("POST", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, "plan", None),
+    ("GET", "/teams/{team_id}/players/{player_id}/cycles"): (MEMBER, None, {"period_id": "{period_id}"}),
+    ("POST", "/teams/{team_id}/players/{player_id}/cycles"): (MEMBER, "plan", None),
     ("GET", "/report/{token}/drills/{slug}"): (PUBLIC, None, None),
     ("GET", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
     ("PUT", "/teams/{team_id}/matrix/draft"): (OWNER, {"revision": 0, "document": {}}, None),

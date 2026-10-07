@@ -10,7 +10,7 @@ from .auth import hasher
 from .config import settings
 from .database import SessionLocal
 from .models import (
-    Assessment, AssessmentRevision, Membership, Period, Player,
+    Assessment, AssessmentRevision, DevelopmentCycle, Membership, Period, Player,
     PriorityConfirmation, Rating, Session, Team, User, utcnow,
 )
 from .matrix import document, skill_set, starter_version
@@ -192,8 +192,11 @@ def seed():
                     # so others show last period's priorities with Keep buttons.
                     if period_index < len(periods) - 1 or player_index % 3 == 0:
                         previous_priorities = weakest(rng, ratings)
+                        cycle = DevelopmentCycle(player_id=player.id, period_id=period.id, number=1, created_by=users[team_index].id)
+                        db.add(cycle)
+                        db.flush()
                         for rank, skill_id in enumerate(previous_priorities, start=1):
-                            db.add(PriorityConfirmation(player_id=player.id, period_id=period.id, rank=rank,
+                            db.add(PriorityConfirmation(player_id=player.id, period_id=period.id, cycle_id=cycle.id, rank=rank,
                                                         skill_id=skill_id, algorithm_suggested=rank != 2,
                                                         coach_note=PRIORITY_NOTES[rank - 1] if rank != 3 else None))
 

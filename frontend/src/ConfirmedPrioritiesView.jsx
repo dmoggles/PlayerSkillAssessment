@@ -20,6 +20,15 @@ function PriorityCards({ priorities, names }) {
   })}</div>
 }
 
+// A period's earlier development cycles: one line each, oldest first.
+function EarlierCycles({ row, names }) {
+  if (!row?.earlier_cycles?.length) return null
+  const day = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+  return <div className="earlier-cycles"><h4>Earlier cycles this period</h4><ul>{row.earlier_cycles.map(c => <li key={c.number}>
+    <strong>Cycle {c.number}</strong> <span className="muted">from {day(c.started_at)}</span>: {[...c.priorities].sort((a, b) => a.rank - b.rank).map(p => names[p.skill_id] ?? p.skill_id).join(', ') || 'no focus areas saved'}
+  </li>)}</ul></div>
+}
+
 export function ConfirmedPrioritiesView({ matrix, history, periodId, periods = [] }) {
   const names = Object.fromEntries(matrix.sections.flatMap(section => section.skills.map(skill => [skill.id, skill.label])))
   const selected = history.find(row => row.period_id === Number(periodId))
@@ -33,7 +42,8 @@ export function ConfirmedPrioritiesView({ matrix, history, periodId, periods = [
     {selected?.priorities.length
       ? <PriorityCards priorities={selected.priorities} names={names} />
       : <p className="muted">No confirmed priorities for this period yet. Confirm them in Development.</p>}
-    {otherPeriods.length > 0 && <details className="other-priorities"><summary>Confirmed priorities from other periods</summary>{otherPeriods.map(row => <section key={row.period_id}><h3>{row.label}</h3><PriorityCards priorities={row.priorities} names={names} /></section>)}</details>}
+    <EarlierCycles row={selected} names={names} />
+    {otherPeriods.length > 0 && <details className="other-priorities"><summary>Confirmed priorities from other periods</summary>{otherPeriods.map(row => <section key={row.period_id}><h3>{row.label}</h3><PriorityCards priorities={row.priorities} names={names} /><EarlierCycles row={row} names={names} /></section>)}</details>}
   </div>
 }
 

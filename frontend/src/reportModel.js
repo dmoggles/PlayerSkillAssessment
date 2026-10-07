@@ -41,6 +41,8 @@ export function buildReport(matrix, report) {
     sections,
     strengths: skillCallouts(matrix, coach.position, coachMap, {}).top.map(skill => ({ label: skill.label, score: skill.score })),
     priorities: [...(current.priorities ?? [])].sort((a, b) => a.rank - b.rank).map(p => ({ rank: p.rank, label: names[p.skill_id] ?? p.skill_id, note: p.coach_note })),
+    // Focus areas from earlier development cycles this period, oldest first, each named once.
+    earlierFocus: [...new Set((current.earlier_cycles ?? []).flatMap(c => [...c.priorities].sort((a, b) => a.rank - b.rank).map(p => names[p.skill_id] ?? p.skill_id)))],
     trend: {
       periods: assessed.map(row => row.label),
       // Each period's playing group, and whether the player had moved to another group by then.

@@ -45,6 +45,8 @@ export const voteOnDrill = (slug, vote, reason = null) => data(api.put(`/drills/
 export const getDrillSuggestions = (id, playerId, periodId, skills) => data(api.get(`${team(id)}/players/${playerId}/drill-suggestions`, { params: { period_id: periodId, skills }, paramsSerializer: { indexes: null } }))
 export const getSavedPlan = (id, playerId, periodId) => data(api.get(`${team(id)}/players/${playerId}/plan`, { params: { period_id: periodId } }))
 export const generatePlan = (id, playerId, periodId) => data(api.post(`${team(id)}/players/${playerId}/plan`, { period_id: periodId }))
+export const getCycles = (id, playerId, periodId) => data(api.get(`${team(id)}/players/${playerId}/cycles`, { params: { period_id: periodId } }))
+export const startCycle = (id, playerId, periodId) => data(api.post(`${team(id)}/players/${playerId}/cycles`, { period_id: periodId }))
 export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))

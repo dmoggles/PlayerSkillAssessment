@@ -987,6 +987,53 @@ def test_video_report_lists_flagged_drills_and_drills_without_video(tmp_path):
     assert video_report([path]) == ["drills_v9.json  weak: needs a better video (1 now)", "drills_v9.json  bare: no video"]
 
 
+def test_development_cycles_keep_earlier_focus_areas_and_plans(monkeypatch):
+    from app.database import SessionLocal
+    from app.drills import DATA_DIR, load_file
+    clean_database()
+    owner, csrf = signed_in("cycles-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    with SessionLocal() as db:
+        for name in ("drills_v1.json", "drills_v3.json"):
+            load_file(db, DATA_DIR / name)
+    team_id = owner.post("/teams", json={"name": "Cycles"}, headers=headers).json()["id"]
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Kit"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Fall"}, headers=headers).json()["id"]
+    owner.put(f"/teams/{team_id}/assessments/coach", json={"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
+              "ratings": [{"skill_id": s, "score": 3} for s in starter_skills()]}, headers=headers)
+    pp = {"player_id": player_id, "period_id": period_id}
+    confirm = lambda *skills: owner.put(f"/teams/{team_id}/priorities", params=pp, headers=headers,
+                                        json={"priorities": [{"skill_id": s, "rank": i + 1} for i, s in enumerate(skills)]})
+    cycles_url = f"/teams/{team_id}/players/{player_id}/cycles"
+    plan_url = f"/teams/{team_id}/players/{player_id}/plan"
+    assert owner.get(cycles_url, params={"period_id": period_id}).json() == []
+    assert owner.post(cycles_url, json={"period_id": period_id}, headers=headers).status_code == 409  # nothing to follow yet
+    confirm("passing_short", "dribbling_carrying")
+    first = owner.get(cycles_url, params={"period_id": period_id}).json()
+    assert [(c["number"], c["current"], c["plan"]) for c in first] == [(1, True, None)]
+    assert owner.post(cycles_url, json={"period_id": period_id}, headers=headers).status_code == 409  # no plan yet
+    owner.post(plan_url, json={"period_id": period_id}, headers=headers)
+    started = owner.post(cycles_url, json={"period_id": period_id}, headers=headers)
+    assert started.status_code == 201 and started.json()["number"] == 2 and started.json()["priorities"] == []
+    # The new cycle starts empty; the first keeps its focus areas and plan as history.
+    assert owner.get(f"/teams/{team_id}/priorities", params=pp).json() == []
+    assert owner.get(plan_url, params={"period_id": period_id}).json() == {"plan": None}
+    confirm("1v1_defending")
+    listed = owner.get(cycles_url, params={"period_id": period_id}).json()
+    assert [(c["number"], c["current"], [p["skill_id"] for p in c["priorities"]], c["plan"] is not None) for c in listed] == [
+        (2, True, ["1v1_defending"], False), (1, False, ["passing_short", "dribbling_carrying"], True)]
+    # History, the report and team data show the current cycle, with earlier cycles alongside.
+    row = owner.get(f"/teams/{team_id}/players/{player_id}/history").json()[0]
+    assert [p["skill_id"] for p in row["priorities"]] == ["1v1_defending"]
+    assert [(c["number"], [p["skill_id"] for p in c["priorities"]]) for c in row["earlier_cycles"]] == [(1, ["passing_short", "dribbling_carrying"])]
+    report = owner.get(f"/teams/{team_id}/players/{player_id}/periods/{period_id}/report").json()
+    assert report["plan"] is None and report["history"][0]["earlier_cycles"][0]["number"] == 1
+    insights = owner.get(f"/teams/{team_id}/insights", params={"period_id": period_id}).json()
+    assert [p["skill_id"] for p in insights["period"]["priorities"]] == ["1v1_defending"]
+    events = [e["details"] for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "cycle_started"]
+    assert events == [{"player": "Kit", "period": "Fall", "number": 2}]
+
+
 def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):
     from app.database import SessionLocal
     from app.drills import DATA_DIR, load_file

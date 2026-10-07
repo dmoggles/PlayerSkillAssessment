@@ -24,7 +24,8 @@ export default function PlayerReport({ report, onOpenDrill }) {
       <section><h3>Strengths</h3><ol className="report-list">{report.strengths.map(skill => <li key={skill.label}>{skill.label}</li>)}</ol></section>
       <section><h3>Focus for next period</h3>{report.priorities.length
         ? <ol className="report-list">{report.priorities.map(p => <li key={p.rank}><strong>{p.label}</strong>{p.note && <p>{p.note}</p>}</li>)}</ol>
-        : <p className="muted">Focus areas will be agreed with your coach.</p>}</section>
+        : <p className="muted">Focus areas will be agreed with your coach.</p>}
+        {report.earlierFocus?.length > 0 && <p className="report-earlier-focus">Earlier this period: {report.earlierFocus.join(', ')}</p>}</section>
     </>}
     {report.plan && <section className="report-plan"><h3>Practice at home <small>{report.plan.weeks} weeks</small></h3>
       <p className="muted">A drill to practise at home for each focus area, getting a little harder after two weeks. Tap a week to see that version of the drill.</p>
