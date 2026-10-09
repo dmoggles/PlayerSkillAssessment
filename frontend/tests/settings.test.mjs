@@ -128,3 +128,11 @@ test('squad plan runs and plan edits read clearly in the activity log', async ()
   const { default: SquadPlans } = await loadJsx('src/SquadPlans.jsx')
   assert.match(renderToStaticMarkup(React.createElement(SquadPlans, { teamId: 1, periodId: 2, onGenerated: () => {} })), /Generate plans for the squad/)
 })
+
+test('site admins invite a new club from Settings', async () => {
+  const { default: SiteAdminSection } = await loadJsx('src/areas/SiteAdminSection.jsx')
+  const html = renderToStaticMarkup(React.createElement(SiteAdminSection, { onMessage: () => {} }))
+  assert.match(html, /Site admin/)
+  assert.match(html, /Invite new club/)
+  assert.match(html, /invitation/)
+})

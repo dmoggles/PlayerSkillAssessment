@@ -25,6 +25,11 @@ def clean_database():
                 conn.execute(table.delete())
 
 
+def link_token(email_body):
+    """The token from the link in an emailed message."""
+    return re.search(r"/(?:invite|verify|reset)/(\S+)", email_body).group(1)
+
+
 def starter_skills(kind="outfield"):
     """Skill ids of the starter matrix for 'outfield' or 'goalkeeper' players, sorted."""
     from app.database import SessionLocal
@@ -38,7 +43,7 @@ def signed_in(email, monkeypatch):
     monkeypatch.setattr(accounts, "send_email", lambda to, subject, body: messages.append(body))
     client = TestClient(app)
     assert client.post("/auth/register", json={"email": email, "password": "secure-password-123"}).status_code == 201
-    token = messages[-1].split("/")[-1]
+    token = link_token(messages[-1])
     assert client.post("/auth/verify", json={"token": token}).status_code == 200
     response = client.post("/auth/login", json={"email": email, "password": "secure-password-123"})
     assert response.status_code == 200
@@ -59,7 +64,7 @@ def test_team_isolation_invite_and_role(monkeypatch):
     invites = []
     monkeypatch.setattr(teams, "send_email", lambda to, subject, body: invites.append(body))
     assert owner.post(f"/teams/{team_id}/invites", json={"email": "coach@example.com"}, headers=headers).status_code == 200
-    token = invites[-1].split("/")[-1]
+    token = link_token(invites[-1])
     assert coach.post("/invites/accept", json={"token": token}, headers={"x-csrf-token": coach_csrf}).status_code == 200
     assert len(coach.get(f"/teams/{team_id}/players").json()) == 1
     assert coach.patch(f"/teams/{team_id}", json={"name": "Changed", "self_assessment_enabled": True}, headers={"x-csrf-token": coach_csrf}).status_code == 404
@@ -73,7 +78,7 @@ def add_coach(owner, owner_csrf, team_id, coach, coach_csrf, email, monkeypatch)
     invites = []
     monkeypatch.setattr(teams, "send_email", lambda to, subject, body: invites.append(body))
     assert owner.post(f"/teams/{team_id}/invites", json={"email": email}, headers={"x-csrf-token": owner_csrf}).status_code == 200
-    assert coach.post("/invites/accept", json={"token": invites[-1].split("/")[-1]}, headers={"x-csrf-token": coach_csrf}).status_code == 200
+    assert coach.post("/invites/accept", json={"token": link_token(invites[-1])}, headers={"x-csrf-token": coach_csrf}).status_code == 200
     return next(m["user_id"] for m in owner.get(f"/teams/{team_id}/members").json() if m["email"] == email)
 
 
@@ -292,8 +297,8 @@ def test_session_csrf_and_password_reset(monkeypatch):
     monkeypatch.setattr(accounts, "send_email", lambda to, subject, body: messages.append(body))
     assert client.post("/auth/forgot-password", json={"email": "reset@example.com"}).status_code == 200
     assert client.post("/auth/forgot-password", json={"email": "reset@example.com"}).status_code == 200
-    older_token = messages[-2].split("/")[-1]
-    token = messages[-1].split("/")[-1]
+    older_token = link_token(messages[-2])
+    token = link_token(messages[-1])
     assert client.post("/auth/reset-password", json={"token": token, "password": "new-secure-password"}).status_code == 200
     assert client.post("/auth/reset-password", json={"token": older_token, "password": "another-password-123"}).status_code == 400
     assert client.get("/auth/me").status_code == 401
@@ -308,7 +313,7 @@ def test_owner_and_coach_can_change_own_password(monkeypatch):
     invites = []
     monkeypatch.setattr(teams, "send_email", lambda to, subject, body: invites.append(body))
     assert owner.post(f"/teams/{team_id}/invites", json={"email": "coach-password@example.com"}, headers={"x-csrf-token": owner_csrf}).status_code == 200
-    assert coach.post("/invites/accept", json={"token": invites[-1].split("/")[-1]}, headers={"x-csrf-token": coach_csrf}).status_code == 200
+    assert coach.post("/invites/accept", json={"token": link_token(invites[-1])}, headers={"x-csrf-token": coach_csrf}).status_code == 200
 
     for client, csrf, email in ((owner, owner_csrf, "owner-password@example.com"),
                                 (coach, coach_csrf, "coach-password@example.com")):
@@ -333,11 +338,11 @@ def test_resend_verification_replaces_old_link(monkeypatch):
     monkeypatch.setattr(accounts, "send_email", lambda to, subject, body: messages.append(body))
     client = TestClient(app)
     assert client.post("/auth/register", json={"email": "new@example.com", "password": "secure-password-123"}).status_code == 201
-    old_token = messages[-1].split("/")[-1]
+    old_token = link_token(messages[-1])
     response = client.post("/auth/resend-verification", json={"email": "new@example.com"})
     assert response.status_code == 200
     assert "new link has been sent" in response.json()["message"]
-    new_token = messages[-1].split("/")[-1]
+    new_token = link_token(messages[-1])
     assert client.post("/auth/verify", json={"token": old_token}).status_code == 400
     assert client.post("/auth/verify", json={"token": new_token}).status_code == 200
 
@@ -1258,3 +1263,75 @@ def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatc
     assert owner.get(url, params={"period_id": 999999, "skills": "passing_short"}).status_code == 404
     outsider, _ = signed_in("suggest-outsider@example.com", monkeypatch)
     assert outsider.get(url, params={"period_id": period_id}).status_code == 404
+
+
+def test_signup_is_invitation_only(monkeypatch):
+    from app.config import settings
+    from app.database import SessionLocal
+    from app.models import User
+    from app.routers import admin
+    clean_database()
+    owner, csrf = signed_in("club-owner@example.com", monkeypatch)
+    monkeypatch.setattr(settings, "open_signup", False)
+    stranger = TestClient(app)
+    body = {"email": "stranger@example.com", "password": "secure-password-123"}
+    assert stranger.post("/auth/register", json=body).status_code == 403
+
+    # A team invitation: its link creates a verified account that is already on the team.
+    team_id = owner.post("/teams", json={"name": "North"}, headers={"x-csrf-token": csrf}).json()["id"]
+    sent = []
+    monkeypatch.setattr(teams, "send_email", lambda to, subject, text: sent.append((subject, text)))
+    assert owner.post(f"/teams/{team_id}/invites", json={"email": "new-coach@example.com"}, headers={"x-csrf-token": csrf}).status_code == 200
+    subject, text = sent[-1]
+    assert subject == "Join North on TapLine IDP" and "7 days" in text
+    token = re.search(r"/invite/(\S+)", text).group(1)
+    info = TestClient(app).get(f"/invites/{token}").json()
+    assert info == {"email": "new-coach@example.com", "kind": "team", "team": "North", "account_exists": False}
+    coach = TestClient(app)
+    wrong = {"email": "someone-else@example.com", "password": "secure-password-123", "invite": token}
+    assert coach.post("/auth/register", json=wrong).status_code == 400
+    created = coach.post("/auth/register", json={"email": "new-coach@example.com", "password": "secure-password-123", "invite": token})
+    assert created.status_code == 201 and created.json()["verified"] is True
+    login = coach.post("/auth/login", json={"email": "new-coach@example.com", "password": "secure-password-123"})
+    assert login.status_code == 200 and login.json()["is_admin"] is False
+    assert [t["name"] for t in coach.get("/teams").json()] == ["North"]
+    assert TestClient(app).get(f"/invites/{token}").status_code == 404
+
+    # A site invitation, sent by a site admin, for a new club's first coach.
+    assert owner.post("/admin/invites", json={"email": "new-club@example.com"}, headers={"x-csrf-token": csrf}).status_code == 403
+    with SessionLocal() as db:
+        db.query(User).filter_by(email="club-owner@example.com").update({"is_admin": True})
+        db.commit()
+    site = []
+    monkeypatch.setattr(admin, "send_email", lambda to, subject, text: site.append(text))
+    assert owner.post("/admin/invites", json={"email": "new-coach@example.com"}, headers={"x-csrf-token": csrf}).status_code == 409
+    sent_invite = owner.post("/admin/invites", json={"email": "New-Club@example.com"}, headers={"x-csrf-token": csrf})
+    assert sent_invite.status_code == 200
+    assert [i["email"] for i in owner.get("/admin/invites").json()] == ["new-club@example.com"]
+    token = re.search(r"/invite/(\S+)", site[-1]).group(1)
+    assert TestClient(app).get(f"/invites/{token}").json()["kind"] == "site"
+    newcomer = TestClient(app)
+    assert newcomer.post("/auth/register", json={"email": "new-club@example.com", "password": "secure-password-123", "invite": token}).status_code == 201
+    assert newcomer.post("/auth/login", json={"email": "new-club@example.com", "password": "secure-password-123"}).status_code == 200
+    assert newcomer.get("/teams").json() == []
+    assert owner.get("/admin/invites").json() == []
+
+    # Cancelled invitations stop working.
+    again = owner.post("/admin/invites", json={"email": "late@example.com"}, headers={"x-csrf-token": csrf}).json()
+    assert owner.delete(f"/admin/invites/{again['id']}", headers={"x-csrf-token": csrf}).status_code == 200
+    token = re.search(r"/invite/(\S+)", site[-1]).group(1)
+    assert TestClient(app).get(f"/invites/{token}").status_code == 404
+
+
+def test_admin_command_line(monkeypatch, capsys):
+    from app import admin as cli
+    clean_database()
+    monkeypatch.setattr("app.config.settings.open_signup", False)
+    assert cli.main(["invite", "First@example.com"]) == 0
+    token = capsys.readouterr().out.strip().split("/invite/")[-1]
+    client = TestClient(app)
+    assert client.post("/auth/register", json={"email": "first@example.com", "password": "secure-password-123", "invite": token}).status_code == 201
+    assert cli.main(["grant", "first@example.com"]) == 0
+    assert client.post("/auth/login", json={"email": "first@example.com", "password": "secure-password-123"}).json()["is_admin"] is True
+    assert cli.main(["invite", "first@example.com"]) == 1
+    assert cli.main(["grant", "nobody@example.com"]) == 1

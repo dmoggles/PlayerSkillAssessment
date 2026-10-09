@@ -2,10 +2,12 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session as DbSession
+from .. import invites
+from ..audit import record
 from ..auth import COOKIE_NAME, consume_auth_token, current_user, digest, fresh_token, get_session, hasher, issue_auth_token, send_email, verify_password
 from ..config import settings
 from ..database import get_db
-from ..models import AuthToken, LoginAttempt, Session, User, utcnow
+from ..models import AuthToken, LoginAttempt, Membership, Session, Team, User, utcnow
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -14,6 +16,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class Credentials(BaseModel):
     email: EmailStr
     password: str = Field(min_length=12, max_length=200)
+
+
+class Registration(Credentials):
+    # The invitation link the account is created from, if any.
+    invite: str | None = None
 
 
 class EmailOnly(BaseModel):
@@ -62,14 +69,30 @@ def throttle(db: DbSession, request: Request, action: str, key: str, limit: int)
 
 
 @router.post("/register", status_code=201)
-def register(body: Credentials, request: Request, db: DbSession = Depends(get_db)):
+def register(body: Registration, request: Request, db: DbSession = Depends(get_db)):
     email = normalized(body.email)
     throttle(db, request, "register", email, 5)
     if db.query(User).filter_by(email=email).first():
         raise HTTPException(409, "Account already exists")
-    user = User(email=email, password_hash=hasher.hash(body.password))
+    invite = invites.find(db, body.invite) if body.invite else None
+    if body.invite and (not invite or invite.email != email):
+        raise HTTPException(400, "This invitation is invalid, has expired, or is for another email address.")
+    if not invite and not settings.open_signup and not invites.pending_for(db, email):
+        raise HTTPException(403, f"{settings.app_name} is invitation-only for now. Ask a coach at your club to invite you.")
+    # Opening the invitation link proves the address, so an account made from it needs no separate verification.
+    user = User(email=email, password_hash=hasher.hash(body.password), verified_at=utcnow() if invite else None)
     db.add(user)
     db.flush()
+    db.query(AuthToken).filter_by(email=email, purpose="signup").delete(synchronize_session=False)
+    if invite:
+        if invite.purpose == "invite":
+            team_id = invite.team_id
+            db.delete(invite)
+            if db.get(Team, team_id):
+                db.add(Membership(team_id=team_id, user_id=user.id, role="coach"))
+                record(db, team_id, user, "invite_accepted")
+        db.commit()
+        return {"message": "Account created.", "verified": True}
     token = issue_auth_token(db, email, "verify", user.id)
     try:
         send_email(email, f"Verify your {settings.app_name} account", f"Open this link to verify your {settings.app_name} account:\n{settings.public_base_url}/verify/{token}")
@@ -123,13 +146,13 @@ def login(body: Credentials, request: Request, response: Response, db: DbSession
     db.commit()
     response.set_cookie(COOKIE_NAME, raw, httponly=True, secure=settings.secure_cookies,
                         samesite="lax", max_age=settings.session_days * 86400, path="/")
-    return {"email": user.email, "csrf_token": session.csrf_token}
+    return {"email": user.email, "csrf_token": session.csrf_token, "is_admin": user.is_admin}
 
 
 @router.get("/me")
 def me(identity: tuple[User, Session] = Depends(get_session)):
     user, session = identity
-    return {"email": user.email, "csrf_token": session.csrf_token}
+    return {"email": user.email, "csrf_token": session.csrf_token, "is_admin": user.is_admin}
 
 
 @router.post("/logout")

@@ -5,15 +5,15 @@ const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
 import UpdateBanner from './UpdateBanner'
-import { BrandMark, Wordmark } from './brand'
-import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
+import { APP_NAME, BrandMark, Wordmark } from './brand'
+import { acceptInvite, errorMessage, forgotPassword, getInvite, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
 
 const errorText = errorMessage
 
-function AuthForm({ onSignedIn, embedded = false }) {
+function AuthForm({ onSignedIn, embedded = false, initialEmail = '' }) {
   const [mode, setMode] = useState('login')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(initialEmail)
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -24,7 +24,6 @@ function AuthForm({ onSignedIn, embedded = false }) {
     setMessage('')
     try {
       if (mode === 'login') onSignedIn(await login(email, password))
-      if (mode === 'register') setMessage((await register(email, password)).message)
       if (mode === 'forgot') {
         setMessage((await forgotPassword(email)).message)
       }
@@ -38,14 +37,15 @@ function AuthForm({ onSignedIn, embedded = false }) {
 
   return <div className={embedded ? 'auth-embedded' : 'page login-page public-page'}>
     {!embedded && <><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Coach workspace</h1></>}
-    <h2>{mode === 'login' ? 'Coach sign in' : mode === 'register' ? 'Create coach account' : mode === 'resend' ? 'Resend verification' : 'Reset password'}</h2>
+    <h2>{mode === 'login' ? 'Coach sign in' : mode === 'resend' ? 'Resend verification' : 'Reset password'}</h2>
     <form onSubmit={submit} className="stack">
       <label className="field">Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
-      {mode !== 'forgot' && mode !== 'resend' && <label className="field">Password<input type="password" minLength={12} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} required value={password} onChange={e => setPassword(e.target.value)} /></label>}
-      <button className="submit-btn" disabled={busy}>{busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'register' ? 'Create account' : mode === 'resend' ? 'Resend link' : 'Send reset link'}</button>
+      {mode !== 'forgot' && mode !== 'resend' && <label className="field">Password<input type="password" minLength={12} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></label>}
+      <button className="submit-btn" disabled={busy}>{busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'resend' ? 'Resend link' : 'Send reset link'}</button>
     </form>
     {message && <p role="status" className="notice">{message}</p>}
-    <div className="inline-row"><button className="link-btn" onClick={() => { setMode('login'); setMessage('') }}>Sign in</button><button className="link-btn" onClick={() => { setMode('register'); setMessage('') }}>Create account</button><button className="link-btn" onClick={() => { setMode('resend'); setMessage('') }}>Resend verification</button><button className="link-btn" onClick={() => { setMode('forgot'); setMessage('') }}>Forgot password</button></div>
+    {!embedded && <p className="invite-only-note">New to {APP_NAME}? It's invitation-only for now: ask a coach at your club to invite you.</p>}
+    <div className="inline-row"><button className="link-btn" onClick={() => { setMode('login'); setMessage('') }}>Sign in</button><button className="link-btn" onClick={() => { setMode('resend'); setMessage('') }}>Resend verification</button><button className="link-btn" onClick={() => { setMode('forgot'); setMessage('') }}>Forgot password</button></div>
   </div>
 }
 
@@ -65,12 +65,44 @@ function ResetPage() {
   return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack"><label className="field">New password<input type="password" minLength={12} required value={password} onChange={e => setPassword(e.target.value)} /></label><button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
 }
 
+// An invitation link: join the team when signed in as the invited coach, otherwise create the account (or sign in).
 function InvitePage({ user, onSignedIn }) {
   const { token } = useParams()
   const navigate = useNavigate()
+  const [invite, setInvite] = useState(null)
   const [message, setMessage] = useState('')
-  async function accept() { try { await acceptInvite(token); navigate('/') } catch (e) { setMessage(errorText(e)) } }
-  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Team invitation</h1><section className="public-card">{user ? <><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join team</button></> : <p>Sign in or create an account with the invited email address.</p>}{message && <p role="alert" className="error">{message}</p>}</section>{!user && <AuthForm onSignedIn={onSignedIn} embedded />}</div>
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { getInvite(token).then(setInvite).catch(e => setInvite({ error: errorText(e) })) }, [token])
+  const destination = invite?.kind === 'site' ? '/app/settings' : '/app/assessment'
+
+  async function accept() { try { await acceptInvite(token); navigate(destination) } catch (e) { setMessage(errorText(e)) } }
+  async function createAccount(event) {
+    event.preventDefault()
+    setBusy(true)
+    setMessage('')
+    try {
+      await register(invite.email, password, token)
+      onSignedIn(await login(invite.email, password))
+      navigate(destination)
+    } catch (e) { setMessage(errorText(e)) } finally { setBusy(false) }
+  }
+
+  const title = invite?.kind === 'site' ? `Welcome to ${APP_NAME}` : invite?.team ? `Join ${invite.team}` : 'Team invitation'
+  let body
+  if (!invite) body = <section className="public-card"><p role="status">Checking your invitation…</p></section>
+  else if (invite.error) body = <section className="public-card"><p role="alert" className="error">{invite.error}</p><Link to="/">Go to sign in</Link></section>
+  else if (user && user.email !== invite.email) body = <section className="public-card"><p>This invitation is for {invite.email}, but you're signed in as {user.email}. Sign out, then open the link again.</p></section>
+  else if (user && invite.kind === 'team') body = <section className="public-card"><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join {invite.team}</button></section>
+  else if (user) body = <section className="public-card"><p>You're signed in as {user.email}.</p><Link to={destination}>Set up your team</Link></section>
+  else if (invite.account_exists) body = <><p className="invite-lead">You already have an account. Sign in to {invite.kind === 'team' ? `join ${invite.team}` : 'continue'}.</p><AuthForm onSignedIn={onSignedIn} embedded initialEmail={invite.email} /></>
+  else body = <form onSubmit={createAccount} className="stack">
+    <p className="invite-lead">{invite.kind === 'team' ? `You've been invited to coach ${invite.team}.` : 'Create your account, then set up your team.'}</p>
+    <label className="field">Email<input type="email" value={invite.email} readOnly /></label>
+    <label className="field">Choose a password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
+    <button className="submit-btn" disabled={busy}>{busy ? 'Creating account…' : invite.kind === 'team' ? `Create account and join` : 'Create account'}</button>
+  </form>
+  return <div className="page public-page login-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>{title}</h1>{body}{message && <p role="alert" className="error">{message}</p>}</div>
 }
 
 function Shell() {

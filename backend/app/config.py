@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "assessment@localhost"
     app_name: str = "TapLine IDP"
+    # Off: accounts need an invitation (from a team owner, or a site admin for a new club).
+    open_signup: bool = False
     session_days: int = 7
     app_version: str = "local"
     cleanup_interval_hours: float = 6

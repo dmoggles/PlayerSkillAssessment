@@ -5,7 +5,7 @@ from app.main import app
 from app.routers import teams
 from test_flows import add_coach, clean_database, signed_in, starter_skills
 
-PUBLIC, SIGNED_IN, MEMBER, OWNER = "public", "signed_in", "member", "owner"
+PUBLIC, SIGNED_IN, MEMBER, OWNER, ADMIN = "public", "signed_in", "member", "owner", "admin"
 PP = {"player_id": "{player_id}", "period_id": "{period_id}"}
 
 # (method, path) -> (who may call it, json body, query params)
@@ -45,6 +45,10 @@ ACCESS = {
     ("GET", "/teams"): (SIGNED_IN, None, None),
     ("POST", "/teams"): (SIGNED_IN, {"name": "Another"}, None),
     ("POST", "/invites/accept"): (SIGNED_IN, {"token": "unknown"}, None),
+    ("GET", "/invites/{token}"): (PUBLIC, None, None),
+    ("GET", "/admin/invites"): (ADMIN, None, None),
+    ("POST", "/admin/invites"): (ADMIN, {"email": "new-club@example.com"}, None),
+    ("DELETE", "/admin/invites/{invite_id}"): (ADMIN, None, None),
     ("PATCH", "/teams/{team_id}"): (OWNER, {"name": "Renamed", "self_assessment_enabled": True}, None),
     ("DELETE", "/teams/{team_id}"): (OWNER, {"confirm_name": "Perms"}, None),
     ("GET", "/teams/{team_id}/audit"): (OWNER, None, None),
@@ -114,7 +118,8 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
     ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id,
            "assessment_id": assessment_id, "member_user_id": owner_id,
-           "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill"}
+           "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill",
+           "invite_id": 0}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)
@@ -134,6 +139,9 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
             expected.append((outsider, outsider_csrf, 404))
         if level == OWNER:
             expected.append((coach, coach_csrf, 404))
+        if level == ADMIN:
+            # Team owners are not site admins.
+            expected += [(owner, owner_csrf, 403), (coach, coach_csrf, 403)]
         for client, csrf, status in expected:
             got = call(client, csrf, method, path, body, query).status_code
             if got != status:

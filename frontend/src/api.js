@@ -29,7 +29,7 @@ export function errorMessage(error, fallback = 'Request failed. Please try again
 }
 
 export const restoreSession = () => data(api.get('/auth/me')).then(value => { csrfToken = value.csrf_token; return value })
-export const register = (email, password) => data(api.post('/auth/register', { email, password }))
+export const register = (email, password, invite = null) => data(api.post('/auth/register', { email, password, invite }))
 export const resendVerification = email => data(api.post('/auth/resend-verification', { email }))
 export const verify = token => data(api.post('/auth/verify', { token }))
 export const login = (email, password) => data(api.post('/auth/login', { email, password })).then(value => { csrfToken = value.csrf_token; return value })
@@ -38,6 +38,10 @@ export const forgotPassword = email => data(api.post('/auth/forgot-password', { 
 export const resetPassword = (token, password) => data(api.post('/auth/reset-password', { token, password }))
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
+export const getInvite = token => data(api.get(`/invites/${encodeURIComponent(token)}`))
+export const getSiteInvites = () => data(api.get('/admin/invites'))
+export const sendSiteInvite = email => data(api.post('/admin/invites', { email }))
+export const cancelSiteInvite = id => data(api.delete(`/admin/invites/${id}`))
 
 export const getServerVersion = () => data(api.get('/health')).then(value => value.version)
 export const getDrills = () => data(api.get('/drills'))

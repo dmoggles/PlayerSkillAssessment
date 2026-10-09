@@ -6,6 +6,7 @@ import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
 import MatrixSummary from '../MatrixSummary'
 import PeriodForm from '../PeriodForm'
 import SelfAssessmentBoard from '../SelfAssessmentBoard'
+import SiteAdminSection from './SiteAdminSection'
 import { auditText } from '../auditModel'
 
 const MatrixEditor = lazy(() => import('../MatrixEditor'))
@@ -58,6 +59,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
         <MemberActions user={user} team={team} members={members} setMembers={setMembers} dropTeam={dropTeam} confirmDiscard={confirmDiscard} onMessage={onMessage} leaveOnly />
       </Section>}
     </>}
+    {user.is_admin && <SiteAdminSection onMessage={onMessage} />}
     <Section title="Account" className="settings-account">
       <p className="settings-account-email">{user.email}</p>
       <ChangePasswordForm />

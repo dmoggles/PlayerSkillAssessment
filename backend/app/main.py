@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine
 from .maintenance import cleanup_loop
-from .routers import accounts, assessments, drills, matrices, plans, priorities, reports, self_assessment, squad, teams
+from .routers import accounts, admin, assessments, drills, matrices, plans, priorities, reports, self_assessment, squad, teams
 
 
 @asynccontextmanager
@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
 docs = {} if settings.api_docs_enabled else {"docs_url": None, "redoc_url": None, "openapi_url": None}
 app = FastAPI(title=f"{settings.app_name} API", redirect_slashes=False, lifespan=lifespan, **docs)
 app.include_router(accounts.router)
+app.include_router(admin.router)
 app.include_router(teams.router)
 app.include_router(squad.router)
 app.include_router(assessments.router)

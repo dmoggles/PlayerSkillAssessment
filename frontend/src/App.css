@@ -971,3 +971,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .public-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 1.5rem; }
 .made-with { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 32px 0 8px; color: var(--muted); font-size: .8rem; }
 .made-with strong { color: var(--heading); }
+.invite-only-note { margin-top: 18px; color: var(--muted); font-size: .9rem; text-align: center; }
+.invite-lead { margin-bottom: 14px; color: var(--muted); }
+.site-invites { list-style: none; display: grid; gap: 8px; margin-top: 12px; }

@@ -3,10 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session as DbSession
 from ..audit import record
-from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
+from ..auth import consume_auth_token, current_user, require_member, send_email
 from ..config import settings
 from ..database import get_db
 from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User
+from .. import invites
 from .accounts import delivery_message
 
 
@@ -207,16 +208,39 @@ def invite(team_id: int, body: InviteBody, db: DbSession = Depends(get_db), user
     email = body.email.strip().casefold()
     if db.query(Membership).join(User).filter(Membership.team_id == team_id, User.email == email).first():
         raise HTTPException(409, "Coach is already a member")
-    token = issue_auth_token(db, email, "invite", team_id=team_id)
+    # A new invitation replaces any earlier one for this address and team.
+    db.query(AuthToken).filter_by(team_id=team_id, email=email, purpose="invite").delete(synchronize_session=False)
+    token, _ = invites.issue(db, email, "invite", invites.TEAM_INVITE_DAYS, team_id=team_id)
     record(db, team_id, user, "invite_sent", email)
+    team = db.get(Team, team_id)
     try:
-        team = db.get(Team, team_id)
-        send_email(email, f"Join {team.name} on {settings.app_name}", f"{user.email} has invited you to coach {team.name} on {settings.app_name}. Open this link after signing in or registering:\n{settings.public_base_url}/invite/{token}")
+        send_email(email, f"Join {team.name} on {settings.app_name}",
+                   f"{user.email} has invited you to coach {team.name} on {settings.app_name}.\n\n"
+                   f"Open this link to join (you can create your account there if you don't have one):\n{settings.public_base_url}/invite/{token}\n\n"
+                   f"The link works for {invites.TEAM_INVITE_DAYS} days.")
     except Exception:
         db.rollback()
         raise HTTPException(503, "Email delivery unavailable")
     db.commit()
     return {"message": delivery_message("Invitation sent.")}
+
+
+class InviteInfo(BaseModel):
+    email: str
+    kind: Literal["team", "site"]
+    team: str | None
+    account_exists: bool
+
+
+@router.get("/invites/{token}", response_model=InviteInfo)
+def invite_info(token: str, db: DbSession = Depends(get_db)):
+    """What an invitation link is for, so its page can offer to join, sign in or create the account."""
+    row = invites.find(db, token)
+    team = db.get(Team, row.team_id) if row and row.team_id else None
+    if not row or (row.purpose == "invite" and not team):
+        raise HTTPException(404, "This invitation is invalid or has expired. Ask for a new one.")
+    return {"email": row.email, "kind": "team" if row.purpose == "invite" else "site", "team": team.name if team else None,
+            "account_exists": db.query(User).filter_by(email=row.email).first() is not None}
 
 
 @router.post("/invites/accept")
