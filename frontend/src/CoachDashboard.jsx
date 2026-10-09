@@ -10,6 +10,7 @@ import SettingsArea from './areas/SettingsArea'
 import TeamDataArea from './areas/TeamDataArea'
 import { sectionsFor, skillSetFor } from './matrix'
 import { APP_VERSION } from './version'
+import { BrandMark, Wordmark } from './brand'
 import { AREAS, assessmentSignature, formFromAssessment, formSignature, initialPeriodId, initialPlayerId, previousCoachAssessment } from './dashboardModel'
 
 const fail = errorMessage
@@ -234,7 +235,7 @@ export default function CoachDashboard({ user, onLogout }) {
   const contextSecondary = [needsPlayer && selectedPlayer ? selectedTeam?.name : null, selectedPeriod?.label].filter(Boolean).join(' · ') || 'Tap to choose team and period'
 
   return <div className="dashboard-shell">
-    <aside className="dashboard-sidebar"><div className="brand"><span className="brand-mark">PS</span><div><strong>Player Skills</strong><span>Coach workspace</span></div></div><nav aria-label="Main navigation" className="side-nav">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.label}</span></button>)}</nav><div className="sidebar-account"><span>{user.email}</span><button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button><span className="app-version">Version {APP_VERSION}</span></div></aside>
+    <aside className="dashboard-sidebar"><div className="brand"><BrandMark size={46} /><div><strong><Wordmark /></strong><span>Coach workspace</span></div></div><nav aria-label="Main navigation" className="side-nav">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.label}</span></button>)}</nav><div className="sidebar-account"><span>{user.email}</span><button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button><span className="app-version">Version {APP_VERSION}</span></div></aside>
     <main className="dashboard-main"><header className="dashboard-header"><div><p className="eyebrow">Coach workspace</p><h1>{currentArea.label}</h1><p className="subtitle">{currentArea.subtitle}</p></div></header>
       {message && <p className="notice" role="status">{message} <button className="link-btn" onClick={() => setMessage('')}>Dismiss</button></p>}
       <div className="desktop-context">{context}</div>

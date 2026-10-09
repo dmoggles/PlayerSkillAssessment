@@ -1,4 +1,4 @@
-# Player Skill Assessment
+# TapLine IDP
 
 A team-based football assessment app for coaches. Coaches can maintain a roster, assess players in successive periods, compare coach and player ratings, confirm development priorities, and see progress across periods. Team owners can invite coaches and enable individual player self-assessment links.
 

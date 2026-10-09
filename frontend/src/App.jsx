@@ -5,6 +5,7 @@ const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
 import UpdateBanner from './UpdateBanner'
+import { BrandMark, Wordmark } from './brand'
 import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
 
@@ -36,7 +37,7 @@ function AuthForm({ onSignedIn, embedded = false }) {
   }
 
   return <div className={embedded ? 'auth-embedded' : 'page login-page public-page'}>
-    {!embedded && <><p className="eyebrow">Player Skills</p><h1>Coach workspace</h1></>}
+    {!embedded && <><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Coach workspace</h1></>}
     <h2>{mode === 'login' ? 'Coach sign in' : mode === 'register' ? 'Create coach account' : mode === 'resend' ? 'Resend verification' : 'Reset password'}</h2>
     <form onSubmit={submit} className="stack">
       <label className="field">Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
@@ -53,7 +54,7 @@ function VerifyPage() {
   const [message, setMessage] = useState('Verifying…')
   const started = useRef(false)
   useEffect(() => { if (started.current) return; started.current = true; verify(token).then(() => setMessage('Account verified. You can sign in now.')).catch(e => setMessage(errorText(e))) }, [token])
-  return <div className="page public-page"><p className="eyebrow">Player Skills</p><h1>Account verification</h1><section className="public-card"><p role="status">{message}</p><Link to="/">Sign in</Link></section></div>
+  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Account verification</h1><section className="public-card"><p role="status">{message}</p><Link to="/">Sign in</Link></section></div>
 }
 
 function ResetPage() {
@@ -61,7 +62,7 @@ function ResetPage() {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   async function submit(event) { event.preventDefault(); try { await resetPassword(token, password); setMessage('Password changed. Sign in now.') } catch (e) { setMessage(errorText(e)) } }
-  return <div className="page public-page"><p className="eyebrow">Player Skills</p><h1>Reset password</h1><form onSubmit={submit} className="stack"><label className="field">New password<input type="password" minLength={12} required value={password} onChange={e => setPassword(e.target.value)} /></label><button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
+  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack"><label className="field">New password<input type="password" minLength={12} required value={password} onChange={e => setPassword(e.target.value)} /></label><button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
 }
 
 function InvitePage({ user, onSignedIn }) {
@@ -69,7 +70,7 @@ function InvitePage({ user, onSignedIn }) {
   const navigate = useNavigate()
   const [message, setMessage] = useState('')
   async function accept() { try { await acceptInvite(token); navigate('/') } catch (e) { setMessage(errorText(e)) } }
-  return <div className="page public-page"><p className="eyebrow">Player Skills</p><h1>Team invitation</h1><section className="public-card">{user ? <><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join team</button></> : <p>Sign in or create an account with the invited email address.</p>}{message && <p role="alert" className="error">{message}</p>}</section>{!user && <AuthForm onSignedIn={onSignedIn} embedded />}</div>
+  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Team invitation</h1><section className="public-card">{user ? <><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join team</button></> : <p>Sign in or create an account with the invited email address.</p>}{message && <p role="alert" className="error">{message}</p>}</section>{!user && <AuthForm onSignedIn={onSignedIn} embedded />}</div>
 }
 
 function Shell() {

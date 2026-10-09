@@ -72,7 +72,7 @@ def register(body: Credentials, request: Request, db: DbSession = Depends(get_db
     db.flush()
     token = issue_auth_token(db, email, "verify", user.id)
     try:
-        send_email(email, "Verify your account", f"Open this link to verify your account:\n{settings.public_base_url}/verify/{token}")
+        send_email(email, f"Verify your {settings.app_name} account", f"Open this link to verify your {settings.app_name} account:\n{settings.public_base_url}/verify/{token}")
     except Exception:
         db.rollback()
         raise HTTPException(503, "Email delivery unavailable")
@@ -89,7 +89,7 @@ def resend_verification(body: EmailOnly, request: Request, db: DbSession = Depen
         db.query(AuthToken).filter_by(user_id=user.id, purpose="verify").delete(synchronize_session=False)
         token = issue_auth_token(db, email, "verify", user.id)
         try:
-            send_email(email, "Verify your account", f"Open this link to verify your account:\n{settings.public_base_url}/verify/{token}")
+            send_email(email, f"Verify your {settings.app_name} account", f"Open this link to verify your {settings.app_name} account:\n{settings.public_base_url}/verify/{token}")
         except Exception:
             db.rollback()
             raise HTTPException(503, "Email delivery unavailable")
@@ -162,7 +162,7 @@ def forgot_password(body: EmailOnly, request: Request, db: DbSession = Depends(g
     if user and user.verified_at:
         token = issue_auth_token(db, email, "reset", user.id)
         try:
-            send_email(email, "Reset your password", f"Open this link to reset your password:\n{settings.public_base_url}/reset/{token}")
+            send_email(email, f"Reset your {settings.app_name} password", f"Open this link to reset your {settings.app_name} password:\n{settings.public_base_url}/reset/{token}")
             db.commit()
         except Exception:
             db.rollback()

@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 # Interactive API docs and the schema are only served where explicitly enabled (local development).
 docs = {} if settings.api_docs_enabled else {"docs_url": None, "redoc_url": None, "openapi_url": None}
-app = FastAPI(title="Player Skill Assessment API", redirect_slashes=False, lifespan=lifespan, **docs)
+app = FastAPI(title=f"{settings.app_name} API", redirect_slashes=False, lifespan=lifespan, **docs)
 app.include_router(accounts.router)
 app.include_router(teams.router)
 app.include_router(squad.router)

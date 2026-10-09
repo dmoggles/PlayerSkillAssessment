@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_from: str = "assessment@localhost"
+    app_name: str = "TapLine IDP"
     session_days: int = 7
     app_version: str = "local"
     cleanup_interval_hours: float = 6

@@ -210,7 +210,8 @@ def invite(team_id: int, body: InviteBody, db: DbSession = Depends(get_db), user
     token = issue_auth_token(db, email, "invite", team_id=team_id)
     record(db, team_id, user, "invite_sent", email)
     try:
-        send_email(email, "Team invitation", f"You have been invited to join a team. Open this link after signing in or registering:\n{settings.public_base_url}/invite/{token}")
+        team = db.get(Team, team_id)
+        send_email(email, f"Join {team.name} on {settings.app_name}", f"{user.email} has invited you to coach {team.name} on {settings.app_name}. Open this link after signing in or registering:\n{settings.public_base_url}/invite/{token}")
     except Exception:
         db.rollback()
         raise HTTPException(503, "Email delivery unavailable")

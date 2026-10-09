@@ -1,4 +1,5 @@
 import { PlanCards } from './DevelopmentPlan'
+import { PLAN_NAME } from './brand'
 import { REPORT_TRENDS } from './reportModel'
 
 const fmt = value => (value == null ? '—' : value.toFixed(1))
@@ -8,7 +9,7 @@ const fmt = value => (value == null ? '—' : value.toFixed(1))
 export default function PlayerReport({ report, onOpenDrill }) {
   return <article className="player-report">
     <header className="report-header">
-      <p className="eyebrow">Player report</p>
+      <p className="eyebrow">{report.plan ? PLAN_NAME : 'Player report'}</p>
       <h2>{report.player}</h2>
       <p>{[report.team, report.period, report.position].filter(Boolean).join(' · ')}</p>
     </header>

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { errorMessage, getSharedReport, getSharedReportDrill } from './api'
 import { DrillDialog } from './DrillLibrary'
 import PlayerReport from './PlayerReport'
+import { MadeWith } from './brand'
 import { buildReport } from './reportModel'
 
 // Public, read-only report opened from a coach's share link.
@@ -28,5 +29,6 @@ export default function SharedReportPage() {
           <PlayerReport report={report} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
           {drillError && <p className="error" role="alert">{drillError}</p>}
           {openDrill && <DrillDialog drill={openDrill} loadDrill={loadDrill} onMessage={setDrillError} onClose={() => setOpenDrill(null)} />}</>}
+    <MadeWith />
   </div>
 }

@@ -3,6 +3,7 @@ import secrets
 import smtplib
 from datetime import timedelta, timezone
 from email.message import EmailMessage
+from email.utils import formataddr
 from fastapi import Depends, HTTPException, Request
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, VerificationError
@@ -26,10 +27,11 @@ def fresh_token() -> str:
 
 def send_email(to: str, subject: str, body: str):
     message = EmailMessage()
-    message["From"] = settings.smtp_from
+    message["From"] = formataddr((settings.app_name, settings.smtp_from))
     message["To"] = to
     message["Subject"] = subject
-    message.set_content(body)
+    message.set_content(f"{body}\n\n{settings.app_name}: individual development plans for grassroots football\n"
+                        "If you weren't expecting this email, you can ignore it.")
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as smtp:
         if settings.smtp_username:
             smtp.starttls()
