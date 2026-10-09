@@ -77,17 +77,27 @@ The interactive API docs (`/api/docs`) and schema (`/api/openapi.json`) are serv
 
 Each image carries the version it was built from. The app shows it in the sidebar and under Settings → Account, and `/api/health` returns it. Production uses the GitHub release tag (use semantic versions such as `v0.1.0`), development uses `dev-<short commit>`, and local builds use `git describe --tags --always --dirty` (for example `v0.1.0-3-gabc1234`, or a short commit with `-dirty` for uncommitted changes).
 
-### Backups and restore checks
+### Backups and restore
 
-Configure an off-host S3-compatible bucket with access limited to backups, versioning, and a 30-day retention policy. Generate an `age` key pair, keep the private key off the VPS, and set `BACKUP_AGE_RECIPIENT` and `BACKUP_S3_URI` in the backup job environment. Schedule `bash deploy/backup.sh` nightly using a timer or cron. The script streams a custom-format PostgreSQL dump through `age` encryption to the bucket; it does not write a plaintext dump to disk.
+Production backs up its database every night and before every deploy. Each backup is a PostgreSQL dump encrypted with [age](https://age-encryption.org) before it touches disk, so no copy can be read without the private key, which never goes on a server. Each one is kept in three places:
 
-Monthly, restore a backup into a separate database and verify its tables and representative row counts. From the deployment directory, for example:
+| Where | Kept | Pruned by |
+| --- | --- | --- |
+| The production server (`backups/` in the deployment directory) | 30 nightly, 12 monthly, 10 pre-deploy | `deploy/backup.sh` |
+| An S3-compatible bucket in the UK/EU (e.g. Backblaze B2), via rclone | Set by the bucket's lifecycle rules | The bucket; the backup key has no delete rights |
+| The other VPS, write-only over SSH (`rrsync -wo -no-del`) | 35 days nightly, 400 days monthly, 120 days pre-deploy | That server's own timer |
 
-```bash
-docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db createdb -U assessment_owner assessment_restore
-aws s3 cp s3://YOUR-BUCKET/YOUR-BACKUP.dump.age - | age -d -i /secure/off-host/age-key.txt | docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db pg_restore -U assessment_owner -d assessment_restore --no-owner
-docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml exec -T db psql -U assessment_owner -d assessment_restore -c 'SELECT count(*) FROM assessments;'
-```
+A compromised production server can add backups but can't read or delete the off-server copies. A missed or failed nightly backup pings a health check (e.g. healthchecks.io), which alerts you. A production deploy stops if its pre-deploy backup fails.
+
+**Set up, once:**
+
+1. On your own computer: `age-keygen -o tapline-idp-backup.key`. Store the key file in your password manager and one other safe place, and keep the public key (`age1…`) for step 3.
+2. On the other VPS: `sudo bash deploy/setup_backup_mirror.sh "<public key line from step 4>"` (run step 4 first to get the key line).
+3. In the production deployment directory, copy [backup.env.example](deploy/backup.env.example) to `.backup.env` and fill in the age public key, the bucket's rclone settings, the mirror, and the health-check URL.
+4. `sudo bash deploy/setup_backups.sh DEPLOY_DIR DEPLOY_USER` installs age, rclone and rsync, creates the mirror's SSH key (it prints the public line for step 2), and schedules the nightly backup at about 02:30 UTC.
+5. Run one now and read the result: `sudo systemctl start tapline-idp-backup.service && journalctl -u tapline-idp-backup.service -n 5`.
+
+**Restore.** `bash deploy/restore.sh check KEY_FILE BACKUP.dump.age` restores into a throwaway database and lists what is in it (accounts, teams, players, assessments, the latest assessment). It needs only Docker and age, so it runs on your own computer too. Practise it every few months. `bash deploy/restore.sh replace KEY_FILE BACKUP.dump.age`, in the deployment directory, replaces the live database: it asks you to confirm, backs up the current database first, restores, re-applies the app user's access, runs migrations and restarts the app. Bring the key file to the server only for a restore, and delete it afterwards. To fetch a backup from the bucket: `rclone copy offsite:BUCKET/daily/NAME.dump.age .` with the `RCLONE_CONFIG_OFFSITE_*` settings exported.
 
 The backup destination, SMTP relay, DNS names, Nginx sites, and VPS credentials are deployment prerequisites; no server is configured by this repository alone.
 
