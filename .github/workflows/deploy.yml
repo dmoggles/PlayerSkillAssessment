@@ -39,7 +39,7 @@ jobs:
           uv sync --frozen --extra test
           uv run alembic upgrade head
           uv run pytest -q
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
