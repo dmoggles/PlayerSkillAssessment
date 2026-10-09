@@ -26,7 +26,7 @@ def test_versions_start_at_the_players_level_and_step_up_in_week_3():
     assert (club["slot"], club["drill"], home["slot"], home["drill"]) == ("club", "rondo", "home", "wall")
     assert titles(club) == ["Base", "Base", "Hard", "Hard"]  # level 2 sits in two ranges: the harder one
     assert club["reasons"][1] == "Starts at “Base” (levels 2–3) to match a rating of 2." and "week 3" in club["reasons"][2]
-    assert out["gaps"] == [] and out["planner"] == "rules-v1"
+    assert out["gaps"] == [] and out["planner"] == "rules-v2"
     top = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=5)], "drills": [drill("rondo", {"passing": 1.0})]})
     assert titles(top["slots"][0]) == ["Hardest"] * 4 and "hardest version" in top["slots"][0]["reasons"][2]
     unrated = plan({"priorities": [priority(1, "passing", {"passing": 1.0})], "drills": [drill("rondo", {"passing": 1.0})]})
@@ -75,3 +75,48 @@ def test_the_report_view_keeps_home_drills_only():
     assert [(s["rank"], s["drill"]) for s in view["slots"]] == [(1, "wall")]
     assert [(g["rank"], g["slot"], g["reason"]) for g in view["gaps"]] == [(2, "home", "No home drill for this skill yet."), (3, "home", "No home drill for this skill yet.")]
     assert len(out["slots"]) == 3  # the saved plan still has the training drills
+
+
+def test_recent_drills_make_way_for_new_ones():
+    drills = [drill("rondo", {"passing": 1.0}), drill("triangle", {"passing": 1.0})]
+    fresh = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills})
+    assert fresh["slots"][0]["drill"] == "rondo"  # equal drills: alphabetical
+    again = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills,
+                  "history": [{"drill": "rondo", "skill_id": "passing", "slot": "club", "cycles_ago": 1, "last_index": 2, "checkin": None}]})
+    assert again["slots"][0]["drill"] == "triangle"
+    assert any("new for this player" in r for r in again["slots"][0]["reasons"])
+
+
+def test_check_ins_decide_whether_a_drill_continues_or_rotates():
+    drills = [drill("rondo", {"passing": 1.0}), drill("triangle", {"passing": 1.0})]
+    use = lambda trend, last=1: {"drill": "rondo", "skill_id": "passing", "slot": "club", "cycles_ago": 1, "last_index": last, "checkin": trend}
+    better = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills, "history": [use("better")]})
+    slot = better["slots"][0]
+    assert slot["drill"] == "rondo" and titles(slot) == ["Hard", "Hard", "Hardest", "Hardest"]  # one version on from last time
+    assert any("last check-in Better" in r for r in slot["reasons"])
+    topped = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills, "history": [use("better", last=3)]})
+    assert topped["slots"][0]["drill"] == "triangle"  # nothing harder left: move on
+    same = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills, "history": [use("same")]})
+    assert same["slots"][0]["drill"] == "triangle"
+
+
+def test_training_drills_are_shared_with_teammates_but_home_drills_stay_individual():
+    drills = [drill("rondo", {"passing": 1.0}), drill("triangle", {"passing": 1.0}), drill("wall", {"passing": 1.0}, home=True), drill("basket", {"passing": 1.0}, home=True)]
+    out = plan({"priorities": [priority(1, "passing", {"passing": 1.0})], "drills": drills, "squad": {"passing": {"triangle": 3}},
+                "history": [{"drill": "basket", "skill_id": "passing", "slot": "home", "cycles_ago": 2, "last_index": 1, "checkin": None}]})
+    assert [(s["slot"], s["drill"]) for s in out["slots"]] == [("club", "triangle"), ("home", "wall")]
+    assert any("3 teammates use it at training" in r for r in out["slots"][0]["reasons"])
+
+
+def test_coach_overrides_are_kept_and_the_planners_suggestion_recorded():
+    drills = [drill("rondo", {"passing": 1.0}), drill("wall", {"passing": 1.0}, home=True)]
+    other = drill("keepaway", {"other": 1.0})
+    out = plan({"priorities": [priority(1, "passing", {"passing": 1.0}, level=2)], "drills": drills, "catalog": {"keepaway": other},
+                "pins": [{"skill_id": "passing", "slot": "club", "drill": "keepaway", "start_variation_id": 1},
+                         {"skill_id": "passing", "slot": "home", "drill": None}]})
+    club = out["slots"][0]
+    assert (club["drill"], club["chosen_by"], club["suggested"]) == ("keepaway", "coach", "rondo")
+    assert titles(club) == ["Easy", "Easy", "Base", "Base"] and "Chosen by the coach (the planner suggested Rondo)." in club["reasons"]
+    assert out["gaps"] == [{"rank": 1, "skill_id": "passing", "label": "Passing", "slot": "home", "reason": "Removed by the coach."}]
+    planner_slot = plan({"priorities": [priority(1, "passing", {"passing": 1.0})], "drills": drills})["slots"][0]
+    assert (planner_slot["chosen_by"], planner_slot["suggested"]) == ("planner", None)

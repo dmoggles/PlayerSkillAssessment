@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react'
 import CheckinForm from './CheckinForm'
 import DevelopmentPlan from './DevelopmentPlan'
 import { DrillDialog, PriorityDrills } from './DrillLibrary'
@@ -29,6 +29,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
   const [cycles, setCycles] = useState([])
   const [cyclesVersion, setCyclesVersion] = useState(0)
   const currentCycle = cycles[0] ?? null
+  const refreshCycles = useCallback(() => setCyclesVersion(v => v + 1), [])
   const [checkingIn, setCheckingIn] = useState(false)
   const previousCycle = cycles[1] ?? null
   useEffect(() => {
@@ -189,7 +190,7 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
       {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
-      <DevelopmentPlan key={currentCycle?.id ?? 'none'} teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onSaved={() => setCyclesVersion(v => v + 1)} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
+      <DevelopmentPlan key={currentCycle?.id ?? 'none'} teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onSaved={refreshCycles} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
       {!readOnly && currentCycle?.plan && (checkingIn
         ? <CheckinForm cycle={currentCycle} names={skillNames(matrix)} onSubmit={startNextCycle} onSkip={() => startNextCycle([])} onCancel={() => setCheckingIn(false)} />
         : <div className="next-cycle"><button type="button" onClick={openCheckin}>Start cycle {currentCycle.number + 1}</button><span className="muted">When this plan is done: a quick check-in, then new focus areas. This cycle is kept as history.</span></div>)}

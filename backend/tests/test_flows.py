@@ -1072,12 +1072,41 @@ def test_development_cycles_keep_earlier_focus_areas_and_plans(monkeypatch):
     assert report["plan"] is None and report["history"][0]["earlier_cycles"][0]["number"] == 1
     insights = owner.get(f"/teams/{team_id}/insights", params={"period_id": period_id}).json()
     assert [p["skill_id"] for p in insights["period"]["priorities"]] == ["1v1_defending"]
+    # Overriding the plan: alternatives, a chosen drill and version that survive regenerating, removal and reset.
+    confirm("1v1_defending")
+    owner.post(plan_url, json={"period_id": period_id}, headers=headers)
+    slot_url = f"/teams/{team_id}/players/{player_id}/plan/slot"
+    alternatives = owner.get(f"{plan_url}/alternatives", params={"period_id": period_id, "skill_id": "1v1_defending", "slot": "club"}).json()
+    assert alternatives[0]["slug"] == "one-v-one-end-line" and alternatives[0]["notes"]
+    keepups = owner.get("/drills/home-keep-ups").json()
+    chosen = owner.put(slot_url, json={"period_id": period_id, "skill_id": "1v1_defending", "slot": "club", "action": "choose",
+                                       "drill": "home-keep-ups", "start_variation_id": keepups["variations"][2]["id"]}, headers=headers).json()["plan"]
+    club = next(s for s in chosen["slots"] if s["slot"] == "club")
+    assert (club["drill"], club["chosen_by"], club["suggested"], club["weeks"][0]["id"]) == ("home-keep-ups", "coach", "one-v-one-end-line", keepups["variations"][2]["id"])
+    assert owner.put(slot_url, json={"period_id": period_id, "skill_id": "1v1_defending", "slot": "club", "action": "choose",
+                                     "drill": "home-keep-ups", "start_variation_id": 999999}, headers=headers).status_code == 422
+    regenerated = owner.post(plan_url, json={"period_id": period_id}, headers=headers).json()["plan"]
+    assert next(s for s in regenerated["slots"] if s["slot"] == "club")["drill"] == "home-keep-ups"  # the coach's choice is kept
+    removed = owner.put(slot_url, json={"period_id": period_id, "skill_id": "1v1_defending", "slot": "home", "action": "remove"}, headers=headers).json()["plan"]
+    assert {"slot": "home", "reason": "Removed by the coach."}.items() <= removed["gaps"][0].items()
+    reset = owner.put(slot_url, json={"period_id": period_id, "skill_id": "1v1_defending", "slot": "club", "action": "reset"}, headers=headers).json()["plan"]
+    assert next(s for s in reset["slots"] if s["slot"] == "club")["chosen_by"] == "planner" and reset["gaps"][0]["reason"] == "Removed by the coach."
     events = [e["details"] for e in owner.get(f"/teams/{team_id}/audit").json() if e["action"] == "cycle_started"]
     assert events == [{"player": "Kit", "period": "Fall", "number": 2, "checked_in": True}]
+    assert any(e["action"] == "plan_slot_changed" for e in owner.get(f"/teams/{team_id}/audit").json())
     # Skipping the check-in still starts the next cycle.
     owner.post(plan_url, json={"period_id": period_id}, headers=headers)
     third = owner.post(cycles_url, json={"period_id": period_id}, headers=headers).json()
     assert third["number"] == 3 and owner.get(cycles_url, params={"period_id": period_id}).json()[1]["checkin"] == {}
+    # Back on short passing: cycle 1's check-in said Better and its home drill reached its hardest version, so
+    # the planner moves on to another home drill.
+    first = next(s for s in listed[1]["plan"]["slots"] if s["slot"] == "home")
+    variations = [v["id"] for v in owner.get(f"/drills/{first['drill']}").json()["variations"]]
+    assert variations.index(first["weeks"][-1]["id"]) == len(variations) - 1
+    confirm("passing_short")
+    again = owner.post(plan_url, json={"period_id": period_id}, headers=headers).json()["plan"]
+    home = next(s for s in again["slots"] if s["slot"] == "home")
+    assert home["drill"] != first["drill"] and any("new for this player" in r for r in home["reasons"])
 
 
 def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):

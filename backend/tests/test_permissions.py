@@ -27,6 +27,8 @@ ACCESS = {
     ("POST", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, "plan", None),
     ("GET", "/teams/{team_id}/players/{player_id}/cycles"): (MEMBER, None, {"period_id": "{period_id}"}),
     ("POST", "/teams/{team_id}/players/{player_id}/cycles"): (MEMBER, "plan", None),
+    ("GET", "/teams/{team_id}/players/{player_id}/plan/alternatives"): (MEMBER, None, {"period_id": "{period_id}", "skill_id": "passing_short", "slot": "club"}),
+    ("PUT", "/teams/{team_id}/players/{player_id}/plan/slot"): (MEMBER, "slot", None),
     ("GET", "/report/{token}/drills/{slug}"): (PUBLIC, None, None),
     ("GET", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
     ("PUT", "/teams/{team_id}/matrix/draft"): (OWNER, {"revision": 0, "document": {}}, None),
@@ -117,7 +119,8 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
         url = path.format(**ids)
         params = {k: v.format(**ids) for k, v in query.items()} if query else None
         json_body = ({**assessment, "version": 1} if body == "assessment"
-                     else {"period_id": ids["period_id"]} if body == "plan" else body)
+                     else {"period_id": ids["period_id"]} if body == "plan"
+                     else {"period_id": ids["period_id"], "skill_id": "passing_short", "slot": "club", "action": "reset"} if body == "slot" else body)
         return client.request(method, url, json=json_body, params=params, headers={"x-csrf-token": csrf} if csrf else {})
 
     anonymous = TestClient(app)

@@ -821,3 +821,17 @@ test('carried ratings are tracked in the form, marked in the assessment and in P
   assert.match(progress, /3<sup class="carried-sup"/)
   assert.match(progress, /Carried from the previous period and not re-rated yet/)
 })
+
+test('coaches can change plan slots; the report view cannot', async () => {
+  const { PlanCards } = await loadJsx('src/DevelopmentPlan.jsx')
+  const plan = { weeks: 4, slots: [{ rank: 1, skill_id: 'a', label: 'Passing', slot: 'club', drill: 'rondo', title: 'Rondo', duration: [8, 12], chosen_by: 'coach', suggested: 'other',
+    weeks: [{ id: 1, title: 'Easy' }, { id: 1, title: 'Easy' }, { id: 2, title: 'Base' }, { id: 2, title: 'Base' }], reasons: [] }],
+    gaps: [{ rank: 1, skill_id: 'a', label: 'Passing', slot: 'home', reason: 'Removed by the coach.' }] }
+  const editor = { edit: async () => {}, alternatives: async () => [] }
+  const coachView = renderToStaticMarkup(React.createElement(PlanCards, { plan, onOpenDrill: () => {}, editor }))
+  assert.match(coachView, /Chosen by you/)
+  assert.match(coachView, />Change<\/button>/)
+  assert.match(coachView, />Restore<\/button>/)
+  const reportView = renderToStaticMarkup(React.createElement(PlanCards, { plan, onOpenDrill: () => {} }))
+  assert.doesNotMatch(reportView, /Change<\/button>|Restore/)
+})

@@ -904,7 +904,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .plan-weeks button { padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px; background: #f6f8fa; color: var(--text); font-size: .82rem; cursor: pointer; }
 .plan-weeks button:hover { border-color: var(--accent); }
 .plan-reasons { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
-.plan-gap { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fbeedd; color: #5c3800; font-size: .85rem; }
+.plan-gap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fbeedd; color: #5c3800; font-size: .85rem; }
 
 .report-plan h3 small { font-weight: 400; color: var(--muted); }
 .report-extend { margin-top: 8px; align-items: center; }
@@ -946,3 +946,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .carried-mark { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
 .carried-mark .status-pill { margin-left: 0; }
 .carried-sup { color: #8a5300; margin-left: 1px; }
+.plan-change { margin-left: auto; font-size: .85rem; }
+.plan-slot-head .info-pill { margin-left: 0; }
+.slot-editor { margin: 8px 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafc; display: grid; gap: 10px; }
+.slot-editor fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.slot-editor legend { font-weight: 600; font-size: .88rem; margin-bottom: 4px; }
+.slot-option { display: flex; gap: 8px; align-items: flex-start; font-size: .88rem; cursor: pointer; }
+.slot-option small { display: block; color: var(--muted); font-size: .78rem; }

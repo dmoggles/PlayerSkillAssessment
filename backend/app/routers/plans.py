@@ -8,32 +8,89 @@ from ..audit import record
 from ..auth import current_user
 from ..database import get_db
 from ..matrix import document
-from ..cycles import current_cycle, current_plan
+from ..cycles import current_cycle, current_plan, latest_cycle_ids
 from ..models import CycleCheckin, DevelopmentCycle, Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
-from ..plans import plan as rules_plan
+from ..plans import plan as rules_plan, ranked
 from .drills import _library, _player_context
 
 router = APIRouter(tags=["plans"])
 
 
-def build_plan(db: DbSession, team_id: int, player_id: int, period_id: int, skills: list[str], weeks: int, user: User) -> dict:
+def _drill_data(drills, drill_tags, ladder_tags, variations, votes, tags) -> list[dict]:
+    """Drills in the planner's input format."""
+    return [{"slug": d.slug, "title": d.title, "home_friendly": d.home_friendly,
+             "duration": [d.duration_min, d.duration_typical], "tags": drill_tags.get(d.id, {}),
+             "tag_labels": {t["id"]: t["label"] for t in tags.get(d.id, [])},
+             "ladder_tags": sorted(ladder_tags.get(d.id, set())),
+             "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}
+                            for v in variations.get(d.id, [])],
+             "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"]}
+            for d in drills if variations.get(d.id)]
+
+
+def _history(db: DbSession, player_id: int, current: DevelopmentCycle | None, catalog: dict) -> list[dict]:
+    """The drills in the player's earlier plans, newest cycle first (cycles_ago 1 = the cycle before this one),
+    with the version reached and that cycle's check-in for the skill."""
+    rows = db.query(DevelopmentCycle, PlayerPlan, Period).join(PlayerPlan, PlayerPlan.cycle_id == DevelopmentCycle.id).join(
+        Period, Period.id == DevelopmentCycle.period_id).filter(DevelopmentCycle.player_id == player_id).order_by(
+        Period.created_at.desc(), Period.id.desc(), DevelopmentCycle.number.desc()).all()
+    rows = [r for r in rows if not current or r[0].id != current.id]
+    checkins = {(c.cycle_id, c.skill_id): c.trend for c in db.query(CycleCheckin).filter(CycleCheckin.cycle_id.in_([r[0].id for r in rows]))}
+    uses = []
+    for ago, (cycle, saved, _) in enumerate(rows, start=1):
+        for slot in saved.plan["slots"]:
+            ids = [v["id"] for v in catalog.get(slot["drill"], {}).get("variations", [])]
+            last = slot["weeks"][-1]["id"] if slot["weeks"] else None
+            uses.append({"drill": slot["drill"], "skill_id": slot["skill_id"], "slot": slot["slot"], "cycles_ago": ago,
+                         "last_index": ids.index(last) if last in ids else 0, "checkin": checkins.get((cycle.id, slot["skill_id"]))})
+    return uses
+
+
+def _squad(db: DbSession, team_id: int, player_id: int, period_id: int) -> dict:
+    """Training drills teammates' current plans use in this period, per skill: skill -> {drill: teammates}."""
+    out = {}
+    current = latest_cycle_ids(db, period_id=period_id)
+    for saved in db.query(PlayerPlan).filter(PlayerPlan.cycle_id.in_(current), PlayerPlan.player_id != player_id):
+        for slot in saved.plan["slots"]:
+            if slot["slot"] == "club":
+                bucket = out.setdefault(slot["skill_id"], {})
+                bucket[slot["drill"]] = bucket.get(slot["drill"], 0) + 1
+    return out
+
+
+def _pins(saved_plan: dict | None) -> list[dict]:
+    """The coach's choices in a saved plan, kept when it is regenerated: chosen drills and removed slots."""
+    if not saved_plan:
+        return []
+    chosen = [{"skill_id": s["skill_id"], "slot": s["slot"], "drill": s["drill"], "start_variation_id": s["weeks"][0]["id"] if s["weeks"] else None}
+              for s in saved_plan["slots"] if s.get("chosen_by") == "coach"]
+    removed = [{"skill_id": g["skill_id"], "slot": g["slot"], "drill": None} for g in saved_plan["gaps"] if g["reason"] == "Removed by the coach."]
+    return chosen + removed
+
+
+def planner_input(db: DbSession, team_id: int, player_id: int, period_id: int, skills: list[str], weeks: int, user: User,
+                  pins: list[dict] | None = None) -> dict:
+    """Everything the planner needs, as plain data."""
     age_group, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
     labels = {s["id"]: s["label"] for section in document(db, period.matrix_version_id)["sections"] for s in section["skills"]}
-    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, age_group, user)
-    return rules_plan({
+    drills = _drill_data(*_library(db, age_group, user))
+    catalog = {d["slug"]: d for d in _drill_data(*_library(db, None, user))}  # any drill a coach may choose
+    cycle = current_cycle(db, player_id, period_id)
+    saved = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first() if cycle else None
+    return {
         "weeks": weeks,
         "priorities": [{"rank": rank, "skill_id": skill_id, "label": labels.get(skill_id, skill_id),
                         "level": levels.get(skill_id), "tags": skill_tags.get(skill_id, {})}
                        for rank, skill_id in enumerate(dict.fromkeys(skills), start=1)],
-        "drills": [{"slug": d.slug, "title": d.title, "home_friendly": d.home_friendly,
-                    "duration": [d.duration_min, d.duration_typical], "tags": drill_tags.get(d.id, {}),
-                    "tag_labels": {t["id"]: t["label"] for t in tags.get(d.id, [])},
-                    "ladder_tags": sorted(ladder_tags.get(d.id, set())),
-                    "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}
-                                   for v in variations.get(d.id, [])],
-                    "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"]}
-                   for d in drills if variations.get(d.id)],
-    })
+        "drills": drills, "catalog": catalog,
+        "history": _history(db, player_id, cycle, catalog),
+        "squad": _squad(db, team_id, player_id, period_id),
+        "pins": _pins(saved.plan if saved else None) if pins is None else pins,
+    }
+
+
+def build_plan(db: DbSession, team_id: int, player_id: int, period_id: int, skills: list[str], weeks: int, user: User) -> dict:
+    return rules_plan(planner_input(db, team_id, player_id, period_id, skills, weeks, user))
 
 
 def plan_skills(plan: dict) -> list[str]:
@@ -129,3 +186,67 @@ def start_cycle(team_id: int, player_id: int, body: CycleIn, db: DbSession = Dep
     record(db, team_id, user, "cycle_started", player=player.name, period=period.label, number=nxt.number, checked_in=bool(body.checkin))
     db.commit()
     return cycle_out(db, nxt, True)
+
+
+def _editable(db: DbSession, team_id: int, player_id: int, period_id: int, user: User) -> tuple[PlayerPlan, list[str]]:
+    _player_context(db, team_id, player_id, period_id, user)
+    saved = current_plan(db, player_id, period_id)
+    if not saved:
+        raise HTTPException(409, "Generate a plan before changing it")
+    return saved, plan_skills(saved.plan)
+
+
+@router.get("/teams/{team_id}/players/{player_id}/plan/alternatives")
+def plan_alternatives(team_id: int, player_id: int, period_id: int, skill_id: str, slot: Literal["club", "home"],
+                      db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The planner's ranked candidates for one slot of the saved plan, each with why it scores as it does."""
+    saved, skills = _editable(db, team_id, player_id, period_id, user)
+    if skill_id not in skills:
+        raise HTTPException(404, "Not a priority in this plan")
+    data = planner_input(db, team_id, player_id, period_id, skills, saved.plan.get("weeks", 4), user)
+    priority = next(p for p in data["priorities"] if p["skill_id"] == skill_id)
+    return [{"slug": c["drill"]["slug"], "title": c["drill"]["title"], "score": c["score"], "notes": c["notes"],
+             "variations": c["drill"]["variations"]} for c in ranked(priority, slot, data)[:8]]
+
+
+class SlotIn(BaseModel):
+    period_id: int
+    skill_id: str
+    slot: Literal["club", "home"]
+    action: Literal["choose", "remove", "reset"]
+    drill: str | None = None
+    start_variation_id: int | None = None
+
+
+@router.put("/teams/{team_id}/players/{player_id}/plan/slot")
+def edit_plan_slot(team_id: int, player_id: int, body: SlotIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Override one slot of the saved plan: choose a drill (and starting version), remove the slot, or reset it to
+    the planner's choice. Only that slot changes; the choice is kept when the plan is regenerated."""
+    saved, skills = _editable(db, team_id, player_id, body.period_id, user)
+    if body.skill_id not in skills:
+        raise HTTPException(404, "Not a priority in this plan")
+    weeks = saved.plan.get("weeks", 4)
+    pins = [p for p in _pins(saved.plan) if (p["skill_id"], p["slot"]) != (body.skill_id, body.slot)]
+    if body.action == "choose":
+        data = planner_input(db, team_id, player_id, body.period_id, skills, weeks, user, pins)
+        drill = data["catalog"].get(body.drill or "")
+        if not drill:
+            raise HTTPException(404, "Drill not found")
+        if body.start_variation_id is not None and body.start_variation_id not in {v["id"] for v in drill["variations"]}:
+            raise HTTPException(422, "That version belongs to another drill")
+        pins.append({"skill_id": body.skill_id, "slot": body.slot, "drill": drill["slug"], "start_variation_id": body.start_variation_id})
+    elif body.action == "remove":
+        pins.append({"skill_id": body.skill_id, "slot": body.slot, "drill": None})
+    fresh = rules_plan(planner_input(db, team_id, player_id, body.period_id, skills, weeks, user, pins))
+    # Only the edited slot changes; the rest of the saved plan stays as it was.
+    key = (body.skill_id, body.slot)
+    keep = lambda items: [i for i in items if (i["skill_id"], i["slot"]) != key]
+    new = lambda items: [i for i in items if (i["skill_id"], i["slot"]) == key]
+    order = lambda i: (i["rank"], i["slot"] != "club")
+    saved.plan = {**saved.plan, "slots": sorted(keep(saved.plan["slots"]) + new(fresh["slots"]), key=order),
+                  "gaps": sorted(keep(saved.plan["gaps"]) + new(fresh["gaps"]), key=order)}
+    player, period = db.get(Player, player_id), db.get(Period, body.period_id)
+    record(db, team_id, user, "plan_slot_changed", player=player.name, period=period.label, skill=body.skill_id, slot=body.slot,
+           change=body.action, **({"drill": body.drill} if body.action == "choose" else {}))
+    db.commit()
+    return plan_out(saved)
