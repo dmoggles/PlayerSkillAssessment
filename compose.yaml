@@ -1,5 +1,13 @@
+# Container logs rotate at 10 MB, five files per service, so they can't fill the disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
+    logging: *logging
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: assessment
@@ -17,6 +25,7 @@ services:
     restart: unless-stopped
 
   api:
+    logging: *logging
     build:
       context: ./backend
       args:
@@ -39,6 +48,7 @@ services:
     restart: unless-stopped
 
   web:
+    logging: *logging
     build:
       context: ./frontend
       args:
@@ -49,10 +59,12 @@ services:
     restart: unless-stopped
 
   mailpit:
+    logging: *logging
     image: axllent/mailpit:v1.24
     profiles: ["local"]
 
   migrate:
+    logging: *logging
     build:
       context: ./backend
       args:

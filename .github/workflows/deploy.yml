@@ -111,7 +111,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           timeout: 30s
-          source: compose.yaml,compose.prod.yaml,deploy/init-app-user.sh,deploy/backup.sh,deploy/restore.sh,deploy/setup_backups.sh,deploy/backup.env.example
+          source: compose.yaml,compose.prod.yaml,deploy/init-app-user.sh,deploy/backup.sh,deploy/restore.sh,deploy/setup_backups.sh,deploy/backup.env.example,deploy/harden_host.sh
           target: ${{ secrets.DEPLOY_PATH }}
       - name: Pull, migrate, restart
         uses: appleboy/ssh-action@v1

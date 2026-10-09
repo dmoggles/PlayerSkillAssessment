@@ -2,6 +2,9 @@ server {
     listen 80;
     listen [::]:80;
     server_name dev-assessment.example.com;
+    server_tokens off;
+    # Browsers that have seen this site over HTTPS refuse plain HTTP for a year (Certbot adds HTTPS below).
+    add_header Strict-Transport-Security "max-age=31536000" always;
 
     # Self-assessment, report, invitation, verification and reset links carry a secret token in the path; keep them out of access logs.
     location ~ ^/(api/)?(self|report|invites?|verify|reset)/ {
