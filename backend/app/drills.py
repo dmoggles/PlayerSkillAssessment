@@ -206,6 +206,27 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
     return p
 
 
+def _sync(db: DbSession, model, drill_id: int, rows: list[dict]) -> list:
+    """Make a drill's media or variations match `rows`, in order, reusing existing rows (and their ids) by position."""
+    existing = db.query(model).filter_by(drill_id=drill_id).order_by(model.position).all()
+    if model is DrillMedia and len(existing) > len(rows):
+        # Variations may still point at media about to go; they are re-pointed right after.
+        gone = [m.id for m in existing[len(rows):]]
+        db.query(DrillVariation).filter(DrillVariation.diagram_media_id.in_(gone)).update({"diagram_media_id": None}, synchronize_session=False)
+        db.query(DrillVariation).filter(DrillVariation.video_media_id.in_(gone)).update({"video_media_id": None}, synchronize_session=False)
+    for extra in existing[len(rows):]:
+        db.delete(extra)
+    out = []
+    for i, values in enumerate(rows):
+        row = existing[i] if i < len(existing) else model(drill_id=drill_id)
+        for key, value in {**values, "position": i + 1}.items():
+            setattr(row, key, value)
+        db.add(row)
+        out.append(row)
+    db.flush()
+    return out
+
+
 def load_file(db: DbSession, path: Path) -> dict:
     """Apply one data file: insert or update its drills by slug and retire the ones it no longer lists."""
     data = json.loads(path.read_text())
@@ -238,27 +259,25 @@ def load_file(db: DbSession, path: Path) -> dict:
         drill.home_friendly, drill.status = r.get("home_friendly", False), r.get("status", "published")
         drill.source_version, drill.updated_at = version, utcnow()
         db.flush()
-        for model in (DrillVariation, DrillMedia, DrillTag):
-            db.query(model).filter_by(drill_id=drill.id).delete()
+        db.query(DrillTag).filter_by(drill_id=drill.id).delete()
         db.query(DrillLink).filter_by(from_drill_id=drill.id).delete()
         ladder = set(r.get("ladder_tags") or r["tags"])
         db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight, on_ladder=tag in ladder) for tag, weight in r["tags"].items())
-        media = [DrillMedia(drill_id=drill.id, position=i + 1, kind=m["kind"], caption=m.get("caption", ""), url=m.get("url"),
-                            video_start_seconds=m.get("start_seconds"), diagram=m.get("diagram")) for i, m in enumerate(r.get("media", []))]
-        db.add_all(media)
-        db.flush()
-        db.add_all(DrillVariation(drill_id=drill.id, position=i + 1, kind=v["kind"], title=v["title"], change=v.get("change", ""),
-                                  level_min=v["levels"][0], level_max=v["levels"][1],
-                                  diagram_media_id=media[v["diagram"]].id if "diagram" in v else None,
-                                  video_media_id=media[v["video"]].id if "video" in v else None,
-                                  setup=v.get("setup"), equipment=v.get("equipment"), instructions=v.get("instructions"),
-                                  coaching_points=v.get("coaching_points"),
-                                  players_min=v["players"][0] if "players" in v else None,
-                                  players_ideal=v["players"][1] if "players" in v else None,
-                                  players_max=v["players"][2] if "players" in v else None,
-                                  space_width_m=v["space"][0] if "space" in v else None,
-                                  space_length_m=v["space"][1] if "space" in v else None)
-                   for i, v in enumerate(r["variations"]))
+        # Media and variations are updated in place by position, so their ids stay the same from one load to the
+        # next: saved plans point at variation ids. Extra rows at the end are removed.
+        media = _sync(db, DrillMedia, drill.id, [dict(kind=m["kind"], caption=m.get("caption", ""), url=m.get("url"),
+                      video_start_seconds=m.get("start_seconds"), diagram=m.get("diagram")) for m in r.get("media", [])])
+        _sync(db, DrillVariation, drill.id, [dict(kind=v["kind"], title=v["title"], change=v.get("change", ""),
+              level_min=v["levels"][0], level_max=v["levels"][1],
+              diagram_media_id=media[v["diagram"]].id if "diagram" in v else None,
+              video_media_id=media[v["video"]].id if "video" in v else None,
+              setup=v.get("setup"), equipment=v.get("equipment"), instructions=v.get("instructions"),
+              coaching_points=v.get("coaching_points"),
+              players_min=v["players"][0] if "players" in v else None,
+              players_ideal=v["players"][1] if "players" in v else None,
+              players_max=v["players"][2] if "players" in v else None,
+              space_width_m=v["space"][0] if "space" in v else None,
+              space_length_m=v["space"][1] if "space" in v else None) for v in r["variations"]])
         by_slug[r["slug"]] = (drill, r)
     db.flush()
     for drill, r in by_slug.values():

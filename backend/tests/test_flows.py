@@ -899,11 +899,14 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
     import json
     from app.database import SessionLocal
     from app.drills import DATA_DIR, DrillError, diagram_problems, load_file
+    from app.models import DrillVariation
     clean_database()
     client, csrf = signed_in("drills-coach@example.com", monkeypatch)
     with SessionLocal() as db:
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 5, "updated": 0, "retired": 0}
+        before = sorted(v.id for v in db.query(DrillVariation))
         assert load_file(db, DATA_DIR / "drills_v1.json") == {"added": 0, "updated": 5, "retired": 0}  # safe to re-run
+        assert sorted(v.id for v in db.query(DrillVariation)) == before  # ids are stable: saved plans point at them
         # Later files load on top; drills link across files.
         assert load_file(db, DATA_DIR / "drills_v2.json") == {"added": 6, "updated": 0, "retired": 0}
         assert load_file(db, DATA_DIR / "drills_v3.json") == {"added": 7, "updated": 0, "retired": 0}  # home drills
