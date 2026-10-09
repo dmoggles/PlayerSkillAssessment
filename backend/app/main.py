@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine
 from .maintenance import cleanup_loop
-from .routers import accounts, assessments, drills, matrices, plans, teams
+from .routers import accounts, assessments, drills, matrices, plans, priorities, reports, self_assessment, squad, teams
 
 
 @asynccontextmanager
@@ -22,7 +22,11 @@ docs = {} if settings.api_docs_enabled else {"docs_url": None, "redoc_url": None
 app = FastAPI(title="Player Skill Assessment API", redirect_slashes=False, lifespan=lifespan, **docs)
 app.include_router(accounts.router)
 app.include_router(teams.router)
+app.include_router(squad.router)
 app.include_router(assessments.router)
+app.include_router(self_assessment.router)
+app.include_router(priorities.router)
+app.include_router(reports.router)
 app.include_router(matrices.router)
 app.include_router(drills.router)
 app.include_router(plans.router)
