@@ -32,6 +32,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-assessment@localhost}
       API_DOCS_ENABLED: ${API_DOCS_ENABLED:-false}
+      OPEN_SIGNUP: ${OPEN_SIGNUP:-false}
     depends_on:
       db:
         condition: service_healthy
