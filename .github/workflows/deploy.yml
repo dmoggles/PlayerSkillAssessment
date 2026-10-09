@@ -25,7 +25,7 @@ jobs:
           docker compose -f compose.yaml -f compose.local.yaml --profile local config -q
           docker compose --env-file deploy/development.env.example -f compose.yaml -f compose.dev.yaml --profile local config -q
           docker compose --env-file deploy/production.env.example -f compose.yaml -f compose.prod.yaml config -q
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - uses: astral-sh/setup-uv@v6
