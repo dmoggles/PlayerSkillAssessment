@@ -23,6 +23,8 @@ class RatingIn(BaseModel):
     skill_id: str
     score: int | None = Field(default=None, ge=1, le=5)
     note: str | None = Field(default=None, max_length=500)
+    # Still the previous period's score, not yet reviewed by the coach this period.
+    carried: bool = False
 
 
 class CoachAssessmentIn(BaseModel):
@@ -77,7 +79,7 @@ def assessment_out(a: Assessment | None):
             "matrix_version": a.matrix_version, "version": a.version, "updated_by": a.updated_by,
             "created_at": a.created_at, "updated_at": a.updated_at,
             "note": a.note,
-            "ratings": [{"skill_id": r.skill_id, "score": r.score, "note": r.note} for r in a.ratings]}
+            "ratings": [{"skill_id": r.skill_id, "score": r.score, "note": r.note, "carried": r.carried} for r in a.ratings]}
 
 
 def require_active_player(db: DbSession, team_id: int, player_id: int) -> Player:
@@ -110,7 +112,7 @@ def matrix_version(team_id: int, version_id: int, db: DbSession = Depends(get_db
 def assessment_state(position, primary, secondary, frequency, note, ratings) -> tuple:
     """What a save would record, for spotting a save with no changes. Skills with neither a score nor a note
     count as not rated, however they were sent."""
-    rated = sorted((r["skill_id"], r["score"], r["note"]) for r in ratings if r["score"] is not None or r["note"])
+    rated = sorted((r["skill_id"], r["score"], r["note"], bool(r.get("carried"))) for r in ratings if r["score"] is not None or r["note"])
     return position, primary, secondary, frequency, note, rated
 
 
@@ -131,10 +133,10 @@ def save_coach_assessment(team_id: int, body: CoachAssessmentIn, db: DbSession =
     a = db.query(Assessment).filter_by(player_id=body.player_id, period_id=body.period_id, assessor="coach").with_for_update(of=Assessment).first()
     if a and a.version != body.version or not a and body.version != 0:
         raise HTTPException(409, "Assessment changed. Reload before saving")
-    ratings = [{"skill_id": r.skill_id, "score": r.score, "note": clean_note(r.note)} for r in body.ratings]
+    ratings = [{"skill_id": r.skill_id, "score": r.score, "note": clean_note(r.note), "carried": r.carried and r.score is not None} for r in body.ratings]
     secondary_frequency = body.secondary_position_frequency if body.secondary_position else None
     if a and assessment_state(a.position, a.primary_position, a.secondary_position, a.secondary_position_frequency, a.note,
-                              [{"skill_id": r.skill_id, "score": r.score, "note": r.note} for r in a.ratings]) == assessment_state(
+                              [{"skill_id": r.skill_id, "score": r.score, "note": r.note, "carried": r.carried} for r in a.ratings]) == assessment_state(
             position, body.primary_position, body.secondary_position, secondary_frequency, clean_note(body.note), ratings):
         # Nothing changed: no new version, no revision, nothing written.
         return {**assessment_out(a), "unchanged": True}

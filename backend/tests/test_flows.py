@@ -655,6 +655,41 @@ def test_playing_groups_carry_over_and_move_up_when_a_season_starts(monkeypatch)
     assert "age_group" not in owner.get("/teams").json()[0]  # the team-wide age group is gone
 
 
+def test_a_new_period_can_start_from_last_periods_ratings_marked_as_carried(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("carry-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Carry"}, headers=headers).json()["id"]
+    kit = owner.post(f"/teams/{team_id}/players", json={"name": "Kit"}, headers=headers).json()["id"]
+    gone = owner.post(f"/teams/{team_id}/players", json={"name": "Gone"}, headers=headers).json()["id"]
+    fall = owner.post(f"/teams/{team_id}/periods", json={"label": "Fall"}, headers=headers).json()["id"]
+    skills = starter_skills()
+    for player in (kit, gone):
+        owner.put(f"/teams/{team_id}/assessments/coach", json={"player_id": player, "period_id": fall, "version": 0, "primary_position": "midfielder",
+                  "secondary_position": "defender", "secondary_position_frequency": "often", "note": "Fall note",
+                  "ratings": [{"skill_id": s, "score": 3, "note": "fall"} for s in skills[:-1]] + [{"skill_id": skills[-1], "score": None}]}, headers=headers)
+    owner.post(f"/teams/{team_id}/players/{gone}/archive", headers=headers)
+    spring = owner.post(f"/teams/{team_id}/periods", json={"label": "Spring", "carry_ratings": True}, headers=headers).json()["id"]
+    coach = lambda player, period: owner.get(f"/teams/{team_id}/assessments/coach", params={"player_id": player, "period_id": period}).json()
+    carried = coach(kit, spring)
+    assert carried["version"] == 1 and carried["primary_position"] == "midfielder" and carried["secondary_position_frequency"] == "often"
+    assert carried["note"] is None and all(r["carried"] and r["score"] == 3 and r["note"] is None for r in carried["ratings"])
+    assert len(carried["ratings"]) == len(skills) - 1  # unrated skills are not carried
+    assert coach(gone, spring) is None  # archived players are not carried
+    # Re-rating one skill and confirming another clears their marks; untouched skills stay carried.
+    ratings = [{"skill_id": r["skill_id"], "score": r["score"], "carried": True} for r in carried["ratings"]]
+    ratings[0] = {"skill_id": ratings[0]["skill_id"], "score": 4, "carried": False}
+    ratings[1] = {**ratings[1], "carried": False}
+    saved = owner.put(f"/teams/{team_id}/assessments/coach", json={"player_id": kit, "period_id": spring, "version": 1, "primary_position": "midfielder",
+                      "secondary_position": "defender", "secondary_position_frequency": "often", "ratings": ratings}, headers=headers).json()
+    marks = {r["skill_id"]: r["carried"] for r in saved["ratings"]}
+    assert saved["version"] == 2 and not marks[ratings[0]["skill_id"]] and not marks[ratings[1]["skill_id"]]
+    assert sum(marks.values()) == len(ratings) - 2
+    # Without carry-over a period starts blank, as before.
+    later = owner.post(f"/teams/{team_id}/periods", json={"label": "Summer"}, headers=headers).json()["id"]
+    assert coach(kit, later) is None
+
+
 def test_starter_matrix_has_no_hard_coded_gendered_words():
     from app.database import SessionLocal
     from app.matrix import document, starter_version

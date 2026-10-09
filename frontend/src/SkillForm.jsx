@@ -11,7 +11,8 @@ function SkillNote({ label, value, onChange, readOnly }) {
   return <label className="skill-note">Note <small>Coach only</small><textarea rows={2} maxLength={500} aria-label={`Note on ${label}`} autoFocus={open && !value} value={value} onChange={e => onChange(e.target.value)} /></label>
 }
 
-export default function SkillForm({ matrix, position, ratings, onChange, notes = {}, onNoteChange = null, readOnly = false, allowUnknown = false, sectionId = null, skillId = null, showSectionTitle = true }) {
+// carried: skill ids whose score came from last period and is not yet reviewed; Keep confirms one.
+export default function SkillForm({ matrix, position, ratings, onChange, notes = {}, onNoteChange = null, readOnly = false, allowUnknown = false, sectionId = null, skillId = null, showSectionTitle = true, carried = [], onKeepCarried = null }) {
   const relevantSections = sectionsFor(matrix, position).filter(section => sectionId === null || section.id === sectionId)
   const SCALE = scalePoints(matrix)
   const ANCHOR_LABELS = scaleAnchors(matrix)
@@ -27,6 +28,7 @@ export default function SkillForm({ matrix, position, ratings, onChange, notes =
               <div key={skill.id} className="skill-row">
                 <div className="skill-header">
                   <span className="skill-label">{skill.label}</span>
+                  {carried.includes(skill.id) && <span className="carried-mark"><span className="status-pill warn-pill">Carried from last period</span>{onKeepCarried && !readOnly && <button type="button" className="link-btn" onClick={() => onKeepCarried(skill.id)}>Keep</button>}</span>}
                 </div>
                 <div className="option-buttons">
                   {SCALE.map(n => {

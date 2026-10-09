@@ -941,3 +941,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .checkin-choice { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; font-size: .88rem; }
 .checkin-choice.active { border-color: var(--accent); background: #eef4fa; }
 .checkin-skill input[type="text"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .88rem; }
+.carried-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin: 10px 0; padding: 10px 14px; border-radius: 10px; background: #fbeedd; color: #5c3800; font-size: .88rem; }
+.carried-banner button { padding: 6px 12px; border: 1px solid #c79a55; border-radius: 8px; background: white; color: #5c3800; font-weight: 600; cursor: pointer; }
+.carried-mark { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+.carried-mark .status-pill { margin-left: 0; }
+.carried-sup { color: #8a5300; margin-left: 1px; }

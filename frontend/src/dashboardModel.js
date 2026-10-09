@@ -52,8 +52,8 @@ export const playerDataTabs = selfAssessmentOn => PLAYER_DATA_TABS.filter(([id])
 
 const filledNotes = notes => Object.fromEntries(Object.entries(notes).filter(([, note]) => note?.trim()).map(([id, note]) => [id, note.trim()]))
 
-export const assessmentSignature = (position, secondary, frequency, ratings, notes = {}, note = '') =>
-  JSON.stringify({ position, secondary, frequency: secondary ? frequency : null, ratings, notes: filledNotes(notes), note: note.trim() })
+export const assessmentSignature = (position, secondary, frequency, ratings, notes = {}, note = '', carried = []) =>
+  JSON.stringify({ position, secondary, frequency: secondary ? frequency : null, ratings, notes: filledNotes(notes), note: note.trim(), carried: [...carried].sort() })
 
 // Editable form state for a saved coach assessment. Without one, positions come from the player's
 // previous coach assessment (ratings and notes always start empty).
@@ -67,10 +67,12 @@ export function formFromAssessment(assessment, previous = null) {
     ratings: Object.fromEntries(rows.map(r => [r.skill_id, r.score])),
     notes: Object.fromEntries(rows.filter(r => r.note).map(r => [r.skill_id, r.note])),
     note: assessment?.note ?? '',
+    // Scores copied from the previous period and not yet reviewed this period.
+    carried: rows.filter(r => r.carried && r.score != null).map(r => r.skill_id),
   }
 }
 
-export const formSignature = form => assessmentSignature(form.position, form.secondary, form.frequency, form.ratings, form.notes, form.note)
+export const formSignature = form => assessmentSignature(form.position, form.secondary, form.frequency, form.ratings, form.notes, form.note, form.carried)
 
 export const initialPlayerId = players => String(players.find(player => player.active)?.id ?? players[0]?.id ?? '')
 export const initialPeriodId = periods => String(periods.find(period => period.is_active)?.id ?? periods[0]?.id ?? '')

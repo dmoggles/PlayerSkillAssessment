@@ -803,3 +803,21 @@ test('a check-in asks better, same or worse for each focus skill, and results sh
   const view = renderToStaticMarkup(React.createElement(ConfirmedPrioritiesView, { matrix, history, periodId: 1, periods: [{ id: 1, label: 'Fall' }] }))
   assert.match(view, /Short passing \(better\), Dribbling<\/li>/)
 })
+
+test('carried ratings are tracked in the form, marked in the assessment and in Progress', async () => {
+  const { formFromAssessment, formSignature } = await loadJsx('src/dashboardModel.js')
+  const assessment = { primary_position: 'defender', ratings: [{ skill_id: 'a', score: 3, carried: true }, { skill_id: 'b', score: 4, carried: false }, { skill_id: 'c', score: null, carried: true }] }
+  const form = formFromAssessment(assessment)
+  assert.deepEqual(form.carried, ['a'], 'only scored, carried skills')
+  assert.notEqual(formSignature(form), formSignature({ ...form, carried: [] }), 'reviewing a carried rating is an unsaved change')
+  const { default: SkillForm } = await loadJsx('src/SkillForm.jsx')
+  const matrix = { scale: { anchors: { 1: 'Developing', 3: 'Achieving', 5: 'Excelling' } }, sections: [{ id: 't', label: 'Technical', applies_to: ['defender'], skills: [{ id: 'a', label: 'Passing', descriptors: { 1: 'x', 3: 'y', 5: 'z' } }] }] }
+  const html = renderToStaticMarkup(React.createElement(SkillForm, { matrix, position: 'outfield', ratings: { a: 3 }, onChange: () => {}, carried: ['a'], onKeepCarried: () => {} }))
+  assert.match(html, /Carried from last period<\/span><button type="button" class="link-btn">Keep<\/button>/)
+  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const history = [{ period_id: 1, label: 'Fall', assessments: { coach: { ratings: [{ skill_id: 'a', score: 3 }] } } },
+    { period_id: 2, label: 'Spring', assessments: { coach: { ratings: [{ skill_id: 'a', score: 3, carried: true }] } } }]
+  const progress = renderToStaticMarkup(React.createElement(ProgressView, { matrix: { sections: [] }, history }))
+  assert.match(progress, /3<sup class="carried-sup"/)
+  assert.match(progress, /Carried from the previous period and not re-rated yet/)
+})

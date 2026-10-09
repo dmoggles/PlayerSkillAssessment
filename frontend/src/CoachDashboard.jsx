@@ -57,9 +57,12 @@ export function ProgressView({ matrix, history }) {
     if (first == null || last == null || periods.length < 2) return '—'
     return `${last - first > 0 ? '+' : ''}${last - first}${crossesChange(id) ? '*' : ''}`
   }
+  // A score carried from the previous period and never reviewed is not a fresh rating.
+  const isCarried = (row, id) => Boolean(row.assessments.coach.ratings.find(r => r.skill_id === id)?.carried)
+  const anyCarried = periods.some(row => row.assessments.coach.ratings.some(r => r.carried))
   const cell = (k, row, id) => {
     const kind = marker(k, id)
-    return <>{score(row, id) ?? '—'}{kind && <sup className="matrix-change" title={`Skill matrix: ${CHANGE_LABELS[kind]} in ${row.label}. Not directly comparable with earlier periods.`}>*</sup>}</>
+    return <>{score(row, id) ?? '—'}{isCarried(row, id) && <sup className="carried-sup" title={`Carried from the previous period and not re-rated in ${row.label}.`}>~</sup>}{kind && <sup className="matrix-change" title={`Skill matrix: ${CHANGE_LABELS[kind]} in ${row.label}. Not directly comparable with earlier periods.`}>*</sup>}</>
   }
   const anyMarker = skillIds.some(crossesChange)
   // A move to another playing group: later ratings are judged against a different cohort.
@@ -71,6 +74,7 @@ export function ProgressView({ matrix, history }) {
     <div className="desktop-data"><div className="heatmap-scroll"><table className="heatmap-table"><thead><tr><th>Skill</th>{periods.map((row, k) => <th key={row.period_id}>{heading(row, k)}</th>)}<th>Change{anyMove && <sup className="matrix-change">†</sup>}</th></tr></thead><tbody>{skillIds.map(id => <tr key={id}><td>{names[id] ?? id}</td>{periods.map((row, k) => <td key={row.period_id}>{cell(k, row, id)}</td>)}<td>{change(id)}</td></tr>)}</tbody></table></div></div>
     <div className="mobile-data mobile-card-list">{skillIds.map(id => <article className="data-card" key={id}><h4>{names[id] ?? id}</h4><dl>{periods.map((row, k) => <div key={row.period_id}><dt>{heading(row, k)}</dt><dd>{cell(k, row, id)}</dd></div>)}<div className="data-card-total"><dt>Change</dt><dd>{change(id)}</dd></div></dl></article>)}</div>
     {anyMarker && <p className="muted matrix-change-note">* The skill matrix changed for this skill (wording, added or retired), so scores before and after are not directly comparable. Hover a marked score for details.</p>}
+    {anyCarried && <p className="muted matrix-change-note">~ Carried from the previous period and not re-rated yet, so it is not a fresh rating.</p>}
     {anyMove && <p className="muted matrix-change-note">† The player moved to another playing group, so ratings from that period are judged against a different age group and are not directly comparable with earlier ones.</p>}
   </div>
 }
@@ -108,6 +112,8 @@ export default function CoachDashboard({ user, onLogout }) {
   const [teamDataGroup, setTeamDataGroup] = useState(null)
   const [newTeam, setNewTeam] = useState('')
   const [newPlayer, setNewPlayer] = useState('')
+  // Skills whose score was carried from last period and not yet reviewed (see formFromAssessment).
+  const [carried, setCarried] = useState([])
   // Playing groups in the selected period: player id -> U-number.
   const [groups, setGroups] = useState({})
   const [inviteEmail, setInviteEmail] = useState('')
@@ -133,7 +139,7 @@ export default function CoachDashboard({ user, onLogout }) {
   const versionId = selectedPeriod?.matrix_version_id
   const matrixKey = teamId && versionId ? `${teamId}:${versionId}` : null
   const matrix = matrixKey ? matrices[matrixKey] ?? null : null
-  const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings, notes, assessmentNote) !== assessmentBaseline
+  const assessmentDirty = assessmentBaseline !== null && assessmentSignature(position, secondary, frequency, ratings, notes, assessmentNote, carried) !== assessmentBaseline
   const dirty = assessmentDirty || prioritiesDirty || reportDirty
   const blocker = useBlocker(dirty)
   const blockerPrompted = useRef(false)
@@ -142,10 +148,13 @@ export default function CoachDashboard({ user, onLogout }) {
   const applyForm = useCallback((assessment, previous = null) => {
     const form = formFromAssessment(assessment, previous)
     setPosition(form.position); setSecondary(form.secondary); setFrequency(form.frequency)
-    setRatings(form.ratings); setNotes(form.notes); setAssessmentNote(form.note)
+    setRatings(form.ratings); setNotes(form.notes); setAssessmentNote(form.note); setCarried(form.carried)
     setAssessmentBaseline(formSignature(form))
   }, [])
   const restoreAssessment = useCallback(() => applyForm(coach, previousCoach), [applyForm, coach, previousCoach])
+  // Changing a carried score makes it a fresh rating; Keep confirms a carried one is still right.
+  const rate = (id, score) => { setRatings(previous => ({ ...previous, [id]: score })); setCarried(previous => previous.filter(skill => skill !== id)) }
+  const keepCarried = id => setCarried(previous => previous.filter(skill => skill !== id))
   // Read inside the assessment-loading effect without re-running it (and discarding edits) whenever periods change.
   const periodsRef = useRef(periods)
   useEffect(() => { periodsRef.current = periods }, [periods])
@@ -276,7 +285,7 @@ export default function CoachDashboard({ user, onLogout }) {
         primary_position: position, secondary_position: secondary || null,
         secondary_position_frequency: secondary ? frequency : null,
         note: assessmentNote.trim() || null,
-        ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null, note: notes[skill.id]?.trim() || null })),
+        ratings: skills.map(skill => ({ skill_id: skill.id, score: ratings[skill.id] ?? null, note: notes[skill.id]?.trim() || null, carried: carried.includes(skill.id) })),
       })
       setCoach(assessment); setMessage(assessment.unchanged ? 'No changes to save.' : 'Assessment saved.')
       applyForm(assessment)
@@ -389,8 +398,9 @@ export default function CoachDashboard({ user, onLogout }) {
           {!selectedPlayer.active && <ArchivedNotice player={selectedPlayer} onRestore={() => restorePlayerAction(selectedPlayer)} />}
           <form onSubmit={save}>
             <fieldset className="plain-fieldset" disabled={!selectedPlayer.active}><div className="toolbar"><label className="field">Primary position<select value={position} onChange={e => { if (skillSetFor(e.target.value) !== skillSetFor(position)) { setRatings({}); setNotes({}) } setPosition(e.target.value); if (secondary === e.target.value) setSecondary('') }}>{ALL_POSITIONS.map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label><label className="field">Secondary position<select value={secondary} onChange={e => setSecondary(e.target.value)}><option value="">None</option>{ALL_POSITIONS.filter(p => p !== position).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}</select></label>{secondary && <label className="field">Frequency<select value={frequency} onChange={e => setFrequency(e.target.value)}>{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>}</div><label className="field assessment-note">Overall note <small>Coach only</small><textarea rows={2} maxLength={1000} placeholder="Anything to remember about this assessment" value={assessmentNote} onChange={e => setAssessmentNote(e.target.value)} /></label></fieldset>
-            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
-            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} />
+            {carried.length > 0 && <div className="carried-banner" role="status"><span><strong>{carried.length} {carried.length === 1 ? 'rating is' : 'ratings are'} carried from last period.</strong> Review each one: change it, or press Keep if it still holds. Carried ratings stay marked until then.</span>{selectedPlayer.active && <button type="button" onClick={() => setCarried([])}>Mark all as reviewed</button>}</div>}
+            <div className="desktop-assessment"><SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={rate} carried={carried} onKeepCarried={keepCarried} />{selectedPlayer.active && <button className="submit-btn">Save assessment</button>}</div>
+            <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={(id, note) => setNotes(previous => ({ ...previous, [id]: note }))} readOnly={!selectedPlayer.active} onChange={rate} carried={carried} onKeepCarried={keepCarried} />
           </form>
           <RevisionHistory matrix={matrix} revisions={revisions} />
         </Section>

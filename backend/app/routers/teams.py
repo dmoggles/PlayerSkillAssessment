@@ -7,7 +7,7 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, issue_auth_token, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..matrix import team_version, version_label
+from ..matrix import period_document, skill_set, team_version, version_label
 from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User
 from .accounts import delivery_message
 
@@ -55,6 +55,8 @@ class PeriodBody(BaseModel):
     # Playing groups the coach reviewed (player id -> U-number, or null for not set). Players left out carry over
     # from the previous period, moved up a year when the period starts a season.
     groups: dict[int, AgeGroup | None] | None = None
+    # Start each player's coach assessment from the previous period's ratings, marked as carried until reviewed.
+    carry_ratings: bool = False
 
 
 class GroupBody(BaseModel):
@@ -326,6 +328,29 @@ def list_periods(team_id: int, db: DbSession = Depends(get_db), user: User = Dep
     return [period_out(p, db) for p in db.query(Period).filter_by(team_id=team_id).order_by(Period.created_at.desc()).all()]
 
 
+def carry_ratings(db: DbSession, team_id: int, previous: Period, period: Period, user: User) -> None:
+    """Copy each active player's coach ratings from the previous period into this one, marked as carried. Positions
+    come too; notes do not (they described that period). Skills the new period's matrix no longer rates are left out."""
+    doc = period_document(db, period)
+    active = {p.id for p in db.query(Player).filter_by(team_id=team_id, active=True)}
+    for old in db.query(Assessment).filter_by(period_id=previous.id, assessor="coach"):
+        if old.player_id not in active:
+            continue
+        skills = skill_set(doc, old.position)
+        ratings = [{"skill_id": r.skill_id, "score": r.score, "note": None, "carried": True}
+                   for r in old.ratings if r.score is not None and r.skill_id in skills]
+        a = Assessment(player_id=old.player_id, period_id=period.id, assessor="coach", position=old.position,
+                       primary_position=old.primary_position, secondary_position=old.secondary_position,
+                       secondary_position_frequency=old.secondary_position_frequency, version=1, updated_by=user.id,
+                       matrix_version=doc["meta"]["version"])
+        db.add(a)
+        db.flush()
+        db.add_all(Rating(assessment_id=a.id, **r) for r in ratings)
+        db.add(AssessmentRevision(assessment_id=a.id, version=1, editor_id=user.id, snapshot={
+            "position": a.position, "primary_position": a.primary_position, "secondary_position": a.secondary_position,
+            "secondary_position_frequency": a.secondary_position_frequency, "note": None, "ratings": ratings, "carried_from": previous.label}))
+
+
 def carried_groups(db: DbSession, team_id: int, previous: Period | None, starts_season: bool) -> dict[int, int]:
     """Each player's playing group carried from the previous period; a new season moves everyone up a year."""
     if not previous:
@@ -377,6 +402,8 @@ def create_period(team_id: int, body: PeriodBody, db: DbSession = Depends(get_db
         scoped_player(db, team_id, player_id)
         groups[player_id] = age
     db.add_all(PlayerGroup(player_id=player_id, period_id=period.id, age_group=age) for player_id, age in groups.items() if age)
+    if body.carry_ratings and previous:
+        carry_ratings(db, team_id, previous, period, user)
     try:
         db.commit()
     except IntegrityError:

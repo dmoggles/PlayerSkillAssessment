@@ -124,6 +124,8 @@ class Rating(Base):
     skill_id: Mapped[str] = mapped_column(String(80))
     score: Mapped[int | None] = mapped_column(SmallInteger)
     note: Mapped[str | None] = mapped_column(String(500))
+    # Copied from the previous period when it started from its ratings; cleared once the coach re-rates or confirms it.
+    carried: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class AssessmentRevision(Base):

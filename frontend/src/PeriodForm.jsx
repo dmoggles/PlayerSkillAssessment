@@ -7,12 +7,13 @@ import { AGE_GROUPS, movedUp } from './dashboardModel'
 export default function PeriodForm({ teamId, players, latestPeriod, onCreated, onMessage }) {
   const [label, setLabel] = useState('')
   const [newSeason, setNewSeason] = useState(false)
+  const [carry, setCarry] = useState(false)
   const [review, setReview] = useState(null)
   const [busy, setBusy] = useState(false)
 
   const create = async options => {
     setBusy(true)
-    try { const period = await createPeriod(teamId, label.trim(), options); setLabel(''); setNewSeason(false); setReview(null); onCreated(period) }
+    try { const period = await createPeriod(teamId, label.trim(), { ...options, carry_ratings: carry }); setLabel(''); setNewSeason(false); setCarry(false); setReview(null); onCreated(period) }
     catch (e) { onMessage(errorMessage(e)) }
     finally { setBusy(false) }
   }
@@ -32,6 +33,7 @@ export default function PeriodForm({ teamId, players, latestPeriod, onCreated, o
       <button disabled={busy}>{review ? 'Create period' : newSeason ? 'Next: playing groups' : 'Add period'}</button>
     </div>
     <label className="checkbox"><input type="checkbox" checked={newSeason} disabled={Boolean(review)} onChange={e => setNewSeason(e.target.checked)} /> This period starts a new season</label>
+    {latestPeriod && <label className="checkbox"><input type="checkbox" checked={carry} disabled={Boolean(review)} onChange={e => setCarry(e.target.checked)} /> Start from {latestPeriod.label}'s ratings <small className="muted">(marked as carried until you review each one)</small></label>}
     {review && <div className="season-review">
       <p className="muted">Everyone moves up one age group. Adjust anyone who is staying or playing up, then create the period.</p>
       <div className="settings-list">{players.filter(p => p.active).map(p => <label key={p.id} className="settings-item season-review-row">
