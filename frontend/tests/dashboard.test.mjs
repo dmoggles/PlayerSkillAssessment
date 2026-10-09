@@ -110,7 +110,7 @@ test('development keeps guidance in a help dialog', async () => {
 })
 
 test('player progress renders an empty state and phone cards once history exists', async () => {
-  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const { default: ProgressView } = await loadJsx('src/ProgressView.jsx')
   const matrix = { sections: [{ skills: [{ id: 'touch', label: 'First touch' }] }] }
   assert.match(renderToStaticMarkup(React.createElement(ProgressView, { matrix, history: [] })), /No coach assessments/)
   const history = [{ period_id: 1, label: 'Autumn', assessments: { coach: { ratings: [{ skill_id: 'touch', score: 2 }] } }, priorities: [] }, { period_id: 2, label: 'Winter', assessments: { coach: { ratings: [{ skill_id: 'touch', score: 4 }] } }, priorities: [] }]
@@ -215,7 +215,7 @@ test('confirmed priorities show medal cards, saved notes, and other periods', as
 
 test('archived players get a read-only assessment with a restore prompt', async () => {
   const { default: MobileAssessment } = await loadJsx('src/MobileAssessment.jsx')
-  const { ArchivedNotice } = await loadJsx('src/CoachDashboard.jsx')
+  const { ArchivedNotice } = await loadJsx('src/areas/DashboardParts.jsx')
   const matrix = { sections: [{ id: 'technical', label: 'Technical', applies_to: ['defender'], skills: [
     { id: 'touch', label: 'First touch', descriptors: { 1: 'Needs control', 3: 'Controls well', 5: 'Controls under pressure' } },
   ] }], meta: { scale: { points: [1, 2, 3, 4, 5], anchors: {} } } }
@@ -456,7 +456,7 @@ test('matrix editor helpers add, move, retire and tag skills without touching ot
 })
 
 test('history views mark comparisons that cross a skill matrix change', async () => {
-  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const { default: ProgressView } = await loadJsx('src/ProgressView.jsx')
   const { priorityFollowUp } = await loadJsx('src/followUpModel.js')
   const { buildReport } = await loadJsx('src/reportModel.js')
   const { default: PlayerReport } = await loadJsx('src/PlayerReport.jsx')
@@ -768,7 +768,7 @@ test('team data defaults to the largest playing group, and moves between groups 
   const periods = [{ id: 2, label: 'Spring' }, { id: 1, label: 'Fall' }]
   assert.deepEqual(priorityFollowUp(periods, history, 2, history[1].assessments.coach).groupChange, { from: 11, to: 12 })
   assert.equal(priorityFollowUp(periods, history.map(r => ({ ...r, age_group: 11 })), 2, history[1].assessments.coach).groupChange, null)
-  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const { default: ProgressView } = await loadJsx('src/ProgressView.jsx')
   const html = renderToStaticMarkup(React.createElement(ProgressView, { matrix: { sections: [] }, history }))
   assert.match(html, /Spring<small>U12<sup class="matrix-change"/)
   assert.match(html, /moved to another playing group/)
@@ -814,7 +814,7 @@ test('carried ratings are tracked in the form, marked in the assessment and in P
   const matrix = { scale: { anchors: { 1: 'Developing', 3: 'Achieving', 5: 'Excelling' } }, sections: [{ id: 't', label: 'Technical', applies_to: ['defender'], skills: [{ id: 'a', label: 'Passing', descriptors: { 1: 'x', 3: 'y', 5: 'z' } }] }] }
   const html = renderToStaticMarkup(React.createElement(SkillForm, { matrix, position: 'outfield', ratings: { a: 3 }, onChange: () => {}, carried: ['a'], onKeepCarried: () => {} }))
   assert.match(html, /Carried from last period<\/span><button type="button" class="link-btn">Keep<\/button>/)
-  const { ProgressView } = await loadJsx('src/CoachDashboard.jsx')
+  const { default: ProgressView } = await loadJsx('src/ProgressView.jsx')
   const history = [{ period_id: 1, label: 'Fall', assessments: { coach: { ratings: [{ skill_id: 'a', score: 3 }] } } },
     { period_id: 2, label: 'Spring', assessments: { coach: { ratings: [{ skill_id: 'a', score: 3, carried: true }] } } }]
   const progress = renderToStaticMarkup(React.createElement(ProgressView, { matrix: { sections: [] }, history }))
