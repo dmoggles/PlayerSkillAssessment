@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { activatePeriod, addPlayer, archivePlayer, createTeam, deletePeriod, deleteTeam, errorMessage, getAuditLog, getPeriods, inviteCoach,
   removeMember, renamePeriod, renamePlayer, setMemberRole, setPlayerGroup, updateTeam } from '../api'
 import ChangePasswordForm from '../ChangePasswordForm'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
-import MatrixEditor from '../MatrixEditor'
 import MatrixSummary from '../MatrixSummary'
 import PeriodForm from '../PeriodForm'
 import SelfAssessmentBoard from '../SelfAssessmentBoard'
 import { auditText } from '../auditModel'
+
+const MatrixEditor = lazy(() => import('../MatrixEditor'))
 import { AGE_GROUPS, PLAYER_GENDERS, canManageTeam, initialPeriodId, squadGroups } from '../dashboardModel'
 import { APP_VERSION } from '../version'
 import { Section } from './DashboardParts'
@@ -25,9 +26,11 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
   const squad = squadGroups(players, groups)
 
   if (team && editingMatrix && owner) {
-    return <MatrixEditor key={team.id} teamId={String(team.id)} onMessage={onMessage}
-      onPublished={() => getPeriods(team.id).then(setPeriods).catch(e => onMessage(fail(e)))}
-      onClose={() => { setEditingMatrix(false); forgetMatrices(team.id) }} />
+    return <Suspense fallback={<p className="muted" role="status">Loading skill matrix…</p>}>
+      <MatrixEditor key={team.id} teamId={String(team.id)} onMessage={onMessage}
+        onPublished={() => getPeriods(team.id).then(setPeriods).catch(e => onMessage(fail(e)))}
+        onClose={() => { setEditingMatrix(false); forgetMatrices(team.id) }} />
+    </Suspense>
   }
   if (drillLibraryOpen) {
     return <Section title="Drill library" description="Drills tagged to skills, each with easier and harder variations">

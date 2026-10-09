@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, useNavigate, useParams } from 'react-router-dom'
-import CoachDashboard from './CoachDashboard'
-import PlayerPage from './PlayerPage'
-import SharedReportPage from './SharedReportPage'
+// Each page loads on first use, so a player's or parent's link does not download the coach dashboard.
+const CoachDashboard = lazy(() => import('./CoachDashboard'))
+const PlayerPage = lazy(() => import('./PlayerPage'))
+const SharedReportPage = lazy(() => import('./SharedReportPage'))
 import UpdateBanner from './UpdateBanner'
 import { acceptInvite, errorMessage, forgotPassword, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
@@ -76,7 +77,7 @@ function Shell() {
   const [loading, setLoading] = useState(true)
   useEffect(() => { restoreSession().then(setUser).catch(() => {}).finally(() => setLoading(false)) }, [])
   if (loading) return <div className="page">Loading…</div>
-  return <Routes>
+  return <Suspense fallback={<div className="page">Loading…</div>}><Routes>
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
     <Route path="/verify/:token" element={<VerifyPage />} />
@@ -85,7 +86,7 @@ function Shell() {
     <Route path="/" element={user ? <Navigate to="/app/assessment" replace /> : <AuthForm onSignedIn={setUser} />} />
     <Route path="/app/:area" element={user ? <CoachDashboard user={user} onLogout={async () => { try { await logout() } finally { setUser(null) } }} /> : <AuthForm onSignedIn={setUser} />} />
     <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
+  </Routes></Suspense>
 }
 
 const router = createBrowserRouter([{ path: '*', element: <Shell /> }])
