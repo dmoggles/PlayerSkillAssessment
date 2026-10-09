@@ -50,6 +50,7 @@ export const startCycle = (id, playerId, periodId, checkin = []) => data(api.pos
 export const getPlanAlternatives = (id, playerId, periodId, skillId, slot) => data(api.get(`${team(id)}/players/${playerId}/plan/alternatives`, { params: { period_id: periodId, skill_id: skillId, slot } }))
 // change: { action: 'choose' | 'remove' | 'reset', drill?, start_variation_id? }
 export const editPlanSlot = (id, playerId, periodId, skillId, slot, change) => data(api.put(`${team(id)}/players/${playerId}/plan/slot`, { period_id: periodId, skill_id: skillId, slot, ...change }))
+export const generateSquadPlans = (id, periodId, onlyMissing) => data(api.post(`${team(id)}/plans/generate`, { period_id: periodId, only_missing: onlyMissing }))
 export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))

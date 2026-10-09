@@ -5,13 +5,14 @@ from typing import Literal
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
 from ..audit import record
-from ..auth import current_user
+from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import document
 from ..cycles import current_cycle, current_plan, latest_cycle_ids
 from ..models import CycleCheckin, DevelopmentCycle, Period, Player, PlayerPlan, PriorityConfirmation, User, utcnow
 from ..plans import plan as rules_plan, ranked
 from .drills import _library, _player_context
+from .teams import scoped_period
 
 router = APIRouter(tags=["plans"])
 
@@ -120,21 +121,59 @@ def generate_plan(team_id: int, player_id: int, body: PlanIn, db: DbSession = De
     """Generate a plan from the player's confirmed priorities and save it, replacing their plan for the period.
     Only saved priorities count, so the plan always matches the focus areas in the report, which shows it at once."""
     _player_context(db, team_id, player_id, body.period_id, user)
-    cycle = current_cycle(db, player_id, body.period_id)
+    saved = save_generated(db, team_id, player_id, body.period_id, body.weeks, user)
+    if not saved:
+        raise HTTPException(409, "Save the player's priorities before generating a plan")
+    db.commit()
+    return plan_out(saved)
+
+
+def save_generated(db: DbSession, team_id: int, player_id: int, period_id: int, weeks: int, user: User,
+                   squad_run: bool = False) -> PlayerPlan | None:
+    """Generate and save the player's plan for their current cycle (keeping the coach's choices). None when they have
+    no saved priorities. Not committed, so a squad run can save players in turn."""
+    cycle = current_cycle(db, player_id, period_id)
     skills = [p.skill_id for p in db.query(PriorityConfirmation).filter_by(cycle_id=cycle.id).order_by(PriorityConfirmation.rank)] if cycle else []
     if not skills:
-        raise HTTPException(409, "Save the player's priorities before generating a plan")
-    built = build_plan(db, team_id, player_id, body.period_id, skills, body.weeks, user)
+        return None
+    built = build_plan(db, team_id, player_id, period_id, skills, weeks, user)
     saved = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first()
     replaced = saved is not None
     if not saved:
-        saved = PlayerPlan(player_id=player_id, period_id=body.period_id, cycle_id=cycle.id)
+        saved = PlayerPlan(player_id=player_id, period_id=period_id, cycle_id=cycle.id)
         db.add(saved)
     saved.plan, saved.created_by, saved.created_at = built, user.id, utcnow()
-    player, period = db.get(Player, player_id), db.get(Period, body.period_id)
-    record(db, team_id, user, "plan_saved", player=player.name, period=period.label, **({"replaced": True} if replaced else {}))
+    db.flush()
+    if not squad_run:
+        player, period = db.get(Player, player_id), db.get(Period, period_id)
+        record(db, team_id, user, "plan_saved", player=player.name, period=period.label, **({"replaced": True} if replaced else {}))
+    return saved
+
+
+class SquadPlansIn(BaseModel):
+    period_id: int
+    weeks: int = Field(default=4, ge=1, le=8)
+    # Leave players who already have a plan for their current cycle alone.
+    only_missing: bool = True
+
+
+@router.post("/teams/{team_id}/plans/generate")
+def generate_squad_plans(team_id: int, body: SquadPlansIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Generate plans for every active player with saved priorities, one after another, so later players' training
+    drills can line up with their teammates'. Coaches' own choices are kept. Reports who was skipped and why."""
+    require_member(team_id, db, user)
+    period = scoped_period(db, team_id, body.period_id)
+    generated, skipped = [], []
+    for player in db.query(Player).filter_by(team_id=team_id, active=True).order_by(Player.name):
+        if body.only_missing and current_plan(db, player.id, period.id):
+            skipped.append({"player": player.name, "reason": "already has a plan"})
+        elif save_generated(db, team_id, player.id, period.id, body.weeks, user, squad_run=True):
+            generated.append(player.name)
+        else:
+            skipped.append({"player": player.name, "reason": "no saved priorities"})
+    record(db, team_id, user, "squad_plans_generated", period=period.label, players=len(generated))
     db.commit()
-    return plan_out(saved)
+    return {"generated": generated, "skipped": skipped}
 
 
 def cycle_out(db: DbSession, cycle: DevelopmentCycle, current: bool) -> dict:

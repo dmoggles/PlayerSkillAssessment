@@ -953,3 +953,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .slot-editor legend { font-weight: 600; font-size: .88rem; margin-bottom: 4px; }
 .slot-option { display: flex; gap: 8px; align-items: flex-start; font-size: .88rem; cursor: pointer; }
 .slot-option small { display: block; color: var(--muted); font-size: .78rem; }
+.squad-plans { margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.squad-plans-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.squad-plans-row .checkbox { margin: 0; font-size: .88rem; }
+.squad-plans-row button { margin-left: auto; padding: 7px 12px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: white; font-weight: 600; cursor: pointer; }
+.squad-plans p { margin: 8px 0 0; font-size: .85rem; }

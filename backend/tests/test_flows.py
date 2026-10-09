@@ -1109,6 +1109,36 @@ def test_development_cycles_keep_earlier_focus_areas_and_plans(monkeypatch):
     assert home["drill"] != first["drill"] and any("new for this player" in r for r in home["reasons"])
 
 
+def test_squad_plans_are_generated_in_one_go_and_share_training_drills(monkeypatch):
+    from app.database import SessionLocal
+    from app.drills import DATA_DIR, load_file
+    clean_database()
+    owner, csrf = signed_in("squad-plans@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    with SessionLocal() as db:
+        for name in ("drills_v1.json", "drills_v2.json", "drills_v3.json", "drills_v4.json"):
+            load_file(db, DATA_DIR / name)
+    team_id = owner.post("/teams", json={"name": "Squad"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Fall"}, headers=headers).json()["id"]
+    ids = {}
+    for name in ("Ana", "Bea", "Cat"):
+        ids[name] = owner.post(f"/teams/{team_id}/players", json={"name": name}, headers=headers).json()["id"]
+        owner.put(f"/teams/{team_id}/assessments/coach", json={"player_id": ids[name], "period_id": period_id, "version": 0, "primary_position": "defender",
+                  "ratings": [{"skill_id": s, "score": 3} for s in starter_skills()]}, headers=headers)
+    for name in ("Ana", "Bea"):
+        owner.put(f"/teams/{team_id}/priorities", params={"player_id": ids[name], "period_id": period_id}, headers=headers,
+                  json={"priorities": [{"skill_id": "passing_short", "rank": 1}]})
+    run = owner.post(f"/teams/{team_id}/plans/generate", json={"period_id": period_id}, headers=headers).json()
+    assert run == {"generated": ["Ana", "Bea"], "skipped": [{"player": "Cat", "reason": "no saved priorities"}]}
+    plan_of = lambda name: owner.get(f"/teams/{team_id}/players/{ids[name]}/plan", params={"period_id": period_id}).json()["plan"]
+    club = lambda name: next(s for s in plan_of(name)["slots"] if s["slot"] == "club")
+    assert club("Ana")["drill"] == club("Bea")["drill"]  # one drill for the group at training
+    assert any("teammate uses it at training" in r for r in club("Bea")["reasons"])
+    again = owner.post(f"/teams/{team_id}/plans/generate", json={"period_id": period_id}, headers=headers).json()
+    assert again["generated"] == [] and {s["reason"] for s in again["skipped"]} == {"already has a plan", "no saved priorities"}
+    assert owner.post(f"/teams/{team_id}/plans/generate", json={"period_id": period_id, "only_missing": False}, headers=headers).json()["generated"] == ["Ana", "Bea"]
+
+
 def test_drill_suggestions_match_priority_skills_at_the_players_level(monkeypatch):
     from app.database import SessionLocal
     from app.drills import DATA_DIR, load_file

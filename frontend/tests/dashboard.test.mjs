@@ -835,3 +835,13 @@ test('coaches can change plan slots; the report view cannot', async () => {
   const reportView = renderToStaticMarkup(React.createElement(PlanCards, { plan, onOpenDrill: () => {} }))
   assert.doesNotMatch(reportView, /Change<\/button>|Restore/)
 })
+
+test('squad plan runs and plan edits read clearly in the activity log', async () => {
+  const { auditText } = await loadJsx('src/auditModel.js')
+  const e = (action, details) => auditText({ action, actor_email: 'o@x', details })
+  assert.equal(e('squad_plans_generated', { period: 'Fall', players: 12 }), 'o@x generated 12 plans for the squad (Fall)')
+  assert.equal(e('plan_slot_changed', { player: 'Kit', period: 'Fall', change: 'choose' }), "o@x chose a drill for Kit's plan (Fall)")
+  assert.equal(e('cycle_started', { player: 'Kit', period: 'Fall', number: 2, checked_in: true }), 'o@x started development cycle 2 for Kit (Fall), after a check-in')
+  const { default: SquadPlans } = await loadJsx('src/SquadPlans.jsx')
+  assert.match(renderToStaticMarkup(React.createElement(SquadPlans, { teamId: 1, periodId: 2, onGenerated: () => {} })), /Generate plans for the squad/)
+})

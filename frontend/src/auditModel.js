@@ -22,6 +22,9 @@ export function auditText(event) {
     case 'report_shared': return d.replaced
       ? `${actor} created a new report link for ${d.player} (${d.period}), replacing the previous one`
       : `${actor} shared the report for ${d.player} (${d.period})`
+    case 'cycle_started': return `${actor} started development cycle ${d.number} for ${d.player} (${d.period})${d.checked_in ? ', after a check-in' : ''}`
+    case 'plan_slot_changed': return `${actor} ${d.change === 'remove' ? 'removed a drill from' : d.change === 'reset' ? 'reset a drill in' : 'chose a drill for'} ${d.player}'s plan (${d.period})`
+    case 'squad_plans_generated': return `${actor} generated ${d.players} ${d.players === 1 ? 'plan' : 'plans'} for the squad (${d.period})`
     case 'plan_saved': return `${actor} ${d.replaced ? 'regenerated' : 'generated'} the development plan for ${d.player} (${d.period})`
     case 'report_share_extended': return `${actor} extended the report link for ${d.player} (${d.period}) by ${d.weeks} week${d.weeks === 1 ? '' : 's'}`
     case 'plan_shared': return d.replaced
