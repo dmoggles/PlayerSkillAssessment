@@ -81,8 +81,9 @@ fi
 if [[ -n ${BACKUP_MIRROR:-} ]]; then
   # The mirror's host key is remembered on first contact, and a changed one is refused.
   ssh_command="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new${BACKUP_MIRROR_SSH_KEY:+ -i $BACKUP_MIRROR_SSH_KEY}"
-  # Relative paths, so the mirror's folders match these; the mirror refuses deletes and reads.
-  (cd "$backup_dir" && rsync -a --relative -e "$ssh_command" "${files[@]}" "${BACKUP_MIRROR%/}/")
+  # Relative paths into the mirror's existing folders (daily/, monthly/, ...). The mirror only accepts new
+  # files and owns those folders, so nothing here tries to set their times or permissions.
+  (cd "$backup_dir" && rsync --times --omit-dir-times --relative --no-implied-dirs -e "$ssh_command" "${files[@]}" "${BACKUP_MIRROR%/}/")
   copies+=", ${BACKUP_MIRROR%%:*}"
 fi
 
