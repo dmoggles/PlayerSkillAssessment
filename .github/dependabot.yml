@@ -1,4 +1,4 @@
-# Weekly pull requests for dependency updates; minor and patch updates arrive grouped, one PR per ecosystem.
+# Weekly pull requests for dependency updates, grouped so a normal week brings one or two.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -14,6 +14,15 @@ updates:
   - package-ecosystem: docker
     directories: [/backend, /frontend]
     schedule: { interval: weekly, day: monday }
+    groups:
+      images: { patterns: ["*"] }
+    ignore:
+      # Node majors alternate between long-term support (even) and short-lived (odd) releases; move to the
+      # next LTS by hand.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly, day: monday }
+    groups:
+      actions: { patterns: ["*"] }
