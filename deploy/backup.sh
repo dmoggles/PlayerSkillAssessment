@@ -54,6 +54,13 @@ mkdir -p "$backup_dir/$folder"
 chmod 700 "$backup_dir"
 partial="$backup_dir/$folder/.$name.partial"
 
+# The database may still be starting (first start, a restart, a reboot): give it up to a minute.
+for _ in $(seq 60); do
+  "${compose[@]}" exec -T db pg_isready -q -U assessment_owner -d assessment 2>/dev/null && break
+  sleep 1
+done
+"${compose[@]}" exec -T db pg_isready -q -U assessment_owner -d assessment || { echo "The database isn't accepting connections." >&2; false; }
+
 # Dump and encrypt in one stream; pipefail makes a failed pg_dump fail the whole line.
 "${compose[@]}" exec -T db pg_dump -U assessment_owner -d assessment -Fc | age -r "$BACKUP_AGE_RECIPIENT" > "$partial"
 [[ -s $partial ]] || { echo "The backup came out empty." >&2; false; }

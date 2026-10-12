@@ -133,7 +133,7 @@ jobs:
             export API_IMAGE="ghcr.io/dmoggles/playerskillassessment-api:$RELEASE_TAG"
             export WEB_IMAGE="ghcr.io/dmoggles/playerskillassessment-web:$RELEASE_TAG"
             docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml pull api web
-            docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml up -d db
+            docker compose --env-file .env.prod -f compose.yaml -f compose.prod.yaml up -d --wait db
             # Back up before migrations touch the data; no backup, no deploy.
             if [ ! -f .backup.env ]; then echo "::error::.backup.env is missing in $DEPLOY_PATH: set up backups (README) before deploying"; exit 1; fi
             RELEASE_TAG="$RELEASE_TAG" bash deploy/backup.sh pre-deploy
