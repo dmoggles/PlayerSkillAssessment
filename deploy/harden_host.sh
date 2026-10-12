@@ -76,6 +76,15 @@ else
   echo "  - leave SSH settings as they are (passwords stay on)"
 fi
 echo "  - install fail2ban for SSH"
+# A firewall switched off earlier can still hold rules; they come back on with it.
+if command -v ufw >/dev/null; then
+  old_rules=$(ufw show added 2>/dev/null | grep '^ufw ' || true)
+  if [[ -n $old_rules ]]; then
+    echo "  - note: the firewall already has these rules saved, and they will be active too"
+    echo "    (remove any you don't want afterwards with: sudo ufw delete allow PORT/tcp):"
+    sed 's/^/      /' <<< "$old_rules"
+  fi
+fi
 read -r -p "Type yes to continue: " answer
 [[ $answer == yes ]] || { echo "Nothing changed."; exit 1; }
 
