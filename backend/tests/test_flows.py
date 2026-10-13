@@ -475,11 +475,20 @@ def test_cleanup_removes_only_expired_auth_records(monkeypatch):
         conn.execute(text("INSERT INTO sessions (user_id, token_hash, csrf_token, expires_at) SELECT id, 'old', 'x', now() - interval '1 day' FROM users"))
         conn.execute(text("INSERT INTO auth_tokens (email, purpose, token_hash, expires_at) VALUES ('a@example.com', 'reset', 'expired', now() - interval '1 hour'), ('a@example.com', 'reset', 'live', now() + interval '1 hour')"))
         conn.execute(text("INSERT INTO login_attempts (key, failures, window_started) VALUES ('stale', 3, now() - interval '2 days'), ('recent', 3, now())"))
+        conn.execute(text("INSERT INTO users (email, password_hash, is_admin, created_at) VALUES ('abandoned@example.com', 'x', false, now() - interval '31 days'), ('new@example.com', 'x', false, now())"))
+        live_team = conn.execute(text("INSERT INTO teams (name, self_assessment_enabled, player_gender, created_at) VALUES ('Live', false, 'mixed', now() - interval '1 year') RETURNING id")).scalar()
+        conn.execute(text("INSERT INTO audit_events (team_id, actor_email, action, created_at) VALUES "
+                          f"({live_team}, 'a@example.com', 'team_created', now() - interval '1 year'), "
+                          "(-1, 'a@example.com', 'team_deleted', now() - interval '91 days'), (-1, 'a@example.com', 'team_created', now() - interval '1 year'), "
+                          "(-2, 'a@example.com', 'team_deleted', now() - interval '10 days'), (-2, 'a@example.com', 'team_created', now() - interval '1 year')"))
     from app.database import SessionLocal
     from app.maintenance import purge_expired
     with SessionLocal() as db:
-        assert purge_expired(db) == {"sessions": 1, "auth_tokens": 1, "login_attempts": 1}
+        assert purge_expired(db) == {"sessions": 1, "auth_tokens": 1, "login_attempts": 1, "unverified_accounts": 1, "deleted_team_log_events": 2}
     assert client.get("/auth/me").status_code == 200
+    with engine.begin() as conn:
+        assert sorted(conn.execute(text("SELECT email FROM users")).scalars().all()) == ["cleanup@example.com", "new@example.com"]
+        assert sorted(conn.execute(text("SELECT team_id FROM audit_events")).scalars().all()) == sorted([live_team, -2, -2])
     with engine.begin() as conn:
         assert conn.execute(text("SELECT token_hash FROM auth_tokens")).scalars().all() == ["live"]
         assert "recent" in conn.execute(text("SELECT key FROM login_attempts")).scalars().all()
