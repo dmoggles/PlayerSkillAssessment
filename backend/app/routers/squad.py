@@ -1,6 +1,9 @@
 """The squad over time: players, periods (with optional carry-over of ratings) and playing groups."""
+import re
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
@@ -9,6 +12,7 @@ from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import period_document, skill_set, team_version, version_label
 from ..models import Assessment, AssessmentRevision, AuditEvent, Period, Player, Rating, PlayerGroup, Team, User
+from ..player_export import player_export
 from .teams import nonblank, purge_assessment_data, scoped_period, scoped_player
 
 
@@ -107,6 +111,16 @@ def restore_player(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     player.active = True
     db.commit()
     return player_out(player)
+
+
+@router.get("/teams/{team_id}/players/{player_id}/export")
+def export_player(team_id: int, player_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """A download of everything recorded about the player, for answering a request for a copy of their data."""
+    require_member(team_id, db, user, owner=True)
+    player = scoped_player(db, team_id, player_id)
+    filename = re.sub(r"[^A-Za-z0-9]+", "-", player.name).strip("-").lower() or "player"
+    return JSONResponse(jsonable_encoder(player_export(db, db.get(Team, team_id), player)),
+                        headers={"Content-Disposition": f'attachment; filename="{filename}-data.json"', "Cache-Control": "no-store"})
 
 
 @router.delete("/teams/{team_id}/players/{player_id}")

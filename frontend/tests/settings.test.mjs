@@ -149,7 +149,7 @@ test('a new invitation shows its link to copy, and says whether the email went o
   assert.match(render({ email: 'coach@example.com', emailed: true, link: 'https://idp.example/invite/abc' }), /Invitation emailed to coach@example.com/)
 })
 
-test('only owners can delete a player, and only once archived', async () => {
+test('only owners can export a player\'s data, or delete a player once archived', async () => {
   const { default: SettingsArea } = await loadJsx('src/areas/SettingsArea.jsx')
   const render = role => {
     const dashboard = { team: { id: 1, name: 'North', role, self_assessment_enabled: false }, setTeams() {}, setPlayers() {}, setPeriods() {},
@@ -162,5 +162,9 @@ test('only owners can delete a player, and only once archived', async () => {
   const owner = render('owner')
   assert.equal(owner.match(/Delete…/g)?.length, 1)
   assert.match(owner, /Ben <span class="status-pill muted-pill">Archived<\/span>[\s\S]*?Delete…/)
-  assert.doesNotMatch(render('coach'), /Delete…/)
+  assert.equal(owner.match(/>Export data</g)?.length, 2)
+  assert.match(owner, /href="\/api\/teams\/1\/players\/2\/export" download=""/)
+  const coach = render('coach')
+  assert.doesNotMatch(coach, /Delete…/)
+  assert.doesNotMatch(coach, /Export data/)
 })

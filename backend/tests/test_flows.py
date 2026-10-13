@@ -228,7 +228,7 @@ def test_delete_team_requires_owner_and_exact_name(monkeypatch):
     assert owner.get(f"/teams/{team_id}/players").status_code == 404
 
 
-def test_deleting_a_player_erases_their_data(monkeypatch):
+def test_exporting_and_deleting_a_player(monkeypatch):
     clean_database()
     owner, csrf = signed_in("erase-owner@example.com", monkeypatch)
     coach, coach_csrf = signed_in("erase-coach@example.com", monkeypatch)
@@ -245,6 +245,22 @@ def test_deleting_a_player_erases_their_data(monkeypatch):
         assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
     assert owner.put(f"/teams/{team_id}/players/{player_id}/group", params={"period_id": period_id}, json={"age_group": 12}, headers=headers).status_code == 200
     url = f"/teams/{team_id}/players/{player_id}"
+    owner.patch(f"/teams/{team_id}", json={"name": "Erase", "self_assessment_enabled": True}, headers=headers)
+    assert owner.post(f"{url}/periods/{period_id}/self-link", headers=headers).status_code == 200
+
+    exported = owner.get(f"{url}/export")
+    assert exported.status_code == 200
+    assert exported.headers["content-disposition"] == 'attachment; filename="robin-data.json"'
+    data = exported.json()
+    assert data["team"] == "Erase" and data["player"]["name"] == "Robin"
+    assert [p["label"] for p in data["periods"]] == ["Autumn"]
+    assert data["playing_groups"][0]["age_group"] == 12
+    assert len(data["assessments"]) == 1 and len(data["assessments"][0]["ratings"]) == len(skill_ids)
+    assert data["assessments"][0]["updated_by"] == "erase-owner@example.com"
+    assert set(data["skill_names"]) >= set(skill_ids)
+    assert len(data["self_assessment_links"]) == 1
+    assert "token_hash" not in exported.text and '"Jo"' not in exported.text
+    assert coach.get(f"{url}/export").status_code == 404
 
     assert owner.request("DELETE", url, json={"confirm_name": "Robin"}, headers=headers).status_code == 409  # archive first
     assert owner.post(f"{url}/archive", headers=headers).status_code == 200

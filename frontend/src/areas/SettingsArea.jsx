@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
-import { activatePeriod, addPlayer, archivePlayer, createTeam, deletePeriod, deleteTeam, errorMessage, getAuditLog, getPeriods, inviteCoach,
+import { activatePeriod, addPlayer, archivePlayer, playerExportUrl, createTeam, deletePeriod, deleteTeam, errorMessage, getAuditLog, getPeriods, inviteCoach,
   removeMember, renamePeriod, renamePlayer, setMemberRole, setPlayerGroup, updateTeam } from '../api'
 import ChangePasswordForm from '../ChangePasswordForm'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
@@ -46,7 +46,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <PeriodsSection team={team} periods={periods} setPeriods={setPeriods} players={players} selectedPeriodId={period?.id}
         choosePeriod={choosePeriod} selectPeriod={selectPeriod} confirmDiscard={confirmDiscard} onMessage={onMessage} />
       <SquadSection team={team} period={period} players={players} setPlayers={setPlayers} groups={groups} setGroups={setGroups}
-        choosePlayer={choosePlayer} restorePlayer={restorePlayer} deletePlayer={owner ? deletePlayer : null} onMessage={onMessage} />
+        choosePlayer={choosePlayer} restorePlayer={restorePlayer} deletePlayer={owner ? deletePlayer : null} canExport={owner} onMessage={onMessage} />
       {team.self_assessment_enabled && period && <Section title="Player self-assessment" description={`Links for ${period.label}. Each link works once and expires after 7 days.`}>
         <SelfAssessmentBoard key={`${team.id}-${period.id}`} teamId={String(team.id)} period={period} rosterKey={players.filter(p => p.active).map(p => `${p.id}:${p.name}`).join(',')} onMessage={onMessage} />
       </Section>}
@@ -120,7 +120,7 @@ function PeriodsSection({ team, periods, setPeriods, players, selectedPeriodId, 
   </Section>
 }
 
-function SquadSection({ team, period, players, setPlayers, groups, setGroups, choosePlayer, restorePlayer, deletePlayer, onMessage }) {
+function SquadSection({ team, period, players, setPlayers, groups, setGroups, choosePlayer, restorePlayer, deletePlayer, canExport, onMessage }) {
   const [name, setName] = useState('')
   const teamId = team.id
   const replace = updated => setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p))
@@ -152,6 +152,7 @@ function SquadSection({ team, period, players, setPlayers, groups, setGroups, ch
           <option value="">Group not set</option>{AGE_GROUPS.map(age => <option key={age} value={age}>U{age}</option>)}
         </select>}
         <button type="button" onClick={() => rename(player)}>Rename</button>
+        {canExport && <a className="button-link" href={playerExportUrl(teamId, player.id)} download aria-label={`Download ${player.name}'s data`}>Export data</a>}
         {player.active ? <button type="button" onClick={() => archive(player)}>Archive</button> : <button type="button" onClick={() => restorePlayer(player)}>Restore</button>}
         {!player.active && deletePlayer && <button type="button" className="danger-btn" onClick={() => deletePlayer(player)}>Delete…</button>}
       </div>

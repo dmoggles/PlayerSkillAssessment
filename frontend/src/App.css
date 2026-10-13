@@ -443,9 +443,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .settings-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); min-width: 0; }
 .settings-item > span { min-width: 0; overflow-wrap: anywhere; }
 .settings-item small { display: block; color: var(--muted); font-size: .75rem; }
-.settings-item button { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; white-space: nowrap; }
+.settings-item button, .settings-item .button-link { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; white-space: nowrap; }
 .settings-item .danger-btn { border-color: var(--error); color: var(--error); }
-.item-actions { display: flex; gap: 6px; }
+.item-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.settings-item .button-link { font-weight: 400; text-decoration: none; }
 .status-pill { display: inline-block; margin-left: 6px; padding: 2px 7px; background: #dcefe6; color: #21694d; border-radius: 20px; font-size: .68rem; font-weight: 700; vertical-align: middle; }
 .muted-pill { background: #edf0f3; color: var(--muted); }
 .dashboard-panel .inline-row { flex-wrap: wrap; }
