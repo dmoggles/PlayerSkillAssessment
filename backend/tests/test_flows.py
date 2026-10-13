@@ -1335,3 +1335,46 @@ def test_admin_command_line(monkeypatch, capsys):
     assert client.post("/auth/login", json={"email": "first@example.com", "password": "secure-password-123"}).json()["is_admin"] is True
     assert cli.main(["invite", "first@example.com"]) == 1
     assert cli.main(["grant", "nobody@example.com"]) == 1
+
+
+def test_invitations_survive_failed_email(monkeypatch):
+    from app.config import settings
+    clean_database()
+    owner, csrf = signed_in("mail-owner@example.com", monkeypatch)
+    monkeypatch.setattr(settings, "open_signup", False)
+    team_id = owner.post("/teams", json={"name": "North"}, headers={"x-csrf-token": csrf}).json()["id"]
+
+    def broken(*args):
+        raise OSError("SMTP server unreachable")
+    monkeypatch.setattr(teams, "send_email", broken)
+    sent = owner.post(f"/teams/{team_id}/invites", json={"email": "whatsapp-coach@example.com"}, headers={"x-csrf-token": csrf})
+    assert sent.status_code == 200
+    body = sent.json()
+    assert body["emailed"] is False and "couldn't be sent" in body["message"]
+    token = body["link"].split("/invite/")[-1]
+    assert TestClient(app).get(f"/invites/{token}").json()["team"] == "North"
+    coach = TestClient(app)
+    assert coach.post("/auth/register", json={"email": "whatsapp-coach@example.com", "password": "secure-password-123", "invite": token}).status_code == 201
+
+    # When email works, the link is still returned, for sending by other means too.
+    monkeypatch.setattr(teams, "send_email", lambda *args: None)
+    again = owner.post(f"/teams/{team_id}/invites", json={"email": "second@example.com"}, headers={"x-csrf-token": csrf}).json()
+    assert again["emailed"] is True and "/invite/" in again["link"]
+
+
+def test_emails_carry_reply_to(monkeypatch):
+    from app import auth
+    from app.config import settings
+    captured = []
+
+    class FakeSMTP:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+        def send_message(self, message): captured.append(message)
+    monkeypatch.setattr(auth.smtplib, "SMTP", FakeSMTP)
+    monkeypatch.setattr(settings, "smtp_username", "")
+    monkeypatch.setattr(settings, "smtp_reply_to", "coach-support@example.com")
+    auth.send_email("someone@example.com", "Hello", "Body")
+    assert captured[0]["Reply-To"] == "coach-support@example.com"
+    assert captured[0]["From"] == f"{settings.app_name} <{settings.smtp_from}>"

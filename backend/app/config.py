@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_from: str = "assessment@localhost"
+    # Where replies to the app's emails go; the From address may not receive mail.
+    smtp_reply_to: str = ""
     app_name: str = "TapLine IDP"
     # Off: accounts need an invitation (from a team owner, or a site admin for a new club).
     open_signup: bool = False

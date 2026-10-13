@@ -459,7 +459,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .issued-links-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: .85rem; }
 .issued-link { display: grid; grid-template-columns: minmax(80px, 140px) minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: .85rem; }
 .issued-link input { min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: .78rem; }
-.issued-links button, .self-board-toolbar button { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; white-space: nowrap; }
+.issued-links button, .self-board-toolbar button, .invite-link .issued-link button { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; white-space: nowrap; }
 @media (max-width: 760px) { .issued-link { grid-template-columns: minmax(0, 1fr) auto; } .issued-link span { grid-column: 1 / -1; font-weight: 600; } }
 .archived-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #edf0f3; font-size: .88rem; }
 .archived-notice button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
@@ -974,3 +974,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .invite-only-note { margin-top: 18px; color: var(--muted); font-size: .9rem; text-align: center; }
 .invite-lead { margin-bottom: 14px; color: var(--muted); }
 .site-invites { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+.invite-link { display: grid; gap: 8px; margin-top: 12px; padding: 12px 14px; border: 1px solid var(--accent-tint-strong); border-radius: 10px; background: var(--accent-tint); }
+.invite-link .link-btn { justify-self: start; }
+.invite-link .issued-link { grid-template-columns: minmax(0, 1fr) auto auto; }
+@media (max-width: 760px) { .invite-link .issued-link { grid-template-columns: minmax(0, 1fr) auto; } .invite-link .issued-link input { grid-column: 1 / -1; } }

@@ -213,16 +213,13 @@ def invite(team_id: int, body: InviteBody, db: DbSession = Depends(get_db), user
     token, _ = invites.issue(db, email, "invite", invites.TEAM_INVITE_DAYS, team_id=team_id)
     record(db, team_id, user, "invite_sent", email)
     team = db.get(Team, team_id)
-    try:
-        send_email(email, f"Join {team.name} on {settings.app_name}",
-                   f"{user.email} has invited you to coach {team.name} on {settings.app_name}.\n\n"
-                   f"Open this link to join (you can create your account there if you don't have one):\n{settings.public_base_url}/invite/{token}\n\n"
-                   f"The link works for {invites.TEAM_INVITE_DAYS} days.")
-    except Exception:
-        db.rollback()
-        raise HTTPException(503, "Email delivery unavailable")
     db.commit()
-    return {"message": delivery_message("Invitation sent.")}
+    link = f"{settings.public_base_url}/invite/{token}"
+    emailed = invites.deliver(send_email, email, f"Join {team.name} on {settings.app_name}",
+                              f"{user.email} has invited you to coach {team.name} on {settings.app_name}.\n\n"
+                              f"Open this link to join (you can create your account there if you don't have one):\n{link}\n\n"
+                              f"The link works for {invites.TEAM_INVITE_DAYS} days.")
+    return {"message": delivery_message(invites.outcome(email, emailed)), "link": link, "emailed": emailed}
 
 
 class InviteInfo(BaseModel):

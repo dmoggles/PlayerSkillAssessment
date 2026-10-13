@@ -6,6 +6,7 @@ import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
 import MatrixSummary from '../MatrixSummary'
 import PeriodForm from '../PeriodForm'
 import SelfAssessmentBoard from '../SelfAssessmentBoard'
+import InviteLink from './InviteLink'
 import SiteAdminSection from './SiteAdminSection'
 import { auditText } from '../auditModel'
 
@@ -164,6 +165,7 @@ function SquadSection({ team, period, players, setPlayers, groups, setGroups, ch
 // Owners only: team name, player wording, self-assessment, invitations, members, the activity log and deletion.
 function TeamAccessSection({ user, team, setTeams, members, setMembers, dropTeam, confirmDiscard, forgetMatrices, onMessage }) {
   const [inviteEmail, setInviteEmail] = useState('')
+  const [newInvite, setNewInvite] = useState(null)
   const teamId = team.id
   const update = async (changes, after = () => {}) => {
     try {
@@ -178,7 +180,7 @@ function TeamAccessSection({ user, team, setTeams, members, setMembers, dropTeam
   }
   const invite = async event => {
     event.preventDefault()
-    try { const result = await inviteCoach(teamId, inviteEmail); setInviteEmail(''); onMessage(result.message) } catch (e) { onMessage(fail(e)) }
+    try { const result = await inviteCoach(teamId, inviteEmail); setNewInvite({ email: inviteEmail.trim(), ...result }); setInviteEmail('') } catch (e) { onMessage(fail(e)) }
   }
   const removeTeam = async () => {
     const name = window.prompt(`This permanently deletes ${team.name} with all its players, periods, assessments and priorities, and removes every member's access. Type the team name to confirm.`)
@@ -203,6 +205,7 @@ function TeamAccessSection({ user, team, setTeams, members, setMembers, dropTeam
       <input type="email" aria-label="Coach email" placeholder="Coach email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
       <button>Invite coach</button>
     </form>
+    {newInvite && <InviteLink invite={newInvite} days={7} onDone={() => setNewInvite(null)} />}
     <MemberActions user={user} team={team} members={members} setMembers={setMembers} setTeams={setTeams} dropTeam={dropTeam} confirmDiscard={confirmDiscard} onMessage={onMessage} />
     <ActivityLog key={teamId} teamId={teamId} onMessage={onMessage} />
     <div className="danger-zone">

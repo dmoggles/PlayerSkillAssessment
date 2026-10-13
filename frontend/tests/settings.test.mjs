@@ -136,3 +136,14 @@ test('site admins invite a new club from Settings', async () => {
   assert.match(html, /Invite new club/)
   assert.match(html, /invitation/)
 })
+
+test('a new invitation shows its link to copy, and says whether the email went out', async () => {
+  const { default: InviteLink } = await loadJsx('src/areas/InviteLink.jsx')
+  const render = invite => renderToStaticMarkup(React.createElement(InviteLink, { invite, days: 7, onDone: () => {} }))
+  const failed = render({ email: 'coach@example.com', emailed: false, link: 'https://idp.example/invite/abc' })
+  assert.match(failed, /couldn&#x27;t be sent/)
+  assert.match(failed, /value="https:\/\/idp.example\/invite\/abc"/)
+  assert.match(failed, /Copy link/)
+  assert.match(failed, /within 7 days/)
+  assert.match(render({ email: 'coach@example.com', emailed: true, link: 'https://idp.example/invite/abc' }), /Invitation emailed to coach@example.com/)
+})

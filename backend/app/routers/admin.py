@@ -48,13 +48,10 @@ def send_site_invite(body: SiteInviteBody, db: DbSession = Depends(get_db), admi
         raise HTTPException(409, "That email address already has an account")
     db.query(AuthToken).filter_by(email=email, purpose="signup").delete(synchronize_session=False)
     token, row = invites.issue(db, email, "signup", invites.SITE_INVITE_DAYS)
-    try:
-        send_email(email, *site_invite_email(token))
-    except Exception:
-        db.rollback()
-        raise HTTPException(503, "Email delivery unavailable")
     db.commit()
-    return {"id": row.id, "email": email, "expires_at": row.expires_at, "message": delivery_message(f"Invitation sent to {email}.")}
+    emailed = invites.deliver(send_email, email, *site_invite_email(token))
+    return {"id": row.id, "email": email, "expires_at": row.expires_at, "link": f"{settings.public_base_url}/invite/{token}",
+            "emailed": emailed, "message": delivery_message(invites.outcome(email, emailed))}
 
 
 @router.delete("/invites/{invite_id}")
