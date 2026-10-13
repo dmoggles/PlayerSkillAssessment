@@ -1,9 +1,9 @@
 // Who runs the service, as the legal pages name it: a sole trader, so the controller is that person. Fill in every [bracketed] value before the 1.0 release;
 // tests/legal.test.mjs lists any that are left.
 export const OPERATOR = {
-  name: '[YOUR FULL NAME]',
+  name: 'Dmitry Mogilevsky',
   tradingName: 'TapLine',
-  address: '[BUSINESS ADDRESS]',
+  address: 'Unit A, 82 James Carter Road, Mildenhall Industrial Estate, Mildenhall, Suffolk IP28 7DE',
   icoNumber: '[ICO REGISTRATION NUMBER]',
   email: '[PRIVACY CONTACT EMAIL]',
 }
