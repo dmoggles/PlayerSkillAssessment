@@ -25,7 +25,7 @@ export default function LegalPage({ page }) {
 }
 
 const Contact = () => <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>
-const Who = () => <>{OPERATOR.company} (company number {OPERATOR.companyNumber}, registered office {OPERATOR.address})</>
+const Who = () => <>{OPERATOR.name}, a sole trader trading as {OPERATOR.tradingName} ({OPERATOR.address})</>
 
 function Processors() {
   return <table className="legal-table">
@@ -119,7 +119,7 @@ function PlayersNotice() {
     <p>If your coach sends you a link to score yourself, it's just for you: it works once, for 7 days. Be honest; there are no wrong answers, and it helps your coach help you.</p>
 
     <h2>Who's in charge of it</h2>
-    <p>Your club is. {APP_NAME} (run by {OPERATOR.company}) looks after the information for your club and only uses it to run the app. If you have a question, ask your coach or your club, or ask a parent to ask for you.</p>
+    <p>Your club is. {APP_NAME} (run by {OPERATOR.tradingName}) looks after the information for your club and only uses it to run the app. If you have a question, ask your coach or your club, or ask a parent to ask for you.</p>
 
     <h2>Your rights</h2>
     <p>You can ask to see what's kept about you, to fix anything that's wrong, or to have it deleted. Ask your coach or club: they can download a copy or delete it. If you're under 13, a parent or carer can ask for you. You can also contact us at <Contact />.</p>

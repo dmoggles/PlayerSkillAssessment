@@ -1,9 +1,9 @@
-// Who runs the service, as the legal pages name it. Fill in every [bracketed] value before the 1.0 release;
+// Who runs the service, as the legal pages name it: a sole trader, so the controller is that person. Fill in every [bracketed] value before the 1.0 release;
 // tests/legal.test.mjs lists any that are left.
 export const OPERATOR = {
-  company: '[COMPANY NAME] Ltd',
-  companyNumber: '[COMPANY NUMBER]',
-  address: '[REGISTERED OFFICE ADDRESS]',
+  name: '[YOUR FULL NAME]',
+  tradingName: 'TapLine',
+  address: '[BUSINESS ADDRESS]',
   icoNumber: '[ICO REGISTRATION NUMBER]',
   email: '[PRIVACY CONTACT EMAIL]',
 }
