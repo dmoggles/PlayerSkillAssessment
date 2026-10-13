@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Encrypted PostgreSQL backups for one deployment (production, or development for testing).
 #
-#   bash deploy/backup.sh nightly       the timer's run: kept 30 days, plus one a month kept a year
+#   bash deploy/backup.sh nightly       the timer's run: kept 30 days, plus one a month kept 3 months
 #   bash deploy/backup.sh pre-deploy    taken by the production deploy before migrations: last 10 kept
+#
+# No backup is kept here longer than BACKUP_MAX_DAYS (90): the privacy notice promises that deleted data leaves the
+# backups within about three months, so the bucket and the mirror use the same limit.
 #
 # Run from the deployment directory (the one holding .env.prod or .env.dev). Settings come from .backup.env there
 # (see deploy/backup.env.example). The dump is encrypted with age before it touches disk, so no copy, local or
@@ -28,7 +31,8 @@ else echo "No .env.prod or .env.dev in $(pwd)." >&2; exit 1; fi
 : "${BACKUP_AGE_RECIPIENT:?Set BACKUP_AGE_RECIPIENT in .backup.env to the age public key}"
 [[ -n ${BACKUP_REMOTE:-} || -n ${BACKUP_MIRROR:-} ]] || { echo "Set BACKUP_REMOTE and/or BACKUP_MIRROR in .backup.env: a backup must leave this server." >&2; exit 1; }
 backup_dir=${BACKUP_DIR:-$(pwd)/backups}
-keep_daily=${BACKUP_KEEP_DAILY:-30}; keep_monthly=${BACKUP_KEEP_MONTHLY:-12}; keep_predeploy=${BACKUP_KEEP_PREDEPLOY:-10}
+keep_daily=${BACKUP_KEEP_DAILY:-30}; keep_monthly=${BACKUP_KEEP_MONTHLY:-3}; keep_predeploy=${BACKUP_KEEP_PREDEPLOY:-10}
+max_days=${BACKUP_MAX_DAYS:-90}
 
 ping() {  # ping the health check: "" on success, "/fail" on failure
   [[ -n ${BACKUP_HEALTHCHECK_URL:-} ]] || return 0
@@ -74,9 +78,10 @@ if [[ $kind == nightly ]] && ! ls "$backup_dir/monthly/tapline-idp-$stack-${stam
 fi
 size=$(du -h "$backup_dir/$folder/$name" | cut -f1)
 
-prune() {  # keep the newest $2 files in folder $1
+prune() {  # keep the newest $2 files in folder $1, none older than $max_days
   [[ -d $backup_dir/$1 ]] || return 0
   ls -1t "$backup_dir/$1"/*.dump.age 2>/dev/null | tail -n +"$(($2 + 1))" | xargs -r rm -f
+  find "$backup_dir/$1" -name '*.dump.age' -mtime +"$max_days" -delete
 }
 prune daily "$keep_daily"; prune monthly "$keep_monthly"; prune pre-deploy "$keep_predeploy"; prune pre-restore "$keep_predeploy"
 

@@ -6,8 +6,9 @@
 # Creates the user idpbackup and /srv/tapline-idp-backups. The production server's key may only write new files
 # there (rrsync -wo): it can't read anything. It can't change or delete backups either: a timer hands every
 # arrived backup to root within a few minutes, in folders where idpbackup may only add files (sticky, root-owned).
-# Newer rrsync versions also get -no-del. This server prunes old files itself, daily: daily/ after 35 days,
-# pre-deploy/ and pre-restore/ after 120, monthly/ after 400. Backups are encrypted, so this server can't read them.
+# Newer rrsync versions also get -no-del. This server prunes old files itself, daily: daily/ after 35 days, the rest
+# after 92 (deleted data must leave backups within about three months). Backups are encrypted, so this server can't
+# read them.
 set -euo pipefail
 
 fail() { echo "Error: $*" >&2; exit 1; }
@@ -70,7 +71,7 @@ Description=Remove old TapLine IDP backups from the mirror
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -c 'find $dir/daily -name "*.dump.age" -mtime +35 -delete; find $dir/pre-deploy $dir/pre-restore -name "*.dump.age" -mtime +120 -delete; find $dir/monthly -name "*.dump.age" -mtime +400 -delete; true'
+ExecStart=/usr/bin/bash -c 'find $dir/daily -name "*.dump.age" -mtime +35 -delete; find $dir/pre-deploy $dir/pre-restore $dir/monthly -name "*.dump.age" -mtime +92 -delete; true'
 EOF
 cat > /etc/systemd/system/tapline-idp-backup-prune.timer <<'EOF'
 [Unit]

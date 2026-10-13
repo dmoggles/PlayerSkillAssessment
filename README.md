@@ -85,11 +85,11 @@ Production backs up its database every night and before every deploy. Each backu
 
 | Where | Kept | Pruned by |
 | --- | --- | --- |
-| The production server (`backups/` in the deployment directory) | 30 nightly, 12 monthly, 10 pre-deploy | `deploy/backup.sh` |
-| An S3-compatible bucket in the UK/EU (e.g. Backblaze B2), via rclone | Set by the bucket's lifecycle rules | The bucket; the backup key has no delete rights |
-| The other VPS, write-only over SSH (`rrsync -wo -no-del`) | 35 days nightly, 400 days monthly, 120 days pre-deploy | That server's own timer |
+| The production server (`backups/` in the deployment directory) | 30 nightly, 3 monthly, 10 pre-deploy; none over 90 days | `deploy/backup.sh` |
+| An S3-compatible bucket in the UK/EU (e.g. Backblaze B2), via rclone | Set by the bucket's lifecycle rules: 35 days nightly, 92 days the rest | The bucket; the backup key has no delete rights |
+| The other VPS, write-only over SSH (`rrsync -wo -no-del`) | 35 days nightly, 92 days the rest | That server's own timer |
 
-A compromised production server can add backups but can't read or delete the off-server copies. A missed or failed nightly backup pings a health check (e.g. healthchecks.io), which alerts you. A production deploy stops if its pre-deploy backup fails.
+No backup outlives about three months, which is what the privacy notice promises for deleted data. A compromised production server can add backups but can't read or delete the off-server copies. A missed or failed nightly backup pings a health check (e.g. healthchecks.io), which alerts you. A production deploy stops if its pre-deploy backup fails.
 
 **Set up, once:**
 
