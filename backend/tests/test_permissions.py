@@ -42,6 +42,7 @@ ACCESS = {
     ("GET", "/auth/me"): (SIGNED_IN, None, None),
     ("POST", "/auth/logout"): (SIGNED_IN, None, None),
     ("POST", "/auth/change-password"): (SIGNED_IN, {"current_password": "x" * 12, "new_password": "y" * 12}, None),
+    ("POST", "/auth/delete-account"): (SIGNED_IN, {"password": "wrong-password"}, None),
     ("GET", "/teams"): (SIGNED_IN, None, None),
     ("POST", "/teams"): (SIGNED_IN, {"name": "Another"}, None),
     ("POST", "/invites/accept"): (SIGNED_IN, {"token": "unknown"}, None),

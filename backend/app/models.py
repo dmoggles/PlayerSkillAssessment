@@ -133,7 +133,7 @@ class AssessmentRevision(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
     version: Mapped[int] = mapped_column(Integer)
-    editor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    editor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     snapshot: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

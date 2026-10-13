@@ -276,6 +276,42 @@ def test_exporting_and_deleting_a_player(monkeypatch):
     assert any(e["action"] == "player_deleted" for e in log)
 
 
+def test_coaches_can_delete_their_accounts(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("leaving-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("leaving-coach@example.com", monkeypatch)
+    headers, coach_headers = {"x-csrf-token": csrf}, {"x-csrf-token": coach_csrf}
+    team_id = owner.post("/teams", json={"name": "Stay"}, headers=headers).json()["id"]
+    coach_id = add_coach(owner, csrf, team_id, coach, coach_csrf, "leaving-coach@example.com", monkeypatch)
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Ali"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    body = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
+            "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in starter_skills()]}
+    saved = coach.put(f"/teams/{team_id}/assessments/coach", json=body, headers=coach_headers).json()
+    assert coach.post("/teams", json={"name": "Coach's own"}, headers=coach_headers).status_code == 201
+
+    delete = lambda client, h, password="secure-password-123": client.post("/auth/delete-account", json={"password": password}, headers=h)
+    assert delete(coach, coach_headers, "wrong-password").status_code == 400
+    refused = delete(coach, coach_headers)
+    assert refused.status_code == 409 and "Coach's own" in refused.json()["detail"]
+    own_id = next(t["id"] for t in coach.get("/teams").json() if t["name"] == "Coach's own")
+    assert coach.request("DELETE", f"/teams/{own_id}", json={"confirm_name": "Coach's own"}, headers=coach_headers).status_code == 200
+    # Making them an owner of Stay as well doesn't block it: Stay keeps another owner.
+    assert owner.patch(f"/teams/{team_id}/members/{coach_id}", json={"role": "owner"}, headers=headers).status_code == 200
+    assert delete(coach, coach_headers).status_code == 200
+
+    assert coach.get("/auth/me").status_code == 401
+    assert coach.post("/auth/login", json={"email": "leaving-coach@example.com", "password": "secure-password-123"}).status_code == 401
+    assert [m["email"] for m in owner.get(f"/teams/{team_id}/members").json()] == ["leaving-owner@example.com"]
+    assessment = owner.get(f"/teams/{team_id}/assessments/coach", params={"player_id": player_id, "period_id": period_id}).json()
+    assert assessment["version"] == saved["version"] and assessment["updated_by"] is None
+    assert owner.get(f"/teams/{team_id}/assessments/{saved['id']}/revisions").json()[0]["editor"] == "a deleted account"
+    log = owner.get(f"/teams/{team_id}/audit").json()
+    assert "leaving-coach@example.com" not in str(log)
+    assert any(e["action"] == "account_deleted" for e in log)
+    assert delete(owner, headers).status_code == 409  # still the only owner of Stay
+
+
 def test_assessment_versions_history_and_self_link(monkeypatch):
     clean_database()
     owner, csrf = signed_in("owner2@example.com", monkeypatch)

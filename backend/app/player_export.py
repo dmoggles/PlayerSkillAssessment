@@ -1,6 +1,7 @@
 """Everything recorded about one player, as one JSON document: what a club sends when a player or parent asks for
 a copy of their data. Link tokens are left out (they would open the player's pages); coaches appear by email."""
 from sqlalchemy.orm import Session as DbSession
+from .account_deletion import DELETED_ACCOUNT
 from .matrix import version_skills
 from .models import (Assessment, AssessmentRevision, CycleCheckin, DevelopmentCycle, Period, Player, PlayerGroup,
                      PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow)
@@ -16,7 +17,7 @@ def player_export(db: DbSession, team: Team, player: Player) -> dict:
     def coach(user_id):
         if user_id is not None and user_id not in emails:
             user = db.get(User, user_id)
-            emails[user_id] = user.email if user else "a deleted account"
+            emails[user_id] = user.email if user else DELETED_ACCOUNT
         return emails.get(user_id)
 
     def row(obj, skip=()):

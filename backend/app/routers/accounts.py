@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session as DbSession
 from .. import invites
+from ..account_deletion import erase_account, teams_needing_another_owner
 from ..audit import record
 from ..auth import COOKIE_NAME, consume_auth_token, current_user, digest, fresh_token, get_session, hasher, issue_auth_token, send_email, verify_password
 from ..config import settings
@@ -33,6 +34,10 @@ class TokenOnly(BaseModel):
 
 class ResetBody(TokenOnly):
     password: str = Field(min_length=12, max_length=200)
+
+
+class DeleteAccountBody(BaseModel):
+    password: str
 
 
 class ChangePasswordBody(BaseModel):
@@ -175,6 +180,19 @@ def change_password(body: ChangePasswordBody, identity: tuple[User, Session] = D
     db.query(AuthToken).filter_by(user_id=user.id, purpose="reset").delete(synchronize_session=False)
     db.commit()
     return {"message": "Password changed. Other sessions have been signed out."}
+
+
+@router.post("/delete-account")
+def delete_account(body: DeleteAccountBody, response: Response, identity: tuple[User, Session] = Depends(get_session), db: DbSession = Depends(get_db)):
+    user = identity[0]
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(400, "Password is incorrect")
+    if teams := teams_needing_another_owner(db, user):
+        raise HTTPException(409, f"You're the only owner of {', '.join(teams)}. Make another coach an owner, or delete the team, first.")
+    erase_account(db, user)
+    db.commit()
+    response.delete_cookie(COOKIE_NAME, path="/")
+    return {"message": "Your account has been deleted."}
 
 
 @router.post("/forgot-password")

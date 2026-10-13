@@ -428,6 +428,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .change-password form { margin-top: 14px; max-width: 420px; }
 .change-password form button { justify-self: start; padding: 10px 15px; border: 0; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 600; }
 .change-password form button:disabled { opacity: .6; cursor: wait; }
+.delete-account { margin-top: 18px; }
+.delete-account > .link-btn { color: var(--error); }
+.delete-account form { margin-top: 10px; max-width: 420px; }
+.delete-account form .danger-btn { justify-self: start; }
+.delete-account form .danger-btn:disabled { opacity: .6; cursor: wait; }
 .context-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 14px; background: #e9edf1; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 22px; }
 .context-controls .field { min-width: 175px; flex: 1; }
 .context-controls .field:last-child { max-width: 340px; }

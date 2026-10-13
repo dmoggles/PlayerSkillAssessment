@@ -36,6 +36,7 @@ export const login = (email, password) => data(api.post('/auth/login', { email, 
 export const logout = () => data(api.post('/auth/logout')).finally(() => { csrfToken = '' })
 export const forgotPassword = email => data(api.post('/auth/forgot-password', { email }))
 export const resetPassword = (token, password) => data(api.post('/auth/reset-password', { token, password }))
+export const deleteAccount = password => data(api.post('/auth/delete-account', { password })).finally(() => { csrfToken = '' })
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 export const getInvite = token => data(api.get(`/invites/${encodeURIComponent(token)}`))

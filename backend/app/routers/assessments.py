@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DbSession
+from ..account_deletion import DELETED_ACCOUNT
 from ..auth import current_user, require_member
 from ..cycles import latest_cycle_ids
 from ..database import get_db
@@ -233,6 +234,6 @@ def revisions(team_id: int, assessment_id: int, db: DbSession = Depends(get_db),
     a = db.query(Assessment).join(Player).filter(Assessment.id == assessment_id, Player.team_id == team_id, Assessment.assessor == "coach").first()
     if not a:
         raise HTTPException(404, "Assessment not found")
-    rows = db.query(AssessmentRevision, User).join(User, User.id == AssessmentRevision.editor_id).filter(
+    rows = db.query(AssessmentRevision, User).outerjoin(User, User.id == AssessmentRevision.editor_id).filter(
         AssessmentRevision.assessment_id == assessment_id).order_by(AssessmentRevision.version).all()
-    return [{"version": r.version, "editor": u.email, "created_at": r.created_at, "snapshot": r.snapshot} for r, u in rows]
+    return [{"version": r.version, "editor": u.email if u else DELETED_ACCOUNT, "created_at": r.created_at, "snapshot": r.snapshot} for r, u in rows]
