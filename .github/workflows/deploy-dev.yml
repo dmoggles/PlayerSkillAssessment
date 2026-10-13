@@ -28,7 +28,7 @@ jobs:
           docker compose --env-file deploy/production.env.example -f compose.yaml -f compose.prod.yaml config -q
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - uses: astral-sh/setup-uv@v7
       - name: Backend tests
         working-directory: backend
