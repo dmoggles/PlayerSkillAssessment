@@ -3,6 +3,7 @@ import { activatePeriod, addPlayer, archivePlayer, playerExportUrl, createTeam, 
   removeMember, renamePeriod, renamePlayer, setMemberRole, setPlayerGroup, updateTeam } from '../api'
 import ChangePasswordForm from '../ChangePasswordForm'
 import DeleteAccountForm from '../DeleteAccountForm'
+import LegalLinks from '../legal/LegalLinks'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
 import MatrixSummary from '../MatrixSummary'
 import PeriodForm from '../PeriodForm'
@@ -68,6 +69,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
       <DeleteAccountForm confirmDiscard={confirmDiscard} />
       <p className="app-version">Version {APP_VERSION}</p>
+      <LegalLinks />
     </Section>
   </div>
 }

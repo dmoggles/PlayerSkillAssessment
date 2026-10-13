@@ -27,5 +27,8 @@ export function Wordmark({ tone = 'dark' }) {
 
 // The small brand line on pages players and parents open: the team leads, the app stays quiet.
 export function MadeWith() {
-  return <footer className="made-with"><BrandMark tone="light" size={22} /><span>Made with <strong>{APP_NAME}</strong></span></footer>
+  return <footer className="made-with"><BrandMark tone="light" size={22} /><span>Made with <strong>{APP_NAME}</strong></span>
+    {/* A new tab, so a half-filled self-assessment isn't lost. */}
+    <a href="/privacy/players" target="_blank" rel="noopener">Your information</a>
+  </footer>
 }

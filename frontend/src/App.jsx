@@ -4,7 +4,9 @@ import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, use
 const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
+const LegalPage = lazy(() => import('./legal/LegalPage'))
 import UpdateBanner from './UpdateBanner'
+import LegalLinks from './legal/LegalLinks'
 import { APP_NAME, BrandMark, Wordmark } from './brand'
 import { acceptInvite, errorMessage, forgotPassword, getInvite, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
 import './App.css'
@@ -46,6 +48,7 @@ function AuthForm({ onSignedIn, embedded = false, initialEmail = '' }) {
     {message && <p role="status" className="notice">{message}</p>}
     {!embedded && <p className="invite-only-note">New to {APP_NAME}? It's invitation-only for now: ask a coach at your club to invite you.</p>}
     <div className="inline-row"><button className="link-btn" onClick={() => { setMode('login'); setMessage('') }}>Sign in</button><button className="link-btn" onClick={() => { setMode('resend'); setMessage('') }}>Resend verification</button><button className="link-btn" onClick={() => { setMode('forgot'); setMessage('') }}>Forgot password</button></div>
+    {!embedded && <LegalLinks />}
   </div>
 }
 
@@ -100,6 +103,7 @@ function InvitePage({ user, onSignedIn }) {
     <p className="invite-lead">{invite.kind === 'team' ? `You've been invited to coach ${invite.team}.` : 'Create your account, then set up your team.'}</p>
     <label className="field">Email<input type="email" value={invite.email} readOnly /></label>
     <label className="field">Choose a password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
+    <p className="legal-consent">By creating an account you agree to the <Link to="/terms">terms</Link>. The <Link to="/privacy">privacy notice</Link> explains how your information is used.</p>
     <button className="submit-btn" disabled={busy}>{busy ? 'Creating account…' : invite.kind === 'team' ? `Create account and join` : 'Create account'}</button>
   </form>
   return <div className="page public-page login-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>{title}</h1>{body}{message && <p role="alert" className="error">{message}</p>}</div>
@@ -113,6 +117,9 @@ function Shell() {
   return <Suspense fallback={<div className="page">Loading…</div>}><Routes>
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
+    <Route path="/privacy" element={<LegalPage page="privacy" />} />
+    <Route path="/privacy/players" element={<LegalPage page="players" />} />
+    <Route path="/terms" element={<LegalPage page="terms" />} />
     <Route path="/verify/:token" element={<VerifyPage />} />
     <Route path="/reset/:token" element={<ResetPage />} />
     <Route path="/invite/:token" element={<InvitePage user={user} onSignedIn={setUser} />} />

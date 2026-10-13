@@ -985,3 +985,28 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .invite-link .link-btn { justify-self: start; }
 .invite-link .issued-link { grid-template-columns: minmax(0, 1fr) auto auto; }
 @media (max-width: 760px) { .invite-link .issued-link { grid-template-columns: minmax(0, 1fr) auto; } .invite-link .issued-link input { grid-column: 1 / -1; } }
+
+/* Privacy notice, terms and the players' notice */
+.legal-updated { margin: -12px 0 20px; color: var(--muted); font-size: .85rem; }
+.legal-body { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 8px 24px 20px; line-height: 1.6; }
+.legal-body h2 { margin: 26px 0 8px; font-size: 1.1rem; color: var(--heading); }
+.legal-body p, .legal-body li { font-size: .95rem; }
+.legal-body p { margin: 0 0 10px; }
+.legal-body ul, .legal-body ol { padding-left: 22px; }
+.legal-body li { margin-bottom: 6px; }
+.legal-body a { color: var(--accent-ink); }
+.legal-lead { font-size: 1.05rem !important; margin-top: 16px; }
+.legal-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: .88rem; }
+.legal-table th, .legal-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 24px 0 8px; font-size: .8rem; }
+.legal-links a, .made-with a { color: var(--muted); }
+.legal-consent { margin: 0; color: var(--muted); font-size: .82rem; }
+.legal-consent a { color: var(--accent-ink); }
+.made-with { flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .legal-body { padding: 4px 16px 16px; }
+  .legal-table thead { display: none; }
+  .legal-table tr { display: grid; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .legal-table td { padding: 2px 0; border: 0; }
+  .legal-table td:first-child { font-weight: 700; }
+}
