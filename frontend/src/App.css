@@ -444,6 +444,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .settings-item > span { min-width: 0; overflow-wrap: anywhere; }
 .settings-item small { display: block; color: var(--muted); font-size: .75rem; }
 .settings-item button { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: .82rem; white-space: nowrap; }
+.settings-item .danger-btn { border-color: var(--error); color: var(--error); }
 .item-actions { display: flex; gap: 6px; }
 .status-pill { display: inline-block; margin-left: 6px; padding: 2px 7px; background: #dcefe6; color: #21694d; border-radius: 20px; font-size: .68rem; font-weight: 700; vertical-align: middle; }
 .muted-pill { background: #edf0f3; color: var(--muted); }

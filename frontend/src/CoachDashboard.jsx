@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBlocker, useLocation, useNavigate } from 'react-router-dom'
 import { errorMessage, getCoachAssessment, getComparison, getMembers, getMatrixVersion, getPeriodAssessments, getPeriodGroups, getPeriods,
-  getPlayerHistory, getPlayers, getRevisions, getTeams, restorePlayer, submitCoachAssessment } from './api'
+  getPlayerHistory, getPlayers, getRevisions, getTeams, deletePlayer, restorePlayer, submitCoachAssessment } from './api'
 import AssessmentArea from './areas/AssessmentArea'
 import { NavIcon, Section } from './areas/DashboardParts'
 import DevelopmentArea from './areas/DevelopmentArea'
@@ -125,7 +125,9 @@ export default function CoachDashboard({ user, onLogout }) {
     setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setHeatmap([]); setAssessmentBaseline(null)
   }
   function choosePlayer(id) {
-    if (!confirmDiscard()) return
+    if (confirmDiscard()) showPlayer(id)
+  }
+  function showPlayer(id) {
     setPlayerId(id); setCoach(null); setComparison(null); setHistory([]); setRevisions([]); setRatings({}); setNotes({}); setAssessmentNote(''); setAssessmentBaseline(null)
   }
   function choosePeriod(id) {
@@ -211,6 +213,19 @@ export default function CoachDashboard({ user, onLogout }) {
   async function restorePlayerAction(player) {
     try { const updated = await restorePlayer(teamId, player.id); setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p)); setMessage(`${updated.name} restored to the squad.`) } catch (e) { setMessage(fail(e)) }
   }
+  async function deletePlayerAction(player) {
+    const name = window.prompt(`This permanently deletes ${player.name} and everything recorded about them: assessments, self-assessments, priorities, plans, reports and their links. It can't be undone. Type the player's name to confirm.`)
+    if (name == null) return
+    if (name.trim() !== player.name) { setMessage('Player name did not match. Nothing was deleted.'); return }
+    const selected = player.id === Number(playerId)
+    if (selected && !confirmDiscard()) return
+    try {
+      await deletePlayer(teamId, player.id, name.trim())
+      setPlayers(previous => previous.filter(p => p.id !== player.id))
+      if (selected) showPlayer('')
+      setMessage(`${player.name} and all their data deleted.`)
+    } catch (e) { setMessage(fail(e)) }
+  }
   // Drop cached matrix documents for a team, after its matrix or its player wording changes.
   function forgetMatrices(id) {
     setMatrices(previous => Object.fromEntries(Object.entries(previous).filter(([key]) => !key.startsWith(`${id}:`))))
@@ -243,7 +258,7 @@ export default function CoachDashboard({ user, onLogout }) {
       <dialog ref={contextDialogRef} className="mobile-context-dialog" aria-labelledby="context-dialog-title" onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close() }}><div className="context-sheet"><div className="context-sheet-heading"><div><p className="eyebrow">Current selection</p><h2 id="context-dialog-title">Team, period and player</h2></div><button type="button" aria-label="Close selection" onClick={() => contextDialogRef.current?.close()}>×</button></div>{context}<button className="context-sheet-done" type="button" onClick={() => contextDialogRef.current?.close()}>Done</button></div></dialog>
       {currentArea.id === 'settings' && <SettingsArea key={teamId} user={user} onLogout={onLogout} dashboard={{
         team: selectedTeam, teams, setTeams, players, setPlayers, periods, setPeriods, period: selectedPeriod, groups, setGroups, members, setMembers,
-        chooseTeam, choosePeriod, choosePlayer, selectPeriod, dropTeam, confirmDiscard, restorePlayer: restorePlayerAction, forgetMatrices, onMessage: setMessage,
+        chooseTeam, choosePeriod, choosePlayer, selectPeriod, dropTeam, confirmDiscard, restorePlayer: restorePlayerAction, deletePlayer: deletePlayerAction, forgetMatrices, onMessage: setMessage,
       }} />}
       {currentArea.id !== 'settings' && !selectedTeam && <Section title="Start with a team" description="Create your first team in Settings, then add a period and players."><button type="button" onClick={() => navigate('/app/settings')}>Open Settings</button></Section>}
       {selectedTeam && currentArea.id === 'assessment' && (!selectedPlayer || !selectedPeriod || !matrix

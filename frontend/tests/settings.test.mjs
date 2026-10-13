@@ -54,6 +54,7 @@ test('audit events read as plain sentences', async () => {
   assert.equal(auditText(event('role_changed', { from: 'owner', to: 'coach' })), 'owner@example.com changed coach@example.com to a coach')
   assert.equal(auditText(event('period_deleted', { label: 'Autumn' }, null)), 'owner@example.com deleted the period Autumn')
   assert.equal(auditText(event('team_renamed', { from: 'A', to: 'B' }, null)), 'owner@example.com renamed the team from A to B')
+  assert.equal(auditText(event('player_deleted', {}, null)), 'owner@example.com deleted a player and all their data')
   assert.equal(auditText(event('something_new', {}, null)), 'owner@example.com: something_new')
   assert.equal(auditText(event('matrix_published', { version: 2, applied_to: 'Summer' }, null)), 'owner@example.com published skill matrix version 2 (also used for Summer)')
   assert.equal(auditText(event('age_group_changed', { from: null, to: 12 }, null)), 'owner@example.com set the age group to U12')
@@ -146,4 +147,20 @@ test('a new invitation shows its link to copy, and says whether the email went o
   assert.match(failed, /Copy link/)
   assert.match(failed, /within 7 days/)
   assert.match(render({ email: 'coach@example.com', emailed: true, link: 'https://idp.example/invite/abc' }), /Invitation emailed to coach@example.com/)
+})
+
+test('only owners can delete a player, and only once archived', async () => {
+  const { default: SettingsArea } = await loadJsx('src/areas/SettingsArea.jsx')
+  const render = role => {
+    const dashboard = { team: { id: 1, name: 'North', role, self_assessment_enabled: false }, setTeams() {}, setPlayers() {}, setPeriods() {},
+      players: [{ id: 1, name: 'Ana', active: true }, { id: 2, name: 'Ben', active: false }], periods: [], period: null, groups: {}, setGroups() {},
+      members: [], setMembers() {}, chooseTeam() {}, choosePeriod() {}, choosePlayer() {}, selectPeriod() {}, dropTeam() {}, confirmDiscard: () => true,
+      restorePlayer() {}, deletePlayer() {}, forgetMatrices() {}, onMessage() {} }
+    const router = createMemoryRouter([{ path: '*', element: React.createElement(SettingsArea, { user: { email: 'o@example.com' }, dashboard, onLogout() {} }) }])
+    return renderToStaticMarkup(React.createElement(RouterProvider, { router }))
+  }
+  const owner = render('owner')
+  assert.equal(owner.match(/Delete…/g)?.length, 1)
+  assert.match(owner, /Ben <span class="status-pill muted-pill">Archived<\/span>[\s\S]*?Delete…/)
+  assert.doesNotMatch(render('coach'), /Delete…/)
 })

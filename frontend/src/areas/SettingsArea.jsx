@@ -21,7 +21,7 @@ const fail = errorMessage
 // the account. `dashboard` carries the shared state and the dashboard actions that settings changes go through.
 export default function SettingsArea({ user, dashboard, onLogout }) {
   const { team, setTeams, players, setPlayers, periods, setPeriods, period, groups, setGroups, members, setMembers,
-    chooseTeam, choosePeriod, choosePlayer, selectPeriod, dropTeam, confirmDiscard, restorePlayer, forgetMatrices, onMessage } = dashboard
+    chooseTeam, choosePeriod, choosePlayer, selectPeriod, dropTeam, confirmDiscard, restorePlayer, deletePlayer, forgetMatrices, onMessage } = dashboard
   const [drillLibraryOpen, setDrillLibraryOpen] = useState(false)
   const [editingMatrix, setEditingMatrix] = useState(false)
   const owner = canManageTeam(team)
@@ -46,7 +46,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <PeriodsSection team={team} periods={periods} setPeriods={setPeriods} players={players} selectedPeriodId={period?.id}
         choosePeriod={choosePeriod} selectPeriod={selectPeriod} confirmDiscard={confirmDiscard} onMessage={onMessage} />
       <SquadSection team={team} period={period} players={players} setPlayers={setPlayers} groups={groups} setGroups={setGroups}
-        choosePlayer={choosePlayer} restorePlayer={restorePlayer} onMessage={onMessage} />
+        choosePlayer={choosePlayer} restorePlayer={restorePlayer} deletePlayer={owner ? deletePlayer : null} onMessage={onMessage} />
       {team.self_assessment_enabled && period && <Section title="Player self-assessment" description={`Links for ${period.label}. Each link works once and expires after 7 days.`}>
         <SelfAssessmentBoard key={`${team.id}-${period.id}`} teamId={String(team.id)} period={period} rosterKey={players.filter(p => p.active).map(p => `${p.id}:${p.name}`).join(',')} onMessage={onMessage} />
       </Section>}
@@ -120,7 +120,7 @@ function PeriodsSection({ team, periods, setPeriods, players, selectedPeriodId, 
   </Section>
 }
 
-function SquadSection({ team, period, players, setPlayers, groups, setGroups, choosePlayer, restorePlayer, onMessage }) {
+function SquadSection({ team, period, players, setPlayers, groups, setGroups, choosePlayer, restorePlayer, deletePlayer, onMessage }) {
   const [name, setName] = useState('')
   const teamId = team.id
   const replace = updated => setPlayers(previous => previous.map(p => p.id === updated.id ? updated : p))
@@ -144,7 +144,7 @@ function SquadSection({ team, period, players, setPlayers, groups, setGroups, ch
       setGroups(previous => { const next = { ...previous }; if (age) next[player.id] = age; else delete next[player.id]; return next })
     } catch (e) { onMessage(fail(e)) }
   }
-  return <Section title="Squad" description={period ? `Playing groups are for ${period.label}; players remain in your records after archiving` : 'Players remain in your records after archiving'}>
+  return <Section title="Squad" description={`${period ? `Playing groups are for ${period.label}. ` : ''}Archived players stay in your records; team owners can then delete them permanently`}>
     <div className="settings-list">{players.map(player => <div className="settings-item" key={player.id}>
       <span>{player.name} {!player.active && <span className="status-pill muted-pill">Archived</span>}</span>
       <div className="item-actions">
@@ -153,6 +153,7 @@ function SquadSection({ team, period, players, setPlayers, groups, setGroups, ch
         </select>}
         <button type="button" onClick={() => rename(player)}>Rename</button>
         {player.active ? <button type="button" onClick={() => archive(player)}>Archive</button> : <button type="button" onClick={() => restorePlayer(player)}>Restore</button>}
+        {!player.active && deletePlayer && <button type="button" className="danger-btn" onClick={() => deletePlayer(player)}>Delete…</button>}
       </div>
     </div>)}</div>
     <form className="inline-row" onSubmit={add}>

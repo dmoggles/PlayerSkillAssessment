@@ -228,6 +228,38 @@ def test_delete_team_requires_owner_and_exact_name(monkeypatch):
     assert owner.get(f"/teams/{team_id}/players").status_code == 404
 
 
+def test_deleting_a_player_erases_their_data(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("erase-owner@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("erase-coach@example.com", monkeypatch)
+    headers, coach_headers = {"x-csrf-token": csrf}, {"x-csrf-token": coach_csrf}
+    team_id = owner.post("/teams", json={"name": "Erase"}, headers=headers).json()["id"]
+    add_coach(owner, csrf, team_id, coach, coach_csrf, "erase-coach@example.com", monkeypatch)
+    player_id = owner.post(f"/teams/{team_id}/players", json={"name": "Robin"}, headers=headers).json()["id"]
+    kept_id = owner.post(f"/teams/{team_id}/players", json={"name": "Jo"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skill_ids = starter_skills()
+    for pid in (player_id, kept_id):
+        body = {"player_id": pid, "period_id": period_id, "version": 0, "primary_position": "defender",
+                "ratings": [{"skill_id": skill_id, "score": 3} for skill_id in skill_ids]}
+        assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    assert owner.put(f"/teams/{team_id}/players/{player_id}/group", params={"period_id": period_id}, json={"age_group": 12}, headers=headers).status_code == 200
+    url = f"/teams/{team_id}/players/{player_id}"
+
+    assert owner.request("DELETE", url, json={"confirm_name": "Robin"}, headers=headers).status_code == 409  # archive first
+    assert owner.post(f"{url}/archive", headers=headers).status_code == 200
+    assert coach.request("DELETE", url, json={"confirm_name": "Robin"}, headers=coach_headers).status_code == 404
+    assert owner.request("DELETE", url, json={"confirm_name": "robin"}, headers=headers).status_code == 422
+    assert owner.request("DELETE", url, json={"confirm_name": "Robin"}, headers=headers).status_code == 200
+
+    assert [p["name"] for p in owner.get(f"/teams/{team_id}/players").json()] == ["Jo"]
+    assert owner.get(f"{url}/history").status_code == 404
+    assert len(owner.get(f"/teams/{team_id}/players/{kept_id}/history").json()) == 1
+    log = owner.get(f"/teams/{team_id}/audit").json()
+    assert "Robin" not in str(log)
+    assert any(e["action"] == "player_deleted" for e in log)
+
+
 def test_assessment_versions_history_and_self_link(monkeypatch):
     clean_database()
     owner, csrf = signed_in("owner2@example.com", monkeypatch)

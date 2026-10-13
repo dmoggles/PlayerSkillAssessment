@@ -76,6 +76,7 @@ export const addPlayer = (id, name) => data(api.post(`${team(id)}/players`, { na
 export const renamePlayer = (id, playerId, name) => data(api.patch(`${team(id)}/players/${playerId}`, { name }))
 export const archivePlayer = (id, playerId) => data(api.post(`${team(id)}/players/${playerId}/archive`))
 export const restorePlayer = (id, playerId) => data(api.post(`${team(id)}/players/${playerId}/restore`))
+export const deletePlayer = (id, playerId, confirmName) => data(api.delete(`${team(id)}/players/${playerId}`, { data: { confirm_name: confirmName } }))
 export const getPeriods = id => data(api.get(`${team(id)}/periods`))
 // options: { starts_season, groups } — groups maps player id to a U-number (or null) after the new-season review.
 export const createPeriod = (id, label, options = {}) => data(api.post(`${team(id)}/periods`, { label, is_active: true, ...options }))

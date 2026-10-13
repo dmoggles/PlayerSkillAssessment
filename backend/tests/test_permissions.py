@@ -62,6 +62,7 @@ ACCESS = {
     ("PATCH", "/teams/{team_id}/players/{player_id}"): (MEMBER, {"name": "Renamed player"}, None),
     ("POST", "/teams/{team_id}/players/{player_id}/archive"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/restore"): (MEMBER, None, None),
+    ("DELETE", "/teams/{team_id}/players/{player_id}"): (OWNER, {"confirm_name": "Kit"}, None),
     ("GET", "/teams/{team_id}/periods"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/periods/{period_id}/groups"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/players/{player_id}/group"): (MEMBER, {"age_group": 11}, {"period_id": "{period_id}"}),

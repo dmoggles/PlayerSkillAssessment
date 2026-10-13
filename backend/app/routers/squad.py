@@ -8,7 +8,7 @@ from ..audit import record
 from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import period_document, skill_set, team_version, version_label
-from ..models import Assessment, AssessmentRevision, Period, Player, Rating, PlayerGroup, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, Period, Player, Rating, PlayerGroup, Team, User
 from .teams import nonblank, purge_assessment_data, scoped_period, scoped_player
 
 
@@ -20,6 +20,10 @@ class PlayerBody(BaseModel):
 
 
 AgeGroup = Annotated[int, Field(ge=5, le=21)]
+
+
+class PlayerDelete(BaseModel):
+    confirm_name: str
 
 
 class PeriodBody(BaseModel):
@@ -103,6 +107,27 @@ def restore_player(team_id: int, player_id: int, db: DbSession = Depends(get_db)
     player.active = True
     db.commit()
     return player_out(player)
+
+
+@router.delete("/teams/{team_id}/players/{player_id}")
+def delete_player(team_id: int, player_id: int, body: PlayerDelete, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Erase an archived player and everything recorded about them, e.g. when their parent asks. The activity log
+    keeps that a player was deleted, but their name is taken out of it."""
+    require_member(team_id, db, user, owner=True)
+    db.query(Team).filter_by(id=team_id).with_for_update().first()
+    player = scoped_player(db, team_id, player_id)
+    if player.active:
+        raise HTTPException(409, "Archive the player before deleting them")
+    if body.confirm_name.strip() != player.name:
+        raise HTTPException(422, "Type the player's name exactly to confirm")
+    purge_assessment_data(db, player_ids=[player_id])
+    for event in db.query(AuditEvent).filter_by(team_id=team_id).all():
+        if (event.details or {}).get("player") == player.name:
+            event.details = {**event.details, "player": "a deleted player"}
+    record(db, team_id, user, "player_deleted")
+    db.delete(player)
+    db.commit()
+    return {"message": "Player and all their data deleted"}
 
 
 @router.get("/teams/{team_id}/periods")

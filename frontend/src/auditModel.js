@@ -15,6 +15,7 @@ export function auditText(event) {
     case 'member_left': return `${actor} left the team`
     case 'period_deleted': return `${actor} deleted the period ${d.label}`
     case 'team_deleted': return `${actor} deleted the team`
+    case 'player_deleted': return `${actor} deleted a player and all their data`
     case 'matrix_published': return `${actor} published skill matrix version ${d.version}${d.applied_to ? ` (also used for ${d.applied_to})` : ''}`
     case 'playing_group_changed': return d.to == null ? `${actor} cleared ${d.player}'s playing group (${d.period})` : `${actor} set ${d.player}'s playing group to U${d.to} (${d.period})${d.from == null ? '' : `, was U${d.from}`}`
     case 'age_group_changed': return d.to == null ? `${actor} cleared the age group` : `${actor} set the age group to U${d.to}${d.from == null ? '' : ` (was U${d.from})`}`
