@@ -48,7 +48,7 @@ def draft_out(db: DbSession, team: Team, draft: MatrixDraft | None) -> dict:
 def skill_tags(db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """The global tag taxonomy, for choosing a skill's tags."""
     return [{"id": t.id, "area": t.area, "label": t.label, "level_1": t.level_1, "level_3": t.level_3, "level_5": t.level_5,
-             "active": t.active} for t in db.query(SkillTag).order_by(SkillTag.area, SkillTag.label)]
+             "active": t.active, "category": t.category} for t in db.query(SkillTag).order_by(SkillTag.area, SkillTag.label)]
 
 
 @router.get("/teams/{team_id}/matrix/draft")

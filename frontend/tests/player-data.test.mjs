@@ -270,3 +270,41 @@ test('a check-in asks better, same or worse for each focus skill, and results sh
   const view = renderToStaticMarkup(React.createElement(ConfirmedPrioritiesView, { matrix, history, periodId: 1, periods: [{ id: 1, label: 'Fall' }] }))
   assert.match(view, /Short passing \(better\), Dribbling<\/li>/)
 })
+
+test('profile web geometry: spokes clockwise from the top, gaps break the outline, long labels wrap', async () => {
+  const { axisAngle, canDrawWeb, labelLines, radarPoint, webSegments } = await loadJsx('src/profileModel.js')
+  const geometry = { cx: 100, cy: 100, r: 50 }
+  assert.equal(axisAngle(0, 4), -Math.PI / 2)
+  const [x0, y0] = radarPoint(0, 4, 5, geometry)
+  assert.ok(Math.abs(x0 - 100) < 1e-9 && Math.abs(y0 - 50) < 1e-9, 'level 5 on the first spoke is at the top edge')
+  const [x1] = radarPoint(1, 4, 5, geometry)
+  assert.ok(Math.abs(x1 - 150) < 1e-9, 'the second spoke points right')
+  assert.equal(radarPoint(2, 4, 1, geometry)[1], 110, 'level 1 sits a fifth of the way out')
+  assert.equal(webSegments([3, 3, 3, 3], geometry).closed, true)
+  const broken = webSegments([3, null, 3, 3], geometry)
+  assert.equal(broken.closed, false)
+  assert.equal(broken.runs.length, 1, 'the run past the top spoke joins the first one')
+  assert.equal(broken.runs[0].length, 3)
+  assert.equal(canDrawWeb([{}, {}]), false)
+  assert.deepEqual(labelLines('Command and positioning'), ['Command and', 'positioning'])
+  assert.deepEqual(labelLines('Passing'), ['Passing'])
+})
+
+test('profile chart draws coach, player and previous shapes with a table of the same values', async () => {
+  const { ProfileChart } = await loadJsx('src/ProfileView.jsx')
+  const categories = [{ id: 'passing', label: 'Passing' }, { id: 'finishing', label: 'Finishing' }, { id: 'mentality', label: 'Mentality' }]
+  const profile = { categories, coach: { passing: 3, finishing: 2.5, mentality: 4 }, player: { passing: 4, finishing: 4, mentality: 4 },
+    previous: { period_label: 'Autumn', coach: { passing: 2, finishing: 2, mentality: 3 } } }
+  const html = renderToStaticMarkup(React.createElement(ProfileChart, { profile, selfAssessmentOn: true }))
+  assert.equal((html.match(/<polygon/g) || []).length, 5 + 3, 'five level rings and three shapes')
+  assert.match(html, /Coach, Autumn/)
+  assert.match(html, /<td>Finishing<\/td><td>2.5<\/td><td>4.0<\/td><td>2.0<\/td>/)
+
+  const coachOnly = renderToStaticMarkup(React.createElement(ProfileChart, { profile: { ...profile, player: null, previous: null }, selfAssessmentOn: false }))
+  assert.doesNotMatch(coachOnly, /Player|self-assessment/)
+  const few = renderToStaticMarkup(React.createElement(ProfileChart, { profile: { ...profile, categories: categories.slice(0, 2) }, selfAssessmentOn: true }))
+  assert.match(few, /Too few skill categories/)
+  assert.doesNotMatch(few, /<svg/)
+  const none = renderToStaticMarkup(React.createElement(ProfileChart, { profile: { categories: [], coach: null, player: null, previous: null } }))
+  assert.match(none, /No assessments recorded/)
+})

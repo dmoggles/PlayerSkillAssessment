@@ -6,8 +6,9 @@ from ..account_deletion import DELETED_ACCOUNT
 from ..auth import current_user, require_member
 from ..cycles import latest_cycle_ids
 from ..database import get_db
-from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_visible_to_team
-from ..models import Assessment, AssessmentRevision, CycleCheckin, DevelopmentCycle, Period, Player, PlayerGroup, PriorityConfirmation, Rating, Team, User, utcnow
+from ..insights import player_categories
+from ..matrix import annotate_history, period_document, position_ids, rendered, skill_set, starter_version, version_tags, version_visible_to_team
+from ..models import Assessment, AssessmentRevision, CycleCheckin, DevelopmentCycle, Period, Player, PlayerGroup, PriorityConfirmation, Rating, SkillCategory, SkillTag, Team, User, utcnow
 from .teams import scoped_period, scoped_player
 
 
@@ -167,6 +168,35 @@ def compare(team_id: int, player_id: int, period_id: int, db: DbSession = Depend
                                        Assessment.assessor.in_(visible_assessors(db, team_id))).all()
     return {"coach": assessment_out(next((a for a in rows if a.assessor == "coach"), None)),
             "player": assessment_out(next((a for a in rows if a.assessor == "player"), None))}
+
+
+@router.get("/teams/{team_id}/players/{player_id}/profile")
+def profile(team_id: int, player_id: int, period_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The player's level per skill category, for the profile web: coach and self-assessment for the period, and
+    the coach's from the latest earlier period. Each assessment goes through its own period's tag mapping."""
+    require_member(team_id, db, user)
+    scoped_player(db, team_id, player_id)
+    period = scoped_period(db, team_id, period_id)
+    category_of = {t.id: t.category for t in db.query(SkillTag).filter(SkillTag.category.isnot(None))}
+    rows = db.query(Assessment).filter(Assessment.player_id == player_id, Assessment.period_id == period_id,
+                                       Assessment.assessor.in_(visible_assessors(db, team_id))).all()
+    current = {a.assessor: a for a in rows}
+    tags = version_tags(db, period.matrix_version_id)
+    levels = {who: player_categories(tags, category_of, current[who]) if who in current else None for who in ("coach", "player")}
+    earlier = db.query(Assessment, Period).join(Period, Period.id == Assessment.period_id).filter(
+        Assessment.player_id == player_id, Assessment.assessor == "coach", Period.team_id == team_id,
+        (Period.created_at < period.created_at) | ((Period.created_at == period.created_at) & (Period.id < period.id)),
+    ).order_by(Period.created_at.desc(), Period.id.desc()).first()
+    previous = None
+    if earlier:
+        a, p = earlier
+        previous = {"period_label": p.label, "coach": player_categories(version_tags(db, p.matrix_version_id), category_of, a)}
+    shown = current.get("coach") or current.get("player")
+    kind = "goalkeeper" if shown and (shown.position or "").lower() == "goalkeeper" else "outfield"
+    rated = set().union(*(shape or {} for shape in (levels["coach"], levels["player"], previous and previous["coach"])))
+    categories = db.query(SkillCategory).filter(SkillCategory.applies_to.in_((kind, "both")), SkillCategory.id.in_(rated | {"_"})) \
+        .order_by(SkillCategory.sort_order).all()
+    return {"position": kind, "categories": [{"id": c.id, "label": c.label} for c in categories], **levels, "previous": previous}
 
 
 @router.get("/teams/{team_id}/assessments/period/{period_id}")

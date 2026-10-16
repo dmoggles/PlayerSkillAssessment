@@ -244,6 +244,17 @@ class PlayerPlan(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class SkillCategory(Base):
+    """A broad grouping of skill tags (Passing, Finishing, ...) for a quick picture of a player, such as the
+    profile web. Each tag belongs to at most one category. applies_to says whose web shows it."""
+    __tablename__ = "skill_categories"
+    __table_args__ = (CheckConstraint("applies_to IN ('outfield', 'goalkeeper', 'both')", name="ck_skill_categories_applies_to"),)
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    label: Mapped[str] = mapped_column(String(80))
+    applies_to: Mapped[str] = mapped_column(String(10))
+    sort_order: Mapped[int] = mapped_column(SmallInteger)
+
+
 class SkillTag(Base):
     """Global taxonomy that skills, drills and training plans share. level_1/3/5 describe Developing, Achieving
     and Excelling on the common scale, relative to the player's age group."""
@@ -256,6 +267,7 @@ class SkillTag(Base):
     level_3: Mapped[str] = mapped_column(String(200))
     level_5: Mapped[str] = mapped_column(String(200))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    category: Mapped[str | None] = mapped_column(ForeignKey("skill_categories.id"))
 
 
 class SkillMatrix(Base):

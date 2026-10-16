@@ -1,5 +1,6 @@
 import ComparisonView from '../ComparisonView'
 import ConfirmedPrioritiesPanel from '../ConfirmedPrioritiesView'
+import ProfileView from '../ProfileView'
 import ProgressView from '../ProgressView'
 import ReportPanel from '../ReportPanel'
 import SummaryView from '../SummaryView'
@@ -18,6 +19,7 @@ export default function PlayerDataArea({ team, player, period, periods, matrix, 
       <button aria-current={shown === id ? 'page' : undefined} className={shown === id ? 'active' : ''} key={id} type="button" onClick={() => { if (id !== shown && confirmDiscard()) onViewChange(id) }}>{label}</button>)}
     </nav>
     {shown === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={selfAssessment} selfAssessmentOn={selfAssessmentOn} />}
+    {shown === 'profile' && <ProfileView key={`${ids.teamId}-${ids.playerId}-${ids.periodId}`} {...ids} selfAssessmentOn={selfAssessmentOn} />}
     {shown === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={selfAssessment} />}
     {shown === 'progress' && <ProgressView matrix={matrix} history={history} />}
     {shown === 'priorities' && <ConfirmedPrioritiesPanel key={`${ids.teamId}-${ids.playerId}`} matrix={matrix} {...ids} periods={periods} />}

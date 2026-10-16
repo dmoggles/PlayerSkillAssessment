@@ -94,6 +94,7 @@ export const getComparison = (id, playerId, periodId) => data(api.get(`${team(id
 export const getPeriodAssessments = (id, periodId) => data(api.get(`${team(id)}/assessments/period/${periodId}`))
 export const getInsights = (id, periodId, position, group) => data(api.get(`${team(id)}/insights`, { params: { ...(periodId ? { period_id: periodId } : {}), ...(position ? { position } : {}), ...(group ? { group } : {}) } }))
 export const getPlayerHistory = (id, playerId) => data(api.get(`${team(id)}/players/${playerId}/history`))
+export const getPlayerProfile = (id, playerId, periodId) => data(api.get(`${team(id)}/players/${playerId}/profile`, { params: { period_id: periodId } }))
 export const getRevisions = (id, assessmentId) => data(api.get(`${team(id)}/assessments/${assessmentId}/revisions`))
 export const getPriorities = (id, playerId, periodId) => data(api.get(`${team(id)}/priorities`, { params: { player_id: playerId, period_id: periodId } }))
 export const setPriorities = (id, playerId, periodId, priorities) => data(api.put(`${team(id)}/priorities`, { priorities }, { params: { player_id: playerId, period_id: periodId } }))

@@ -1,0 +1,28 @@
+{
+  "categories": [
+    {"id": "ball_mastery", "label": "Ball mastery", "applies_to": "outfield", "sort_order": 1},
+    {"id": "passing", "label": "Passing", "applies_to": "outfield", "sort_order": 2},
+    {"id": "finishing", "label": "Finishing", "applies_to": "outfield", "sort_order": 3},
+    {"id": "off_ball", "label": "Off-ball play", "applies_to": "outfield", "sort_order": 4},
+    {"id": "game_awareness", "label": "Game awareness", "applies_to": "outfield", "sort_order": 5},
+    {"id": "defending", "label": "Defending", "applies_to": "outfield", "sort_order": 6},
+    {"id": "gk_shot_stopping", "label": "Shot-stopping", "applies_to": "goalkeeper", "sort_order": 7},
+    {"id": "gk_command", "label": "Command and positioning", "applies_to": "goalkeeper", "sort_order": 8},
+    {"id": "gk_distribution", "label": "Distribution", "applies_to": "goalkeeper", "sort_order": 9},
+    {"id": "mentality", "label": "Mentality", "applies_to": "both", "sort_order": 10},
+    {"id": "physical", "label": "Physical", "applies_to": "both", "sort_order": 11}
+  ],
+  "tags": {
+    "first_touch": "ball_mastery", "dribbling": "ball_mastery", "1v1_attacking": "ball_mastery",
+    "passing_short": "passing", "passing_long": "passing", "crossing": "passing",
+    "shooting": "finishing", "heading": "finishing",
+    "movement_to_receive": "off_ball", "support_play": "off_ball", "transition_attack": "off_ball", "set_pieces": "off_ball",
+    "scanning": "game_awareness", "decision_making": "game_awareness", "team_shape": "game_awareness",
+    "1v1_defending": "defending", "pressing": "defending", "transition_defence": "defending",
+    "gk_shot_stopping": "gk_shot_stopping", "gk_1v1": "gk_shot_stopping",
+    "gk_positioning": "gk_command", "gk_commanding_area": "gk_command",
+    "gk_distribution_short": "gk_distribution", "gk_distribution_long": "gk_distribution",
+    "communication": "mentality", "composure": "mentality", "concentration": "mentality",
+    "speed_agility": "physical", "coordination_balance": "physical", "endurance": "physical"
+  }
+}

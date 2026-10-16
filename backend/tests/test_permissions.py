@@ -78,6 +78,7 @@ ACCESS = {
     ("GET", "/teams/{team_id}/assessments/period/{period_id}"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/insights"): (MEMBER, None, {"period_id": "{period_id}"}),
     ("GET", "/teams/{team_id}/players/{player_id}/history"): (MEMBER, None, None),
+    ("GET", "/teams/{team_id}/players/{player_id}/profile"): (MEMBER, None, {"period_id": "{period_id}"}),
     ("GET", "/teams/{team_id}/assessments/{assessment_id}/revisions"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/priorities"): (MEMBER, None, PP),
     ("PUT", "/teams/{team_id}/priorities"): (MEMBER, {"priorities": []}, PP),

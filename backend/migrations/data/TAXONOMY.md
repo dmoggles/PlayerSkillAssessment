@@ -32,3 +32,15 @@ database. Coaches cannot create tags; owners only choose from active tags when e
 
 The `_v1` files are frozen: they record what migration 0007 loaded. Never edit them; a fresh database must end up
 with the same data as one migrated earlier.
+
+## Categories
+
+Each tag also has a `category` (`skill_categories`): a broad grouping such as Passing or Finishing, used for a
+quick picture of a player (the profile web in Player Data). A category has an `id`, a `label`, `applies_to`
+(`outfield`, `goalkeeper` or `both`: whose web shows it) and a `sort_order` (its place around the web).
+A player's level in a category is the plain average of their levels on its tags, so each tag counts once.
+
+Categories follow the same rule as tags: an id never changes and is never deleted. To add a category or move a tag
+to another one, add `skill_categories_vN.json` and a migration that applies it. Every active tag must have a
+category (`test_every_active_skill_tag_has_a_category`). `skill_categories_v1.json` records what migration 0022
+loaded and is frozen.

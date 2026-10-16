@@ -8,7 +8,7 @@ from app.routers import accounts, teams
 
 
 # Reference data loaded by migrations: kept between tests (team-owned matrices are removed).
-REFERENCE_TABLES = {"skill_tags", "skill_matrices", "matrix_versions", "matrix_skill_tags"}
+REFERENCE_TABLES = {"skill_categories", "skill_tags", "skill_matrices", "matrix_versions", "matrix_skill_tags"}
 
 
 def clean_database():
@@ -924,6 +924,63 @@ def test_skill_tag_ids_are_never_removed():
     with engine.begin() as conn:
         in_database = set(conn.execute(text("SELECT id FROM skill_tags")).scalars())
     assert ever_defined - in_database == set()
+
+
+def test_every_active_skill_tag_has_a_category():
+    """The profile web groups tags by category, so a tag without one would drop out of it. See TAXONOMY.md."""
+    with engine.begin() as conn:
+        assert list(conn.execute(text("SELECT id FROM skill_tags WHERE active AND category IS NULL")).scalars()) == []
+
+
+def test_player_profile_averages_tags_per_category_with_self_and_previous_period(monkeypatch):
+    clean_database()
+    owner, csrf = signed_in("profile-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Profile"}, headers=headers).json()["id"]
+    owner.patch(f"/teams/{team_id}", json={"name": "Profile", "self_assessment_enabled": True}, headers=headers)
+    ids = {n: owner.post(f"/teams/{team_id}/players", json={"name": n}, headers=headers).json()["id"] for n in ("Ada", "Cy")}
+    p1 = owner.post(f"/teams/{team_id}/periods", json={"label": "P1"}, headers=headers).json()["id"]
+    p2 = owner.post(f"/teams/{team_id}/periods", json={"label": "P2"}, headers=headers).json()["id"]
+
+    def assess(player, period, position, kind, scores):
+        body = {"player_id": ids[player], "period_id": period, "version": 0, "primary_position": position,
+                "ratings": [{"skill_id": s, "score": scores.get(s, 2)} for s in starter_skills(kind)]}
+        assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+
+    profile = lambda player, period: owner.get(f"/teams/{team_id}/players/{ids[player]}/profile", params={"period_id": period}).json()
+    assess("Ada", p1, "defender", "outfield", {})
+    assess("Ada", p2, "defender", "outfield", {"first_touch_body_shape": 5})
+    url = owner.post(f"/teams/{team_id}/players/{ids['Ada']}/periods/{p2}/self-link", headers=headers).json()["url"]
+    ratings = [{"skill_id": s, "score": 3} for s in starter_skills()]
+    assert TestClient(app).post(f"/self/{url.split('/')[-1]}", json={"position": "outfield", "ratings": ratings}).status_code == 201
+
+    data = profile("Ada", p2)
+    # Outfield categories the starter matrix feeds, in web order; nothing feeds Physical.
+    assert [c["id"] for c in data["categories"]] == ["ball_mastery", "passing", "finishing", "off_ball", "game_awareness", "defending", "mentality"]
+    # First touch 5, dribbling 2, 1v1 attacking 2.
+    assert data["coach"]["ball_mastery"] == 3.0
+    # Scanning is a Partial tag of the first-touch skill (5) and of shape awareness (2): 3.5. Decision-making and team shape 2.
+    assert data["coach"]["game_awareness"] == 2.5
+    assert data["coach"]["passing"] == 2.0
+    assert set(data["player"].values()) == {3.0}
+    assert data["previous"]["period_label"] == "P1" and set(data["previous"]["coach"].values()) == {2.0}
+
+    first = profile("Ada", p1)
+    assert first["player"] is None and first["previous"] is None and first["coach"]["ball_mastery"] == 2.0
+
+    owner.patch(f"/teams/{team_id}", json={"name": "Profile", "self_assessment_enabled": False}, headers=headers)
+    assert profile("Ada", p2)["player"] is None
+
+    assess("Cy", p2, "goalkeeper", "goalkeeper", {})
+    keeper = profile("Cy", p2)
+    assert keeper["position"] == "goalkeeper" and keeper["previous"] is None
+    ids_shown = [c["id"] for c in keeper["categories"]]
+    assert ids_shown[:3] == ["gk_shot_stopping", "gk_command", "gk_distribution"]
+    assert not set(ids_shown) & {"ball_mastery", "passing", "finishing", "off_ball", "game_awareness", "defending"}
+
+    newcomer = owner.post(f"/teams/{team_id}/players", json={"name": "Dee"}, headers=headers).json()["id"]
+    nothing = owner.get(f"/teams/{team_id}/players/{newcomer}/profile", params={"period_id": p2}).json()
+    assert (nothing["coach"], nothing["player"], nothing["previous"], nothing["categories"]) == (None, None, None, [])
 
 
 def test_team_insights_average_players_group_priorities_by_tag_and_split_positions(monkeypatch):

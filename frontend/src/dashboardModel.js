@@ -41,6 +41,7 @@ export const movedUp = (players, groups) => Object.fromEntries(players.filter(p 
 
 export const PLAYER_DATA_TABS = [
   ['summary', 'Summary'],
+  ['profile', 'Profile'],
   ['comparison', 'Comparison'],
   ['progress', 'Progress'],
   ['priorities', 'Confirmed priorities'],

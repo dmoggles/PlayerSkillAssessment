@@ -44,6 +44,16 @@ def player_tags(tags_by_skill: dict, assessment: Assessment) -> dict[str, float]
     return {tag: s / w for tag, (s, w) in totals.items() if w}
 
 
+def player_categories(tags_by_skill: dict, category_of: dict[str, str], assessment: Assessment) -> dict[str, float]:
+    """A player's category levels: the plain average of their tag levels in each category, so a tag that many
+    skills feed counts once. Categories with no rated tag are left out."""
+    levels = defaultdict(list)
+    for tag, level in player_tags(tags_by_skill, assessment).items():
+        if tag in category_of:
+            levels[category_of[tag]].append(level)
+    return {category: _round(mean(values)) for category, values in levels.items()}
+
+
 def squad(rows: list[dict]) -> dict:
     """Average per key across players, plus how many players contributed."""
     values = defaultdict(list)

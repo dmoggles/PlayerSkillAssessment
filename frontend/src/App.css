@@ -796,6 +796,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .chart-direct-label { fill: var(--text); font-size: 11px; }
 .chart-tooltip { position: absolute; top: 8px; transform: translateX(-50%); min-width: 150px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 4px 14px #1423341f; font-size: .8rem; pointer-events: none; display: grid; gap: 2px; }
 .chart-tooltip b { margin-right: 4px; }
+.profile { display: grid; gap: 12px; }
+.profile-plot { position: relative; max-width: 560px; }
+.profile-plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+.profile-label { fill: var(--text); font-size: 13px; font-weight: 600; }
+.profile-label.active { fill: var(--heading); text-decoration: underline; }
+.profile-tooltip { left: auto; right: 0; transform: none; }
+.legend-key-dashed { border: 2px dashed; width: 12px; height: 0; border-width: 2px 0 0; border-radius: 0; vertical-align: middle; }
 .insight-bars, .insight-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .insight-bar-head { display: flex; justify-content: space-between; gap: 8px; font-size: .88rem; }
 .insight-bar-track { height: 10px; max-width: 520px; margin: 4px 0; border-radius: 5px; background: #edf0f3; overflow: hidden; }
