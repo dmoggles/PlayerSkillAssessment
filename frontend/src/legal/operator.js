@@ -4,7 +4,7 @@ export const OPERATOR = {
   name: 'Dmitry Mogilevsky',
   tradingName: 'TapLine',
   address: 'Unit A, 82 James Carter Road, Mildenhall Industrial Estate, Mildenhall, Suffolk IP28 7DE',
-  icoNumber: '00015955421',
+  icoNumber: 'C2061077',
   email: '[PRIVACY CONTACT EMAIL]',
 }
 
