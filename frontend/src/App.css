@@ -802,6 +802,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .profile-label { fill: var(--text); font-size: 13px; font-weight: 600; }
 .profile-label.active { fill: var(--heading); text-decoration: underline; }
 .profile-tooltip { left: auto; right: 0; transform: none; }
+.profile-table { width: 100%; max-width: 560px; border-collapse: collapse; table-layout: fixed; font-size: .88rem; }
+.profile-table th, .profile-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.profile-table thead th { vertical-align: bottom; border-bottom-width: 2px; color: var(--muted); font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.profile-table thead th small { display: block; margin-top: 2px; font-size: .72rem; font-weight: 400; white-space: normal; }
+.profile-table tbody th { font-weight: 600; overflow-wrap: anywhere; }
+.profile-table .num { width: 100px; text-align: right; font-variant-numeric: tabular-nums; }
+.profile-table td.num { font-weight: 700; }
+.profile-table .legend-key { margin-right: 5px; }
+@media (max-width: 760px) {
+  .profile-table { font-size: .8rem; }
+  .profile-table th, .profile-table td { padding: 7px 4px; }
+  .profile-table th:first-child { padding-left: 8px; }
+  .profile-table .num { width: 64px; }
+  .profile-table thead th { font-size: .72rem; }
+  .profile-table thead .legend-key { display: block; margin: 0 0 4px auto; }
+}
 .legend-key-dashed { border: 2px dashed; width: 12px; height: 0; border-width: 2px 0 0; border-radius: 0; vertical-align: middle; }
 .insight-bars, .insight-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .insight-bar-head { display: flex; justify-content: space-between; gap: 8px; font-size: .88rem; }

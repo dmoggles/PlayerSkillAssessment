@@ -50,8 +50,8 @@ export function labelLines(label, max = 12) {
 export function profileSeries(profile) {
   const values = levels => profile.categories.map(c => levels?.[c.id] ?? null)
   const series = []
-  if (profile.previous) series.push({ id: 'previous', label: `Coach, ${profile.previous.period_label}`, color: '#8795a1', dashed: true, values: values(profile.previous.coach) })
-  if (profile.player) series.push({ id: 'player', label: 'Player', color: SERIES_COLORS[1], values: values(profile.player) })
-  if (profile.coach) series.push({ id: 'coach', label: 'Coach', color: SERIES_COLORS[0], filled: true, values: values(profile.coach) })
+  if (profile.previous) series.push({ id: 'previous', label: `Coach, ${profile.previous.period_label}`, short: 'Previous', sub: profile.previous.period_label, color: '#8795a1', dashed: true, values: values(profile.previous.coach) })
+  if (profile.player) series.push({ id: 'player', label: 'Player', short: 'Player', color: SERIES_COLORS[1], values: values(profile.player) })
+  if (profile.coach) series.push({ id: 'coach', label: 'Coach', short: 'Coach', color: SERIES_COLORS[0], filled: true, values: values(profile.coach) })
   return series
 }

@@ -80,9 +80,10 @@ export function ProfileChart({ profile, selfAssessmentOn }) {
         </div>}
       </div>
       : <p className="muted">Too few skill categories are rated to draw a web; the levels are below.</p>}
-    {n > 0 && <div className="heatmap-scroll"><table className="heatmap-table insights-table">
-      <thead><tr><th>Category</th>{[...series].reverse().map(s => <th key={s.id}>{s.label}</th>)}</tr></thead>
-      <tbody>{categories.map((c, i) => <tr key={c.id}><td>{c.label}</td>{[...series].reverse().map(s => <td key={s.id}>{fmt(s.values[i])}</td>)}</tr>)}</tbody>
-    </table></div>}
+    {n > 0 && <table className="profile-table">
+      <thead><tr><th scope="col">Category</th>{[...series].reverse().map(s => <th scope="col" className="num" key={s.id}>
+        <span className="legend-key" style={{ background: s.color }} aria-hidden="true" />{s.short}{s.sub && <small>{s.sub}</small>}</th>)}</tr></thead>
+      <tbody>{categories.map((c, i) => <tr key={c.id}><th scope="row">{c.label}</th>{[...series].reverse().map(s => <td className="num" key={s.id}>{fmt(s.values[i])}</td>)}</tr>)}</tbody>
+    </table>}
   </div>
 }

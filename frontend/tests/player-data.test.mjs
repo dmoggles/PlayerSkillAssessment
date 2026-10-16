@@ -298,7 +298,8 @@ test('profile chart draws coach, player and previous shapes with a table of the 
   const html = renderToStaticMarkup(React.createElement(ProfileChart, { profile, selfAssessmentOn: true }))
   assert.equal((html.match(/<polygon/g) || []).length, 5 + 3, 'five level rings and three shapes')
   assert.match(html, /Coach, Autumn/)
-  assert.match(html, /<td>Finishing<\/td><td>2.5<\/td><td>4.0<\/td><td>2.0<\/td>/)
+  assert.match(html, /<th scope="row">Finishing<\/th><td class="num">2.5<\/td><td class="num">4.0<\/td><td class="num">2.0<\/td>/)
+  assert.match(html, /Previous<small>Autumn<\/small>/, 'the previous column names its period on a second line')
 
   const coachOnly = renderToStaticMarkup(React.createElement(ProfileChart, { profile: { ...profile, player: null, previous: null }, selfAssessmentOn: false }))
   assert.doesNotMatch(coachOnly, /Player|self-assessment/)
