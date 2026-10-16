@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, JSON, Numeric, SmallInteger, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, JSON, Numeric, SmallInteger, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -79,7 +79,8 @@ class Player(Base):
 
 class Period(Base):
     __tablename__ = "periods"
-    __table_args__ = (UniqueConstraint("team_id", "label"),)
+    # One active period per team; the API switches the old one off before switching a new one on.
+    __table_args__ = (UniqueConstraint("team_id", "label"), Index("uq_periods_one_active", "team_id", unique=True, postgresql_where=text("is_active")))
     id: Mapped[int] = mapped_column(primary_key=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
     label: Mapped[str] = mapped_column(String(100))

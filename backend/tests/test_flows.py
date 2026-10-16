@@ -555,6 +555,22 @@ def test_dev_seed_varies_players_and_demos_priority_follow_up(capsys):
     assert "dev-owner@example.com" in capsys.readouterr().out
 
 
+def test_database_allows_only_one_active_period_per_team(monkeypatch):
+    """The API switches the old period off first; a direct write that would leave two active is refused."""
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+    clean_database()
+    owner, csrf = signed_in("one-active@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "One active"}, headers=headers).json()["id"]
+    autumn = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    spring = owner.post(f"/teams/{team_id}/periods", json={"label": "Spring"}, headers=headers).json()["id"]
+    assert owner.post(f"/teams/{team_id}/periods/{autumn}/activate", headers=headers).status_code == 200
+    assert [(p["id"], p["is_active"]) for p in owner.get(f"/teams/{team_id}/periods").json() if p["is_active"]] == [(autumn, True)]
+    with pytest.raises(IntegrityError), engine.begin() as conn:
+        conn.execute(text("UPDATE periods SET is_active = true WHERE id = :id"), {"id": spring})
+
+
 def test_player_report_is_player_safe_and_limited_to_earlier_periods(monkeypatch):
     clean_database()
     owner, csrf = signed_in("report-owner@example.com", monkeypatch)
