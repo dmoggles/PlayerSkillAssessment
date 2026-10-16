@@ -38,7 +38,7 @@ After=network-online.target docker.service
 Type=oneshot
 User=$user
 WorkingDirectory=$deploy_dir
-ExecStart=/usr/bin/bash $deploy_dir/deploy/backup.sh nightly
+ExecStart=/bin/bash $deploy_dir/deploy/backup.sh nightly
 EOF
 cat > /etc/systemd/system/tapline-idp-backup.timer <<'EOF'
 [Unit]

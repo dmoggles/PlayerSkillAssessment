@@ -71,7 +71,7 @@ Description=Remove old TapLine IDP backups from the mirror
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -c 'find $dir/daily -name "*.dump.age" -mtime +35 -delete; find $dir/pre-deploy $dir/pre-restore $dir/monthly -name "*.dump.age" -mtime +92 -delete; true'
+ExecStart=/bin/bash -c 'find $dir/daily -name "*.dump.age" -mtime +35 -delete; find $dir/pre-deploy $dir/pre-restore $dir/monthly -name "*.dump.age" -mtime +92 -delete; true'
 EOF
 cat > /etc/systemd/system/tapline-idp-backup-prune.timer <<'EOF'
 [Unit]
