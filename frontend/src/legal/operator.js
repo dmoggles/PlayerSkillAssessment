@@ -5,7 +5,7 @@ export const OPERATOR = {
   tradingName: 'TapLine',
   address: 'Unit A, 82 James Carter Road, Mildenhall Industrial Estate, Mildenhall, Suffolk IP28 7DE',
   icoNumber: 'C2061077',
-  email: '[PRIVACY CONTACT EMAIL]',
+  email: 'privacy@tapline.football',
 }
 
 // Companies that handle data for us (sub-processors). Clubs are told before this list changes.
