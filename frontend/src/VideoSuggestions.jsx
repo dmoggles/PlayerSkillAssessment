@@ -41,7 +41,12 @@ export function SuggestVideo({ drill, variation, prominent = false }) {
       {variation && variation.kind !== 'base' && <label className="checkbox"><input type="checkbox" checked={forVariation} onChange={e => setForVariation(e.target.checked)} /> It shows this variation: {variation.title}</label>}
       <div className="field"><label htmlFor="video-note">Why it's a good fit <span className="muted">(optional)</span></label>
         <textarea id="video-note" rows={2} maxLength={500} value={note} onChange={e => setNote(e.target.value)} /></div>
-      <p className="muted hint">If it's approved, the video will be shown to everyone who uses {APP_NAME}. Only suggest a video that is public, or that you have the owner's permission to share. A site admin checks every suggestion first.</p>
+      <div className="muted hint"><p>If it's approved, the video will be shown to everyone who uses {APP_NAME}. A site admin checks every suggestion first.</p>
+        <ul>
+          <li>Only suggest a video that is public, or that you have the owner's permission to share.</li>
+          <li>If it shows players from your club, check with your club's welfare officer that it can be shared beyond the club.</li>
+          <li>Don't suggest links that were shared with you privately, such as unlisted videos or links from a club or parents' group.</li>
+        </ul></div>
       <button type="submit" className="primary-btn" disabled={busy}>{busy ? 'Sending…' : 'Send suggestion'}</button>
     </form>}
     {error && <p className="error" role="alert">{error}</p>}
