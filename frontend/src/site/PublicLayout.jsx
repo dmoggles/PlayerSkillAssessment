@@ -28,7 +28,8 @@ export default function PublicLayout({ user, children }) {
           <Link to="/terms">Terms</Link>
           <a href={`mailto:${OPERATOR.email}`}>Contact</a>
         </nav>
-        <p className="site-legal">{APP_NAME} is run by {OPERATOR.name}, trading as {OPERATOR.tradingName}. ICO registration {OPERATOR.icoNumber}.</p>
+        {/* Who runs the service (name and address) is in the privacy notice and terms, linked above. */}
+        <p className="site-legal">© {new Date().getFullYear()} {OPERATOR.tradingName} · ICO registration {OPERATOR.icoNumber}</p>
       </div>
     </footer>
   </div>
