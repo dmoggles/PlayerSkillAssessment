@@ -112,6 +112,7 @@ ACCESS = {
     ("DELETE", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/sessions/{session_id}/groups"): (MEMBER, {"groups": [[1], [2]]}, None),
     ("POST", "/teams/{team_id}/sessions/{session_id}/regenerate"): (MEMBER, None, None),
+    ("PUT", "/teams/{team_id}/sessions/{session_id}/attendance"): (MEMBER, "attendance", None),
     ("DELETE", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
 }
 
@@ -156,6 +157,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
                      else {"period_id": ids["period_id"]} if body == "plan"
                      else {"period_id": ids["period_id"], "skill_id": "passing_short", "slot": "club", "action": "reset"} if body == "slot"
                      else {"period_id": ids["period_id"], "date": "2026-10-20", "length": 60, "focus_tags": ["passing_short"], "player_ids": [ids["player_id"]]} if body == "session"
+                     else {"players": [{"player_id": ids["player_id"], "attended": True}]} if body == "attendance"
                      else body)
         return client.request(method, url, json=json_body, params=params, headers={"x-csrf-token": csrf} if csrf else {})
 

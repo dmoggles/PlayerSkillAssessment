@@ -202,3 +202,33 @@ def test_coaches_edit_a_session(monkeypatch):
     kept = {b["id"] for b in again["blocks"] if b["chosen_by"] == "coach"}
     assert technical["id"] in kept and opposed["id"] in kept
     assert [b["phase"] for b in again["blocks"]] == sorted((b["phase"] for b in again["blocks"]), key=sessions.PHASES.index)
+
+
+def test_attendance_before_and_after_a_session(monkeypatch):
+    clean_database()
+    with SessionLocal() as db:
+        for name in ("drills_v1.json", "drills_v2.json", "drills_v3.json", "drills_v4.json", "drills_v5.json"):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("sessions-register@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Register"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    ids = [owner.post(f"/teams/{team_id}/players", json={"name": f"P{i}"}, headers=headers).json()["id"] for i in range(7)]
+    session = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 45, "focus_tags": ["passing_short"],
+                                                             "player_ids": ids[:6], "versions": "groups", "group_count": 2}, headers=headers).json()
+    url = f"/teams/{team_id}/sessions/{session['id']}"
+    # Before: one more player expected (joins the smaller group), one no longer.
+    planned = owner.put(f"{url}/attendance", json={"players": [{"player_id": ids[6], "expected": True}, {"player_id": ids[0], "expected": False}]}, headers=headers).json()
+    assert planned["expected"] == 6 and sorted(len(g["players"]) for g in planned["groups"]) == [3, 3]
+    assert ids[0] not in {p["id"] for g in planned["groups"] for p in g["players"]} and ids[6] in {p["id"] for g in planned["groups"] for p in g["players"]}
+    # After: who came, including someone who wasn't expected.
+    done = owner.put(f"{url}/attendance", json={"players": [{"player_id": pid, "attended": True} for pid in ids[1:5]] + [{"player_id": ids[0], "attended": True}]}, headers=headers).json()
+    assert done["attended"] == 5 and done["expected"] == 6
+    assert owner.put(f"{url}/attendance", json={"players": [{"player_id": 999999, "attended": True}]}, headers=headers).status_code == 422
+    # Notes on the session and a block; the player's export lists the session.
+    owner.patch(url, json={"notes": "Good energy"}, headers=headers)
+    block = done["blocks"][0]
+    after = owner.put(f"{url}/blocks/{block['id']}", json={"notes": "Too long"}, headers=headers).json()
+    assert after["notes"] == "Good energy" and after["blocks"][0]["notes"] == "Too long"
+    exported = owner.get(f"/teams/{team_id}/players/{ids[0]}/export").json()["training_sessions"]
+    assert exported == [{"date": "2026-10-20", "title": exported[0]["title"], "expected": False, "attended": True, "group": None}]

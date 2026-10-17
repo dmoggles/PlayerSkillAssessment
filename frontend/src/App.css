@@ -1134,3 +1134,16 @@ a.public-brand { text-decoration: none; }
 .block-editor .inline-row .link-btn, .session-view .link-btn.no-print { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-weight: 600; }
 .block-editor .inline-row .danger-link { margin-left: auto; color: var(--error); }
 .block-editor .inline-row .primary-btn { padding: 8px 14px; }
+.session-block-note { margin: 6px 0 0; font-size: .88rem; }
+.session-block-note .link-btn { margin-left: 6px; padding: 0; font-size: .82rem; }
+.block-note-form { display: grid; gap: 6px; margin-top: 8px; }
+.block-note-form textarea, .session-notes textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .9rem; resize: vertical; }
+.block-note-form .inline-row .link-btn { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-weight: 600; }
+.block-note-form .primary-btn, .session-attendance .primary-btn, .session-notes .primary-btn { justify-self: start; padding: 8px 14px; border-radius: 8px; font-weight: 600; }
+.session-attendance, .session-notes { display: grid; gap: 8px; margin-top: 22px; }
+.session-attendance h3, .session-notes h3 { margin: 0; font-size: 1rem; color: var(--heading); }
+.session-attendance .hint { margin: 0; font-size: .85rem; }
+.session-attendance table { width: 100%; max-width: 480px; border-collapse: collapse; font-size: .9rem; }
+.session-attendance th, .session-attendance td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.session-attendance th:not(:first-child), .session-attendance td:not(:first-child) { width: 90px; text-align: center; }
+.session-attendance input { width: 18px; height: 18px; }

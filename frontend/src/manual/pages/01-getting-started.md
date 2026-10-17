@@ -31,12 +31,13 @@ Everything is set up in **Settings**:
 
 > **Tip:** On a phone, add TapLine IDP to your home screen (in your browser's Share or menu: *Add to Home Screen*). It then opens like an app, straight into your workspace.
 
-## The five areas
+## The six areas
 
 - **Assessment:** rate a player for the period.
 - **Player Data:** one player's results, profile, progress and report.
 - **Team Data:** the whole squad at a glance.
 - **Development:** priorities, drills and the player's plan.
+- **Sessions:** team training sessions planned around what your players are working on.
 - **Settings:** teams, periods, players, coaches, the skill matrix and your account.
 
 The team, period and player you choose at the top stay chosen as you move between areas.

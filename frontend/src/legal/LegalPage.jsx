@@ -59,7 +59,7 @@ function PrivacyNotice() {
     </ul>
 
     <h2>What clubs record about players</h2>
-    <p>On a club's behalf we hold: each player's name, team and age group (the "U" number, not a date of birth), playing positions, coaches' skill ratings and notes, the player's own ratings if the club uses self-assessment, the skills chosen to work on, development plans and check-ins, and reports the coach writes. We don't ask for players' dates of birth, addresses, contact details, photos or health information, and coaches are asked not to write such details in notes.</p>
+    <p>On a club's behalf we hold: each player's name, team and age group (the "U" number, not a date of birth), playing positions, coaches' skill ratings and notes, the player's own ratings if the club uses self-assessment, the skills chosen to work on, development plans and check-ins, reports the coach writes, and which team training sessions each player was expected at and came to, with their training group. We don't ask for players' dates of birth, addresses, contact details, photos or health information, and coaches are asked not to write such details in notes.</p>
     <p>{APP_NAME} suggests skills to focus on and drills to practise using fixed rules. Coaches review and change these suggestions; nothing is decided about a player automatically.</p>
 
     <h2>If you request access</h2>
@@ -116,6 +116,7 @@ function PlayersNotice() {
       <li>Your coaches' scores and notes on your football skills.</li>
       <li>Your own scores, if your coach sends you a self-assessment link.</li>
       <li>The skills you're working on, and your practice plans.</li>
+      <li>Which team training sessions you were expected at and came to, and your group in them.</li>
     </ul>
     <p>It doesn't keep your birthday, address, phone number, email or photos.</p>
 

@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session as DbSession
 from .account_deletion import DELETED_ACCOUNT
 from .matrix import version_skills
 from .models import (Assessment, AssessmentRevision, CycleCheckin, DevelopmentCycle, Period, Player, PlayerGroup,
-                     PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, Team, User, utcnow)
+                     PlayerPlan, PlayerReport, PriorityConfirmation, Rating, SelfLink, SessionAttendance, Team, TrainingSession,
+                     User, utcnow)
 
 SECRETS = {"token_hash", "share_token_hash"}
 USER_COLUMNS = {"updated_by", "created_by", "editor_id"}
@@ -58,4 +59,9 @@ def player_export(db: DbSession, team: Team, player: Player) -> dict:
                                for c in cycles],
         "reports": [row(r) for r in owned(PlayerReport)],
         "self_assessment_links": [row(s) for s in owned(SelfLink)],
+        # Team training sessions the player was expected at or came to, with their level group if there was one.
+        "training_sessions": [{"date": ts.date, "title": ts.title, "expected": a.expected, "attended": a.attended,
+                               "group": next((g["name"] for g in ts.groups if player.id in g["player_ids"]), None)}
+                              for a, ts in db.query(SessionAttendance, TrainingSession).join(TrainingSession, TrainingSession.id == SessionAttendance.session_id)
+                              .filter(SessionAttendance.player_id == player.id).order_by(TrainingSession.date, TrainingSession.id)],
     }

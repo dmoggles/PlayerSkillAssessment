@@ -79,6 +79,7 @@ export const deleteSessionBlock = (id, sessionId, blockId) => data(api.delete(`$
 export const getBlockAlternatives = (id, sessionId, blockId) => data(api.get(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/alternatives`))
 export const setSessionGroups = (id, sessionId, groups) => data(api.put(`${team(id)}/sessions/${sessionId}/groups`, { groups }))
 export const regenerateSession = (id, sessionId) => data(api.post(`${team(id)}/sessions/${sessionId}/regenerate`))
+export const setSessionAttendance = (id, sessionId, players) => data(api.put(`${team(id)}/sessions/${sessionId}/attendance`, { players }))
 export const getMatrixDraft = id => data(api.get(`${team(id)}/matrix/draft`))
 export const saveMatrixDraft = (id, revision, document) => data(api.put(`${team(id)}/matrix/draft`, { revision, document }))
 export const publishMatrix = (id, revision, acknowledge, applyToCurrentPeriod) => data(api.post(`${team(id)}/matrix/publish`, { revision, acknowledge, apply_to_current_period: applyToCurrentPeriod }))

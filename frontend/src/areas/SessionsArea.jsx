@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addSessionBlock, createSession, deleteSession, deleteSessionBlock, errorMessage, getBlockAlternatives, getSession, getSessionFocus, getSessions, getSkillTags,
-  regenerateSession, setSessionGroups, updateSessionBlock } from '../api'
+  regenerateSession, setSessionAttendance, setSessionGroups, updateSession, updateSessionBlock } from '../api'
 import { DrillDialog } from '../DrillLibrary'
 import { AREA_LABELS } from '../drillModel'
 import { PHASE_NAMES, SESSION_LENGTHS, blockTimes, focusChip, sessionDate, splitSessions, versionLabel } from '../sessionModel'
@@ -13,7 +13,7 @@ export default function SessionsArea({ team, period, players, onMessage }) {
   const [view, setView] = useState({ kind: 'list' })
   if (view.kind === 'new') return <NewSession team={team} period={period} players={players} onMessage={onMessage}
     onCancel={() => setView({ kind: 'list' })} onCreated={session => setView({ kind: 'session', id: session.id })} />
-  if (view.kind === 'session') return <SessionView key={view.id} teamId={team.id} sessionId={view.id} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
+  if (view.kind === 'session') return <SessionView key={view.id} teamId={team.id} sessionId={view.id} players={players} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
   return <SessionList team={team} period={period} onMessage={onMessage} onNew={() => setView({ kind: 'new' })} onOpen={id => setView({ kind: 'session', id })} />
 }
 
@@ -115,7 +115,7 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
   </Section>
 }
 
-function SessionView({ teamId, sessionId, onBack, onMessage }) {
+function SessionView({ teamId, sessionId, players, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
   const [editing, setEditing] = useState(null)  // a block id, 'groups' or 'add'
@@ -165,6 +165,7 @@ function SessionView({ teamId, sessionId, onBack, onMessage }) {
           ? <ul className="session-block-versions">{groups.map((g, j) => <li key={g.name}><strong>{g.name}:</strong> {versionLabel(block.versions[j])}</li>)}</ul>
           : <p className="session-block-version">{versionLabel(block.versions[0])}</p>)}
         {block.reasons.length > 0 && <p className="muted session-block-reasons">{block.reasons.join(' ')}</p>}
+        <BlockNote note={block.notes} onSave={notes => change(() => updateSessionBlock(teamId, session.id, block.id, { notes }), () => {})} />
         {editing === block.id
           ? <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={groups} onCancel={() => setEditing(null)}
             onSave={changes => change(() => updateSessionBlock(teamId, session.id, block.id, changes))}
@@ -175,8 +176,55 @@ function SessionView({ teamId, sessionId, onBack, onMessage }) {
     {editing === 'add'
       ? <AddBlock onCancel={() => setEditing(null)} onAdd={block => change(() => addSessionBlock(teamId, session.id, block))} />
       : <button type="button" className="link-btn no-print" onClick={() => setEditing('add')}>+ Add a block</button>}
+    <Attendance session={session} players={players} onSave={rows => change(() => setSessionAttendance(teamId, session.id, rows), () => onMessage('Attendance saved.'))} />
+    <SessionNotes notes={session.notes} onSave={notes => change(() => updateSession(teamId, session.id, { notes }), () => onMessage('Notes saved.'))} />
     {openDrill && <DrillDialog drill={openDrill} onMessage={onMessage} onClose={() => setOpenDrill(null)} />}
   </Section>
+}
+
+// A note on one block, for afterwards: how it went.
+function BlockNote({ note, onSave }) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState(note)
+  if (!open) return note
+    ? <p className="session-block-note"><strong>Note:</strong> {note} <button type="button" className="link-btn no-print" onClick={() => setOpen(true)}>Edit note</button></p>
+    : <button type="button" className="link-btn session-edit no-print" onClick={() => setOpen(true)}>Add note</button>
+  return <form className="block-note-form no-print" onSubmit={event => { event.preventDefault(); onSave(text.trim()); setOpen(false) }}>
+    <textarea rows={2} maxLength={1000} aria-label="Note on this block" placeholder="How did it go?" value={text} onChange={e => setText(e.target.value)} />
+    <div className="inline-row"><button type="submit" className="primary-btn">Save note</button><button type="button" className="link-btn" onClick={() => { setText(note); setOpen(false) }}>Cancel</button></div>
+  </form>
+}
+
+// Who is expected (before the session, for planning) and who came (afterwards).
+function Attendance({ session, players, onSave }) {
+  const rows = useMemo(() => {
+    const byId = Object.fromEntries(session.attendance.map(r => [r.player_id, r]))
+    const listed = players.filter(p => p.active || byId[p.id]).map(p => ({ id: p.id, name: p.name }))
+    return listed.sort((a, b) => a.name.localeCompare(b.name)).map(p => ({ ...p, expected: byId[p.id]?.expected ?? false, attended: byId[p.id]?.attended ?? null }))
+  }, [session.attendance, players])
+  const [state, setState] = useState(() => Object.fromEntries(rows.map(r => [r.id, { expected: r.expected, attended: r.attended }])))
+  const changed = rows.filter(r => state[r.id] && (state[r.id].expected !== r.expected || state[r.id].attended !== r.attended))
+  const set = (id, patch) => setState(previous => ({ ...previous, [id]: { ...(previous[id] ?? { expected: false, attended: null }), ...patch } }))
+  return <section className="session-attendance">
+    <h3>Attendance</h3>
+    <p className="muted hint">Tick who's expected before the session; it changes the groups and versions. Afterwards, tick who came.</p>
+    <table><thead><tr><th>Player</th><th>Expected</th><th>Came</th></tr></thead>
+      <tbody>{rows.map(r => <tr key={r.id}><td>{r.name}</td>
+        <td><input type="checkbox" aria-label={`${r.name} expected`} checked={state[r.id]?.expected ?? false} onChange={e => set(r.id, { expected: e.target.checked })} /></td>
+        <td><input type="checkbox" aria-label={`${r.name} came`} checked={state[r.id]?.attended === true} onChange={e => set(r.id, { attended: e.target.checked })} /></td>
+      </tr>)}</tbody></table>
+    <button type="button" className="primary-btn no-print" disabled={!changed.length} onClick={() => onSave(changed.map(r => ({ player_id: r.id, ...state[r.id] })))}>Save attendance</button>
+  </section>
+}
+
+// The session's notes, for afterwards.
+function SessionNotes({ notes, onSave }) {
+  const [text, setText] = useState(notes)
+  return <section className="session-notes">
+    <h3>How did it go?</h3>
+    <textarea rows={3} maxLength={2000} aria-label="Session notes" placeholder="What worked, what to change next time" value={text} onChange={e => setText(e.target.value)} />
+    <button type="button" className="primary-btn no-print" disabled={text === notes} onClick={() => onSave(text.trim())}>Save notes</button>
+  </section>
 }
 
 const OWN = '__own__'

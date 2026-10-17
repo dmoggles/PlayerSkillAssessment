@@ -457,3 +457,55 @@ def regenerate_session(team_id: int, session_id: int, db: DbSession = Depends(ge
     _touch(s, user)
     db.commit()
     return session_out(db, s)
+
+
+class AttendanceRow(BaseModel):
+    player_id: int
+    expected: bool | None = None
+    attended: bool | None = None
+
+
+class AttendanceIn(BaseModel):
+    players: list[AttendanceRow] = Field(min_length=1, max_length=80)
+
+
+@router.put("/teams/{team_id}/sessions/{session_id}/attendance")
+def set_attendance(team_id: int, session_id: int, body: AttendanceIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Who is expected (before the session, for planning) and who came (afterwards). In groups mode, newly expected
+    players join the smallest group and players no longer expected leave theirs; blocks run in groups then restart at
+    each group's level."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    team_players = {p.id for p in db.query(Player).filter_by(team_id=team_id)}
+    rows = {r.player_id: r for r in db.query(SessionAttendance).filter_by(session_id=s.id)}
+    before = _expected_ids(db, s)
+    for item in body.players:
+        if item.player_id not in team_players:
+            raise HTTPException(422, "Every player must be in this team")
+        row = rows.get(item.player_id)
+        if row is None:
+            row = SessionAttendance(session_id=s.id, player_id=item.player_id, expected=False)
+            db.add(row)
+            rows[item.player_id] = row
+        if "expected" in item.model_fields_set and item.expected is not None:
+            row.expected = item.expected
+        if "attended" in item.model_fields_set:
+            row.attended = item.attended
+    db.flush()
+    after = _expected_ids(db, s)
+    if s.versions == "groups" and after != before:
+        gone, joining = set(before) - set(after), [pid for pid in after if pid not in before]
+        groups = [[pid for pid in g["player_ids"] if pid not in gone] for g in s.groups]
+        for pid in joining:
+            min(groups, key=len).append(pid)
+        s.groups = [{"name": GROUP_NAMES[i], "player_ids": ids} for i, ids in enumerate(groups)]
+        data = _session_data(db, s, user)
+        by_slug = {d["slug"]: d for d in data["drills"]}
+        for block in db.query(SessionBlock).filter_by(session_id=s.id):
+            if block.drill_id and block.group_variations and block.chosen_by != "coach":
+                drill = by_slug.get(db.get(Drill, block.drill_id).slug)
+                if drill:
+                    _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)

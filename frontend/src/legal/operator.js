@@ -15,4 +15,4 @@ export const PROCESSORS = [
   { name: 'Resend', role: 'Delivers the app’s emails: sign-in, password and invitation links', where: 'Sent from the EU (Ireland); a US company' },
 ]
 
-export const UPDATED = '17 October 2026'
+export const UPDATED = '18 October 2026'
