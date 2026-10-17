@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { errorMessage, getDrill, getDrills, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
 import { SuggestVideo } from './VideoSuggestions'
-import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
+import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, hasVideo, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
 
 // Settings card: how big the library is, and the way in.
 export function DrillLibrarySummary({ onOpen }) {
@@ -144,7 +144,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       {shown && <DiagramPlayer key={shown.id} diagram={shown.diagram} caption={shown.caption} />}
     </div>
     {videos.map(v => <VideoLink key={v.id} video={v} />)}
-    {drill.votes && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!drill.media.some(m => m.kind === 'video')} />}
+    {drill.votes && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!hasVideo(drill)} />}
     <p className="muted variation-note" aria-live="polite">Showing: <strong>{selected?.title}</strong>{view.changed.size ? '. Sections marked below differ from the base version.' : ''}</p>
     {view.setup && <section><h4>Setup {changedTag('setup')}</h4><p>{view.setup}</p></section>}
     {view.equipment.length > 0 && <section><h4>Equipment {changedTag('equipment')}</h4><p>{view.equipment.map(e => `${e.quantity} ${equipmentLabel(e.item)}`).join(', ')}</p></section>}
@@ -170,7 +170,7 @@ function DrillVote({ votes, onVote }) {
 }
 
 // Videos load only when asked for, using YouTube's privacy-enhanced domain.
-function VideoLink({ video }) {
+export function VideoLink({ video }) {
   const [playing, setPlaying] = useState(false)
   const embed = videoEmbedUrl(video.url, video.start_seconds)
   if (!embed) return <p><a href={video.url} target="_blank" rel="noreferrer">{video.caption || 'Watch the video'}</a></p>
@@ -178,6 +178,7 @@ function VideoLink({ video }) {
     <div className="drill-video-head">
       <button type="button" aria-expanded={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Close video' : '▶ Play video'}</button>
       {video.forVariation && <span className="status-pill warn-pill variation-changed">For this variation</span>}
+      {video.suggested && <span className="status-pill muted-pill">Suggested by a coach</span>}
       {video.caption && <p>{video.caption}</p>}
     </div>
     {/* Closing removes the player entirely, which also stops the video. */}

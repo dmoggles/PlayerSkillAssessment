@@ -54,13 +54,20 @@ export function effectiveDrill(drill, variation) {
 // YouTube Shorts are vertical, so they get a portrait frame.
 export const isVerticalVideo = url => { try { return new URL(url).pathname.startsWith('/shorts/') } catch { return false } }
 
-// Videos to show for a variation: its own video first (flagged), then drill-wide videos that no variation claims.
+// Videos to show for a variation: the drill's own video for it first, then coaches' approved suggestions for it
+// (both flagged), then drill-wide videos that no variation claims, then drill-wide suggestions.
 export function visibleVideos(drill, variation) {
   const videos = drill.media.filter(m => m.kind === 'video')
+  const suggested = (drill.suggested_videos ?? []).map(v => ({ ...v, suggested: true }))
   const claimed = new Set(drill.variations.map(v => v.video_media_id).filter(Boolean))
   const own = videos.find(m => m.id === variation?.video_media_id)
-  return [...(own ? [{ ...own, forVariation: true }] : []), ...videos.filter(m => !claimed.has(m.id))]
+  const flagged = v => ({ ...v, forVariation: true })
+  return [...(own ? [flagged(own)] : []), ...suggested.filter(v => variation && v.variation_id === variation.id).map(flagged),
+    ...videos.filter(m => !claimed.has(m.id)), ...suggested.filter(v => v.variation_id == null)]
 }
+
+// Whether a drill has any video at all, so the invitation to suggest one can be more visible when it hasn't.
+export const hasVideo = drill => drill.media.some(m => m.kind === 'video') || (drill.suggested_videos ?? []).length > 0
 
 export const AREA_LABELS = { technical: 'Technical', tactical: 'Tactical', mental: 'Mental', goalkeeping: 'Goalkeeping', physical: 'Physical' }
 export const INTENSITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' }
@@ -118,4 +125,9 @@ export function sortDrills(drills) {
 
 // Video suggestions: where each stands, and why an admin turned one down.
 export const SUGGESTION_STATUS = { pending: 'Waiting for review', approved: 'Added to the drill', rejected: 'Not added', hidden: 'Removed: no longer available' }
-export const REJECT_REASONS = { not_a_demo: "Doesn't show how to run the drill", mismatch: "Doesn't match this drill", quality: 'Poor quality', safeguarding: 'Not suitable to share', other: 'Other' }
+export const REJECT_REASONS = { not_a_demo: "Doesn't show how to run the drill", mismatch: "Doesn't match this drill", quality: 'Poor quality', shared_privately: 'Shared privately: not for the library', safeguarding: 'Not suitable to share', other: 'Other' }
+// Ticked by a site admin before every approval: approved videos reach every coach, and players through shared reports.
+export const REVIEW_CHECKS = [
+  "It shows how to run the drill safely, in line with the FA's guidance for the drill's ages.",
+  'No identifiable children from a personal, grassroots-club or unlisted upload. On YouTube, "Unlisted" shows under the title.',
+]

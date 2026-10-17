@@ -1048,3 +1048,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .my-video-suggestions small { display: block; }
 .video-suggest .hint p { margin: 0 0 4px; }
 .video-suggest .hint ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+/* Site admin: the video suggestion queue. */
+.queue-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.queue-tabs button { padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: white; font-size: .85rem; }
+.queue-tabs button.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+.video-queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.video-review { padding: 14px; border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 10px; }
+.video-review header { margin: 0; }
+.video-review header small { display: block; margin-top: 2px; }
+.video-review-title { margin: 0; overflow-wrap: anywhere; }
+.video-review blockquote { margin: 0; padding: 6px 10px; border-left: 3px solid var(--border); color: var(--muted); font-size: .88rem; }
+.video-review form { display: grid; gap: 10px; max-width: 560px; }
+.video-review-reject { padding-top: 10px; border-top: 1px solid var(--border); }
+.video-review input, .video-review select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+.video-review button[type=submit] { justify-self: start; padding: 8px 14px; border-radius: 8px; font-weight: 600; }
+.video-review .danger-btn { border: 1px solid var(--error); background: white; color: var(--error); }
+.review-checks { margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.review-checks legend { padding: 0 4px; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.review-checks .checkbox { align-items: flex-start; margin: 6px 0; font-size: .88rem; }
+.review-checks .checkbox input { margin-top: 3px; }

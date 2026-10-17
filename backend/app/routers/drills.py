@@ -8,6 +8,7 @@ from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import version_tags
 from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
+from .video_suggestions import approved_videos
 
 router = APIRouter(tags=["drills"])
 
@@ -80,6 +81,7 @@ def drill_out(db: DbSession, drill: Drill, user: User | None) -> dict:
                            for v in variations],
             "media": [{"id": m.id, "kind": m.kind, "caption": m.caption, "url": m.url, "start_seconds": m.video_start_seconds,
                        "diagram": m.diagram} for m in media],
+            "suggested_videos": approved_videos(db, drill.id),
             "links": [{"slug": d.slug, "title": d.title, "relation": link.relation} for link, d in links] if user else []}
 
 

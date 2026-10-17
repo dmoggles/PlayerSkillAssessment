@@ -147,3 +147,48 @@ test('coaches are invited to suggest a video, more visibly when a drill has none
   assert.deepEqual(Object.keys(SUGGESTION_STATUS), ['pending', 'approved', 'rejected', 'hidden'])
   assert.ok(Object.keys(REJECT_REASONS).includes('safeguarding'))
 })
+
+test('approved video suggestions follow the drill\'s own videos, for their variation or the whole drill', async () => {
+  const { visibleVideos, hasVideo } = await loadJsx('src/drillModel.js')
+  const drill = {
+    variations: [{ id: 1, kind: 'base', video_media_id: null }, { id: 2, kind: 'escalator', video_media_id: 11 }],
+    media: [{ id: 10, kind: 'video', url: 'a' }, { id: 11, kind: 'video', url: 'b' }, { id: 12, kind: 'diagram' }],
+    suggested_videos: [{ id: 'suggested-1', url: 's1', variation_id: null }, { id: 'suggested-2', url: 's2', variation_id: 2 }],
+  }
+  const shown = variation => visibleVideos(drill, variation).map(v => `${v.url}${v.forVariation ? '*' : ''}${v.suggested ? '+' : ''}`)
+  assert.deepEqual(shown(drill.variations[0]), ['a', 's1+'])
+  assert.deepEqual(shown(drill.variations[1]), ['b*', 's2*+', 'a', 's1+'])
+  assert.deepEqual(visibleVideos({ ...drill, suggested_videos: undefined }, drill.variations[0]).map(v => v.url), ['a'])
+  assert.equal(hasVideo({ media: [], suggested_videos: [{ id: 'suggested-1' }] }), true)
+  assert.equal(hasVideo({ media: [{ kind: 'diagram' }] }), false)
+})
+
+test('site admins review suggestions with a checklist before approving', async () => {
+  const { default: VideoSuggestionQueue } = await loadJsx('src/areas/VideoSuggestionQueue.jsx')
+  const { REVIEW_CHECKS } = await loadJsx('src/drillModel.js')
+  const html = renderToStaticMarkup(React.createElement(VideoSuggestionQueue, { onMessage: () => {} }))
+  assert.match(html, /Video suggestions/)
+  assert.match(html, /Waiting for review/)
+  assert.match(html, /Loading…/)
+  assert.equal(REVIEW_CHECKS.length, 2)
+  assert.match(REVIEW_CHECKS[1], /Unlisted/)
+})
+
+test('a suggestion can only be approved once the checklist is ticked, and an approved one can be taken down', async () => {
+  const { SuggestionReview } = await loadJsx('src/areas/VideoSuggestionQueue.jsx')
+  const item = { id: 7, drill_title: '4v1 rondo', variations: [{ id: 1, kind: 'base', title: 'Four around one' }], variation_id: 1,
+    url: 'https://www.youtube.com/watch?v=abcdefghijk', start_seconds: null, title: 'Rondo demo', channel: 'Coaching channel', duration_seconds: null,
+    note: 'Shows the rotation', suggested_by: 'coach@example.com', status: 'pending', caption: null, reject_reason: null, reject_note: null, reports: 0,
+    created_at: '2026-10-17T10:00:00Z', reviewed_at: null }
+  const render = props => renderToStaticMarkup(React.createElement(SuggestionReview, { item: { ...item, ...props }, onDone: () => {}, onMessage: () => {} }))
+  const pending = render({})
+  assert.match(pending, /Open on YouTube/)
+  assert.match(pending, /by coach@example\.com/)
+  assert.match(pending, /<blockquote>Shows the rotation<\/blockquote>/)
+  assert.match(pending, /value="Rondo demo"/, 'the caption starts as the video title')
+  assert.match(pending, /<button type="submit" class="primary-btn" disabled="">Approve/)
+  assert.match(pending, /Turn down because/)
+  const approved = render({ status: 'approved', caption: 'Rondo rotations' })
+  assert.doesNotMatch(approved, />Approve</)
+  assert.match(approved, />Take down</)
+})

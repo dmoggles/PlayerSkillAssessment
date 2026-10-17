@@ -81,3 +81,55 @@ def test_coaches_suggest_videos_for_review(monkeypatch, library):
     with SessionLocal() as db:
         rows = db.query(DrillVideoSuggestion).all()
         assert len(rows) == 10 and all(r.suggested_by is None for r in rows)
+
+
+def test_admins_approve_or_turn_down_suggestions(monkeypatch, library):
+    from app.models import Drill, User
+    from app.routers.drills import drill_out
+    monkeypatch.setattr(video_links, "lookup", lambda link: video_links.VideoDetails(f"Video {link.video_id}", "Channel", 95))
+    coach, csrf = signed_in("video-suggester@example.com", monkeypatch)
+    admin, admin_csrf = signed_in("video-admin@example.com", monkeypatch)
+    with SessionLocal() as db:
+        db.query(User).filter_by(email="video-admin@example.com").update({"is_admin": True})
+        db.commit()
+    headers, admin_headers = {"x-csrf-token": csrf}, {"x-csrf-token": admin_csrf}
+    variations = coach.get("/drills/rondo-4v1").json()["variations"]
+    first = coach.post(SUGGEST, json={"url": "https://youtu.be/aaaaaaaaaaa", "note": "Clear setup"}, headers=headers).json()
+    second = coach.post(SUGGEST, json={"url": "https://youtu.be/bbbbbbbbbbb", "variation_id": variations[0]["id"]}, headers=headers).json()
+
+    queue = admin.get("/admin/video-suggestions").json()
+    assert [q["id"] for q in queue] == [first["id"], second["id"]]  # oldest first
+    assert queue[0] | {"created_at": None} == {
+        "id": first["id"], "drill_slug": "rondo-4v1", "drill_title": "4v1 rondo",
+        "variations": [{"id": v["id"], "kind": v["kind"], "title": v["title"]} for v in variations], "variation_id": None,
+        "url": "https://www.youtube.com/watch?v=aaaaaaaaaaa", "start_seconds": None, "title": "Video aaaaaaaaaaa", "channel": "Channel",
+        "duration_seconds": 95, "note": "Clear setup", "suggested_by": "video-suggester@example.com", "status": "pending",
+        "caption": None, "reject_reason": None, "reject_note": None, "reports": 0, "created_at": None, "reviewed_at": None}
+
+    approve = lambda sid, body: admin.post(f"/admin/video-suggestions/{sid}/approve", json=body, headers=admin_headers)
+    reject = lambda sid, body: admin.post(f"/admin/video-suggestions/{sid}/reject", json=body, headers=admin_headers)
+    assert approve(first["id"], {"caption": "Rotations", "variation_id": 999999}).status_code == 422
+    approved = approve(first["id"], {"caption": " How to rotate the defender ", "variation_id": variations[2]["id"]})
+    assert approved.status_code == 200 and approved.json()["status"] == "approved"
+    assert approve(first["id"], {"caption": "Again"}).status_code == 409
+    assert reject(second["id"], {"reason": "shared_privately", "note": "Unlisted club video"}).json()["status"] == "rejected"
+    assert reject(second["id"], {"reason": "quality"}).status_code == 409
+    assert reject(second["id"], {"reason": "not-a-reason"}).status_code == 422
+    assert admin.get("/admin/video-suggestions").json() == []
+    assert [q["id"] for q in admin.get("/admin/video-suggestions", params={"status": "rejected"}).json()] == [second["id"]]
+
+    # Approved videos appear on the drill, without who suggested them, for coaches and on shared plans alike.
+    expected = [{"id": f"suggested-{first['id']}", "suggestion_id": first["id"], "kind": "video", "caption": "How to rotate the defender",
+                 "url": "https://www.youtube.com/watch?v=aaaaaaaaaaa", "start_seconds": None, "variation_id": variations[2]["id"]}]
+    assert coach.get("/drills/rondo-4v1").json()["suggested_videos"] == expected
+    with SessionLocal() as db:
+        assert drill_out(db, db.query(Drill).filter_by(slug="rondo-4v1").one(), None)["suggested_videos"] == expected
+
+    mine = {s["id"]: s for s in coach.get("/me/video-suggestions").json()}
+    assert (mine[first["id"]]["status"], mine[second["id"]]["status"]) == ("approved", "rejected")
+    assert (mine[second["id"]]["reject_reason"], mine[second["id"]]["reject_note"]) == ("shared_privately", "Unlisted club video")
+
+    # An approved video can be taken down again, and a turned-down one approved after all.
+    assert reject(first["id"], {"reason": "safeguarding"}).json()["status"] == "rejected"
+    assert coach.get("/drills/rondo-4v1").json()["suggested_videos"] == []
+    assert approve(second["id"], {"caption": "Second look"}).json()["reject_reason"] is None
