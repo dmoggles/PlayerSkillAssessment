@@ -153,11 +153,15 @@ def seed():
                 get_or_create(db, Membership, {"team_id": team.id, "user_id": users[1].id},
                               role="coach")
 
+            # One active period per team, enforced by the database: switch the others off before the latest goes on.
+            db.query(Period).filter(Period.team_id == team.id, Period.label != PERIODS[-1]).update(
+                {"is_active": False}, synchronize_session="fetch")
             periods = []
             for period_index, label in enumerate(PERIODS):
+                active = period_index == len(PERIODS) - 1
                 period = get_or_create(db, Period, {"team_id": team.id, "label": label},
-                                       is_active=period_index == 2, matrix_version_id=starter.id)
-                period.is_active = period_index == 2
+                                       is_active=active, matrix_version_id=starter.id)
+                period.is_active = active
                 periods.append(period)
 
             # Demo assessments are regenerated on every run from a fixed seed, so reruns give the same data.
