@@ -62,6 +62,9 @@ function PrivacyNotice() {
     <p>On a club's behalf we hold: each player's name, team and age group (the "U" number, not a date of birth), playing positions, coaches' skill ratings and notes, the player's own ratings if the club uses self-assessment, the skills chosen to work on, development plans and check-ins, and reports the coach writes. We don't ask for players' dates of birth, addresses, contact details, photos or health information, and coaches are asked not to write such details in notes.</p>
     <p>{APP_NAME} suggests skills to focus on and drills to practise using fixed rules. Coaches review and change these suggestions; nothing is decided about a player automatically.</p>
 
+    <h2>If you request access</h2>
+    <p>When you ask for access on our home page, we keep your name, email address, club, number of teams and anything you write, and email them to our site admins. We use them only to reply about access, on the basis of our legitimate interest in answering you, and delete them 30 days after we've replied (or after 180 days if we never do).</p>
+
     <h2>Why we use coaches' information, and our lawful basis</h2>
     <ul>
       <li><strong>To provide the service you signed up for</strong> (contract): your account, your teams, and the emails the app needs to send (verification, password reset, invitations).</li>
@@ -79,6 +82,7 @@ function PrivacyNotice() {
       <li><strong>Your account:</strong> until you delete it (Settings, Account). Your teams keep what you recorded, with your email taken off it. Accounts never verified are deleted after 30 days.</li>
       <li><strong>Players' information:</strong> as long as the club keeps it. Team owners can delete a player, or a whole team, at any time; it's removed straight away.</li>
       <li><strong>Activity logs of deleted teams:</strong> 90 days after the team is deleted.</li>
+      <li><strong>Access requests:</strong> 30 days after we've replied, or 180 days if we haven't.</li>
       <li><strong>Sign-in sessions:</strong> 7 days. Emailed links expire after 24 hours (verification and password reset) or 7 to 14 days (invitations); self-assessment links after 7 days.</li>
       <li><strong>Access logs:</strong> up to 14 days.</li>
       <li><strong>Backups:</strong> encrypted copies made nightly and before updates. Deleted information drops out of every backup within about three months.</li>

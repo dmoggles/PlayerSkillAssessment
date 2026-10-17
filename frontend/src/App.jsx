@@ -6,6 +6,7 @@ const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
 const LegalPage = lazy(() => import('./legal/LegalPage'))
 import UpdateBanner from './UpdateBanner'
+import Landing from './site/Landing'
 import LegalLinks from './legal/LegalLinks'
 import { APP_NAME, BrandMark, Wordmark } from './brand'
 import { acceptInvite, errorMessage, forgotPassword, getInvite, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'
@@ -38,7 +39,7 @@ function AuthForm({ onSignedIn, embedded = false, initialEmail = '' }) {
   }
 
   return <div className={embedded ? 'auth-embedded' : 'page login-page public-page'}>
-    {!embedded && <><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Coach workspace</h1></>}
+    {!embedded && <><Link to="/" className="public-brand" aria-label={`${APP_NAME} home`}><BrandMark tone="light" size={44} /><Wordmark tone="light" /></Link><h1>Coach workspace</h1></>}
     <h2>{mode === 'login' ? 'Coach sign in' : mode === 'resend' ? 'Resend verification' : 'Reset password'}</h2>
     <form onSubmit={submit} className="stack">
       <label className="field">Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
@@ -57,7 +58,7 @@ function VerifyPage() {
   const [message, setMessage] = useState('Verifying…')
   const started = useRef(false)
   useEffect(() => { if (started.current) return; started.current = true; verify(token).then(() => setMessage('Account verified. You can sign in now.')).catch(e => setMessage(errorText(e))) }, [token])
-  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Account verification</h1><section className="public-card"><p role="status">{message}</p><Link to="/">Sign in</Link></section></div>
+  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Account verification</h1><section className="public-card"><p role="status">{message}</p><Link to="/sign-in">Sign in</Link></section></div>
 }
 
 function ResetPage() {
@@ -73,7 +74,7 @@ function ResetPage() {
   return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack">
     <label className="field">New password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
     <label className="field">Confirm new password<input type="password" minLength={12} autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
-    <button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
+    <button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/sign-in">Sign in</Link></div>
 }
 
 // An invitation link: join the team when signed in as the invited coach, otherwise create the account (or sign in).
@@ -104,7 +105,7 @@ function InvitePage({ user, onSignedIn }) {
   const title = invite?.kind === 'site' ? `Welcome to ${APP_NAME}` : invite?.team ? `Join ${invite.team}` : 'Team invitation'
   let body
   if (!invite) body = <section className="public-card"><p role="status">Checking your invitation…</p></section>
-  else if (invite.error) body = <section className="public-card"><p role="alert" className="error">{invite.error}</p><Link to="/">Go to sign in</Link></section>
+  else if (invite.error) body = <section className="public-card"><p role="alert" className="error">{invite.error}</p><Link to="/sign-in">Go to sign in</Link></section>
   else if (user && user.email !== invite.email) body = <section className="public-card"><p>This invitation is for {invite.email}, but you're signed in as {user.email}. Sign out, then open the link again.</p></section>
   else if (user && invite.kind === 'team') body = <section className="public-card"><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join {invite.team}</button></section>
   else if (user) body = <section className="public-card"><p>You're signed in as {user.email}.</p><Link to={destination}>Set up your team</Link></section>
@@ -124,8 +125,11 @@ function Shell() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   useEffect(() => { restoreSession().then(setUser).catch(() => {}).finally(() => setLoading(false)) }, [])
-  if (loading) return <div className="page">Loading…</div>
-  return <Suspense fallback={<div className="page">Loading…</div>}><Routes>
+  // The landing and legal pages show straight away; pages that depend on who is signed in wait for the session check.
+  const waiting = <div className="page">Loading…</div>
+  const signedIn = element => (loading ? waiting : element)
+  return <Suspense fallback={waiting}><Routes>
+    <Route path="/" element={<Landing user={loading ? undefined : user} />} />
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
     <Route path="/privacy" element={<LegalPage page="privacy" />} />
@@ -133,9 +137,9 @@ function Shell() {
     <Route path="/terms" element={<LegalPage page="terms" />} />
     <Route path="/verify/:token" element={<VerifyPage />} />
     <Route path="/reset/:token" element={<ResetPage />} />
-    <Route path="/invite/:token" element={<InvitePage user={user} onSignedIn={setUser} />} />
-    <Route path="/" element={user ? <Navigate to="/app/assessment" replace /> : <AuthForm onSignedIn={setUser} />} />
-    <Route path="/app/:area" element={user ? <CoachDashboard user={user} onLogout={async () => { try { await logout() } finally { setUser(null) } }} /> : <AuthForm onSignedIn={setUser} />} />
+    <Route path="/invite/:token" element={signedIn(<InvitePage user={user} onSignedIn={setUser} />)} />
+    <Route path="/sign-in" element={signedIn(user ? <Navigate to="/app/assessment" replace /> : <AuthForm onSignedIn={setUser} />)} />
+    <Route path="/app/:area" element={signedIn(user ? <CoachDashboard user={user} onLogout={async () => { try { await logout() } finally { setUser(null) } }} /> : <AuthForm onSignedIn={setUser} />)} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes></Suspense>
 }

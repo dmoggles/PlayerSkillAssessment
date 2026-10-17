@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { cancelSiteInvite, errorMessage, getSiteInvites, sendSiteInvite } from '../api'
 import { Section } from './DashboardParts'
+import AccessRequestsList from './AccessRequestsList'
 import InviteLink from './InviteLink'
 
 const day = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
@@ -31,6 +32,7 @@ export default function SiteAdminSection({ onMessage }) {
   }
 
   return <Section title="Site admin" description="Sign-up is by invitation. Invite a new club's first coach here; they create their team and invite the rest.">
+    <AccessRequestsList onMessage={onMessage} onInvited={sent => setInvites(previous => [sent, ...(previous ?? []).filter(i => i.email !== sent.email)])} />
     <form className="inline-row" onSubmit={send}>
       <input type="email" aria-label="New coach's email" placeholder="New coach's email" required value={email} onChange={e => setEmail(e.target.value)} />
       <button disabled={busy}>{busy ? 'Sending…' : 'Invite new club'}</button>
