@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine
 from .maintenance import cleanup_loop
-from .routers import accounts, admin, assessments, drills, matrices, plans, priorities, reports, self_assessment, squad, teams, video_suggestions
+from .routers import access_requests, accounts, admin, assessments, drills, matrices, plans, priorities, reports, self_assessment, squad, teams, video_suggestions
 
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ docs = {} if settings.api_docs_enabled else {"docs_url": None, "redoc_url": None
 app = FastAPI(title=f"{settings.app_name} API", redirect_slashes=False, lifespan=lifespan, **docs)
 app.include_router(accounts.router)
 app.include_router(admin.router)
+app.include_router(access_requests.router)
 app.include_router(teams.router)
 app.include_router(squad.router)
 app.include_router(assessments.router)

@@ -1,4 +1,5 @@
-"""Periodic cleanup of expired authentication data, abandoned sign-ups and the activity logs of deleted teams.
+"""Periodic cleanup of expired authentication data, abandoned sign-ups, old access requests and the activity logs of
+deleted teams.
 
 Runs inside the API process (see main.py) and can be run by hand with `python -m app.maintenance`.
 Self-assessment links are kept after expiry so the squad board can show them as expired.
@@ -10,10 +11,13 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
 from .config import settings
 from .database import SessionLocal
-from .models import AuditEvent, AuthToken, LoginAttempt, Membership, Session, Team, User, utcnow
+from .models import AccessRequest, AuditEvent, AuthToken, LoginAttempt, Membership, Session, Team, User, utcnow
 
 UNVERIFIED_ACCOUNT_DAYS = 30
 DELETED_TEAM_LOG_DAYS = 90
+# Access requests come from people without an account: kept only while they're useful.
+HANDLED_REQUEST_DAYS = 30
+UNHANDLED_REQUEST_DAYS = 180
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +39,9 @@ def purge_expired(db: DbSession) -> dict[str, int]:
     stale_teams = (db.query(AuditEvent.team_id).filter(~AuditEvent.team_id.in_(db.query(Team.id)))
                    .group_by(AuditEvent.team_id).having(func.max(AuditEvent.created_at) <= now - timedelta(days=DELETED_TEAM_LOG_DAYS)))
     counts["deleted_team_log_events"] = db.query(AuditEvent).filter(AuditEvent.team_id.in_(stale_teams)).delete(synchronize_session=False)
+    counts["access_requests"] = (
+        db.query(AccessRequest).filter(AccessRequest.status != "pending", AccessRequest.handled_at <= now - timedelta(days=HANDLED_REQUEST_DAYS)).delete(synchronize_session=False)
+        + db.query(AccessRequest).filter(AccessRequest.status == "pending", AccessRequest.created_at <= now - timedelta(days=UNHANDLED_REQUEST_DAYS)).delete(synchronize_session=False))
     db.commit()
     return counts
 

@@ -41,6 +41,10 @@ ACCESS = {
     ("DELETE", "/teams/{team_id}/matrix/draft"): (OWNER, None, None),
     ("POST", "/teams/{team_id}/matrix/publish"): (OWNER, {"revision": 1}, None),
     ("GET", "/health"): (PUBLIC, None, None),
+    ("POST", "/access-requests"): (PUBLIC, None, None),
+    ("GET", "/admin/access-requests"): (ADMIN, None, None),
+    ("POST", "/admin/access-requests/{request_id}/invite"): (ADMIN, None, None),
+    ("POST", "/admin/access-requests/{request_id}/decline"): (ADMIN, None, None),
     ("GET", "/self/{token}"): (PUBLIC, None, None),
     ("GET", "/report/{token}"): (PUBLIC, None, None),
     ("POST", "/self/{token}"): (PUBLIC, None, None),
@@ -128,7 +132,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id,
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill",
-           "invite_id": 0, "suggestion_id": 0}
+           "invite_id": 0, "suggestion_id": 0, "request_id": 0}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

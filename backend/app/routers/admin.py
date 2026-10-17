@@ -41,9 +41,8 @@ def list_site_invites(db: DbSession = Depends(get_db), admin: User = Depends(req
     return db.query(AuthToken).filter(AuthToken.purpose == "signup", AuthToken.expires_at > utcnow()).order_by(AuthToken.expires_at.desc()).all()
 
 
-@router.post("/invites")
-def send_site_invite(body: SiteInviteBody, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
-    email = body.email.strip().casefold()
+def issue_site_invite(db: DbSession, email: str) -> dict:
+    """Invite a new club's first coach, replacing any earlier invitation to that address. Commits."""
     if db.query(User).filter_by(email=email).first():
         raise HTTPException(409, "That email address already has an account")
     db.query(AuthToken).filter_by(email=email, purpose="signup").delete(synchronize_session=False)
@@ -52,6 +51,11 @@ def send_site_invite(body: SiteInviteBody, db: DbSession = Depends(get_db), admi
     emailed = invites.deliver(send_email, email, *site_invite_email(token))
     return {"id": row.id, "email": email, "expires_at": row.expires_at, "link": f"{settings.public_base_url}/invite/{token}",
             "emailed": emailed, "message": delivery_message(invites.outcome(email, emailed))}
+
+
+@router.post("/invites")
+def send_site_invite(body: SiteInviteBody, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    return issue_site_invite(db, body.email.strip().casefold())
 
 
 @router.delete("/invites/{invite_id}")

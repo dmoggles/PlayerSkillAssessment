@@ -405,6 +405,23 @@ class DrillLink(Base):
     relation: Mapped[str] = mapped_column(String(12), primary_key=True)
 
 
+class AccessRequest(Base):
+    """A club asking for access from the public site. Site admins invite or decline it; the cleanup job removes
+    requests once they're dealt with (see maintenance.py), since the people asking have no account with us."""
+    __tablename__ = "access_requests"
+    __table_args__ = (CheckConstraint("status IN ('pending', 'invited', 'declined')", name="ck_access_requests_status"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    club: Mapped[str] = mapped_column(String(120))
+    teams: Mapped[int | None] = mapped_column(SmallInteger)
+    message: Mapped[str] = mapped_column(String(1000), default="")
+    status: Mapped[str] = mapped_column(String(10), default="pending", index=True)
+    handled_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    handled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class DrillVideoSuggestion(Base):
     """A video a coach suggests for a drill. Site admins review it; approved ones are shown with the drill's own
     videos. Kept apart from drill_media, which the drill loader rewrites from the data files on every deploy."""

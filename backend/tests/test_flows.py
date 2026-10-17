@@ -481,10 +481,19 @@ def test_cleanup_removes_only_expired_auth_records(monkeypatch):
                           f"({live_team}, 'a@example.com', 'team_created', now() - interval '1 year'), "
                           "(-1, 'a@example.com', 'team_deleted', now() - interval '91 days'), (-1, 'a@example.com', 'team_created', now() - interval '1 year'), "
                           "(-2, 'a@example.com', 'team_deleted', now() - interval '10 days'), (-2, 'a@example.com', 'team_created', now() - interval '1 year')"))
+        # Access requests: handled ones go after 30 days, unanswered ones after 180.
+        conn.execute(text("INSERT INTO access_requests (name, email, club, status, handled_at, created_at) VALUES "
+                          "('A', 'old-invited@example.com', 'C', 'invited', now() - interval '31 days', now() - interval '40 days'), "
+                          "('A', 'new-declined@example.com', 'C', 'declined', now() - interval '5 days', now() - interval '6 days'), "
+                          "('A', 'old-pending@example.com', 'C', 'pending', null, now() - interval '181 days'), "
+                          "('A', 'new-pending@example.com', 'C', 'pending', null, now() - interval '20 days')"))
     from app.database import SessionLocal
     from app.maintenance import purge_expired
     with SessionLocal() as db:
-        assert purge_expired(db) == {"sessions": 1, "auth_tokens": 1, "login_attempts": 1, "unverified_accounts": 1, "deleted_team_log_events": 2}
+        assert purge_expired(db) == {"sessions": 1, "auth_tokens": 1, "login_attempts": 1, "unverified_accounts": 1, "deleted_team_log_events": 2,
+                                     "access_requests": 2}
+    with engine.begin() as conn:
+        assert sorted(conn.execute(text("SELECT email FROM access_requests")).scalars().all()) == ["new-declined@example.com", "new-pending@example.com"]
     assert client.get("/auth/me").status_code == 200
     with engine.begin() as conn:
         assert sorted(conn.execute(text("SELECT email FROM users")).scalars().all()) == ["cleanup@example.com", "new@example.com"]
