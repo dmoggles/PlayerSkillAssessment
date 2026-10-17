@@ -1,0 +1,40 @@
+/* The manual: contents and search on the left, the page on the right; one column on phones. */
+.manual { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); padding: 32px var(--site-pad) 64px; align-items: start; }
+.manual-side { position: sticky; top: 84px; display: grid; gap: 14px; }
+.manual-search input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font: inherit; }
+.manual-picker { display: none; }
+.manual-picker select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font: inherit; }
+.manual-side ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.manual-side a { display: block; padding: 7px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: .92rem; }
+.manual-side a:hover { background: #e9edf1; }
+.manual-side a.active { background: var(--accent-tint-strong); color: var(--accent-ink); font-weight: 700; }
+@media (max-width: 860px) {
+  .manual { grid-template-columns: minmax(0, 1fr); }
+  .manual-side { position: static; }
+  .manual-side nav { display: none; }
+  .manual-picker { display: block; }
+}
+
+.manual-body { max-width: 760px; padding: clamp(18px, 3vw, 32px); border: 1px solid var(--border); border-radius: 16px; background: #fff; line-height: 1.65; }
+.manual-body h1 { margin: 0 0 14px; font-size: clamp(1.7rem, 3vw, 2.2rem); letter-spacing: -.03em; color: var(--heading); line-height: 1.15; }
+.manual-body h2 { margin: 30px 0 8px; font-size: 1.25rem; color: var(--heading); }
+.manual-body h3 { margin: 22px 0 6px; font-size: 1.05rem; color: var(--heading); }
+.manual-body p { margin: 0 0 12px; }
+.manual-body ul, .manual-body ol { margin: 0 0 14px; padding-left: 22px; }
+.manual-body li { margin-bottom: 6px; }
+.manual-body a { color: var(--accent-ink); font-weight: 600; }
+.manual-body code { padding: 1px 5px; border-radius: 5px; background: #eef1f4; font-size: .9em; }
+.manual-eyebrow { margin: 0 0 6px !important; font-size: .85rem; }
+.manual-eyebrow a { color: var(--muted) !important; }
+.manual-lead { color: var(--muted); font-size: 1.05rem; }
+.manual-tip { margin: 16px 0; padding: 12px 16px; border-left: 4px solid var(--lime); border-radius: 8px; background: var(--accent-tint); }
+.manual-figure { margin: 18px 0; }
+.manual-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px; }
+.manual-figure figcaption { margin-top: 6px; color: var(--muted); font-size: .85rem; text-align: center; }
+.manual-contents { list-style: none; margin: 18px 0 0 !important; padding: 0 !important; display: grid; gap: 10px; }
+.manual-contents a { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; color: var(--text) !important; font-weight: 400 !important; text-decoration: none; }
+.manual-contents a:hover { border-color: var(--primary); }
+.manual-contents strong { color: var(--heading); }
+.manual-contents span { color: var(--muted); font-size: .92rem; }
+.manual-pager { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -1071,3 +1071,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .access-requests h3 { margin: 0 0 6px; font-size: .95rem; }
 .access-message { white-space: pre-wrap; color: var(--text) !important; }
 a.public-brand { text-decoration: none; }
+.sidebar-account .sidebar-manual { justify-self: start; color: var(--lime); font-weight: 700; font-size: .85rem; }
+.settings-manual { margin-top: 14px; font-size: .9rem; color: var(--muted); }
+.settings-manual a { color: var(--accent-ink); font-weight: 600; }

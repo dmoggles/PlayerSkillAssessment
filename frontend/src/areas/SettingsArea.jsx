@@ -72,6 +72,8 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
       <MyVideoSuggestions />
       <DeleteAccountForm confirmDiscard={confirmDiscard} />
+      {/* A new tab, so unsaved work in the app isn't lost. */}
+      <p className="settings-manual"><a href="/manual" target="_blank" rel="noopener">Read the manual</a> for how each part of the app works.</p>
       <p className="app-version">Version {APP_VERSION}</p>
       <LegalLinks />
     </Section>

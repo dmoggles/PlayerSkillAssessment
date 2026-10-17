@@ -5,6 +5,7 @@ const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
 const LegalPage = lazy(() => import('./legal/LegalPage'))
+const ManualPage = lazy(() => import('./manual/ManualPage'))
 import UpdateBanner from './UpdateBanner'
 import Landing from './site/Landing'
 import LegalLinks from './legal/LegalLinks'
@@ -132,6 +133,8 @@ function Shell() {
     <Route path="/" element={<Landing user={loading ? undefined : user} />} />
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
+    <Route path="/manual" element={<ManualPage user={loading ? undefined : user} />} />
+    <Route path="/manual/:slug" element={<ManualPage user={loading ? undefined : user} />} />
     <Route path="/privacy" element={<LegalPage page="privacy" />} />
     <Route path="/privacy/players" element={<LegalPage page="players" />} />
     <Route path="/terms" element={<LegalPage page="terms" />} />
