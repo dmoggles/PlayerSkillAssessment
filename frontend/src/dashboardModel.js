@@ -3,6 +3,7 @@ export const AREAS = [
   { id: 'player-data', label: 'Player Data', short: 'Player', icon: 'player', subtitle: 'Individual insights and progress' },
   { id: 'team-data', label: 'Team Data', short: 'Team', icon: 'team', subtitle: 'Squad-wide skill picture' },
   { id: 'development', label: 'Development', short: 'Develop', icon: 'development', subtitle: 'Confirm coaching priorities' },
+  { id: 'sessions', label: 'Sessions', short: 'Sessions', icon: 'sessions', subtitle: 'Plan team training' },
   { id: 'settings', label: 'Settings', short: 'Settings', icon: 'settings', subtitle: 'Teams, periods and squad' },
 ]
 

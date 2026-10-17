@@ -4,9 +4,9 @@ import { AREAS, PLAYER_DATA_TABS, assessmentSignature, playerDataTabs, canManage
 import { errorMessage } from '../src/api.js'
 import { loadJsx } from './helpers.mjs'
 
-test('five distinct coach areas have URL-safe IDs and short phone labels', () => {
-  assert.deepEqual(AREAS.map(area => area.id), ['assessment', 'player-data', 'team-data', 'development', 'settings'])
-  assert.equal(new Set(AREAS.map(area => area.short)).size, 5)
+test('six distinct coach areas have URL-safe IDs and short phone labels', () => {
+  assert.deepEqual(AREAS.map(area => area.id), ['assessment', 'player-data', 'team-data', 'development', 'sessions', 'settings'])
+  assert.equal(new Set(AREAS.map(area => area.short)).size, 6)
   for (const area of AREAS) assert.match(area.id, /^[a-z-]+$/)
 })
 

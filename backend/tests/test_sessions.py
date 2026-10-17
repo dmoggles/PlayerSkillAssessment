@@ -58,6 +58,15 @@ def test_each_group_starts_at_its_own_version():
     assert sessions.plan(data([other], groups=groups))["blocks"][1]["variations"] == ["rondo-1"] * 3
 
 
+def test_in_groups_mode_the_warm_up_game_and_cool_down_run_together():
+    groups = ((5, 5, 4), (3, 3, 2), (1, 2, 1))
+    game = drill("game", "small_sided_game", players=(6, 8, 12))
+    blocks = {b["phase"]: b for b in sessions.plan(data([drill("rondo", "technical", players=(3, 4, 8)), game], groups=groups))["blocks"]}
+    assert blocks["technical"]["together"] is False and len(blocks["technical"]["variations"]) == 3
+    assert blocks["small_sided_game"]["together"] is True and blocks["small_sided_game"]["variations"] == ["game-2"]  # 9 players at the median, 3
+    assert blocks["cool_down"]["together"] is True and blocks["cool_down"]["drill"] is None
+
+
 def test_players_split_into_balanced_level_groups():
     players = [(1, 4.5), (2, 1.0), (3, None), (4, 3.0), (5, 5.0), (6, 2.0), (7, None)]
     assert sessions.split_groups(players, 2) == [[5, 1, 3, 7], [4, 6, 2]]  # unrated players sit between the halves
@@ -101,8 +110,9 @@ def test_coaches_plan_list_and_delete_team_sessions(monkeypatch):
     grouped = owner.post(f"/teams/{team_id}/sessions", json={**new, "date": "2026-10-22", "versions": "groups", "group_count": 2}, headers=headers).json()
     assert [len(g["players"]) for g in grouped["groups"]] == [4, 4]
     assert {p["name"] for p in grouped["groups"][0]["players"]} == {"Eve", "Dee", "Hal", "Cat"}  # highest passing ratings
-    with_drill = [b for b in grouped["blocks"] if b["drill"]]
-    assert with_drill and all(len(b["versions"]) == 2 for b in with_drill)
+    in_groups = [b for b in grouped["blocks"] if b["drill"] and not b["together"]]
+    assert in_groups and all(len(b["versions"]) == 2 for b in in_groups)
+    assert all(b["together"] for b in grouped["blocks"] if b["phase"] in ("warm_up", "small_sided_game", "cool_down"))
 
     for bad, words in (({**new, "length": 50}, "length"), ({**new, "player_ids": [999999]}, "active player"),
                        ({**new, "focus_tags": ["not_a_tag"]}, "focus"), ({**new, "player_ids": ids[:1], "versions": "groups"}, "at least 2")):

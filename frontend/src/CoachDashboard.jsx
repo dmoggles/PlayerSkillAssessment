@@ -5,6 +5,7 @@ import { errorMessage, getCoachAssessment, getComparison, getMembers, getMatrixV
 import AssessmentArea from './areas/AssessmentArea'
 import { NavIcon, Section } from './areas/DashboardParts'
 import DevelopmentArea from './areas/DevelopmentArea'
+import SessionsArea from './areas/SessionsArea'
 import PlayerDataArea from './areas/PlayerDataArea'
 import SettingsArea from './areas/SettingsArea'
 import TeamDataArea from './areas/TeamDataArea'
@@ -281,6 +282,7 @@ export default function CoachDashboard({ user, onLogout }) {
         ? <Section title="No priorities yet"><p className="muted">Add a player and period in Settings to start.</p></Section>
         : <DevelopmentArea teamId={teamId} player={selectedPlayer} period={selectedPeriod} periods={periods} matrix={matrix} comparison={comparison}
           selfAssessment={selfAssessment} history={history} onPrioritiesDirty={setPrioritiesDirty} onRestorePlayer={() => restorePlayerAction(selectedPlayer)} />)}
+      {selectedTeam && currentArea.id === 'sessions' && <SessionsArea key={teamId} team={selectedTeam} period={selectedPeriod} players={players} onMessage={setMessage} />}
     </main>
     <nav className="bottom-nav" aria-label="Main navigation">{AREAS.map(area => <button key={area.id} type="button" className={area.id === currentArea.id ? 'active' : ''} aria-current={area.id === currentArea.id ? 'page' : undefined} aria-label={area.label} onClick={() => navigate(`/app/${area.id}`)}><NavIcon name={area.icon} /><span>{area.short}</span></button>)}</nav>
   </div>

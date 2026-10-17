@@ -12,8 +12,8 @@ Input:  {"length": 60,
          "recent": {slug: sessions ago (1 = the team's last session)},
          "in_plans": {slug: players who have it at training in their plans}}
 Output: {"planner": "sessions-v1",
-         "blocks": [{"phase", "minutes", "drill": slug|None, "title", "variations": [variation id per group],
-                     "reasons": [text]}]}
+         "blocks": [{"phase", "minutes", "drill": slug|None, "title", "together": bool,
+                     "variations": [variation id per group, or one when together], "reasons": [text]}]}
 
 Each block keeps to its session phase. A drill's score for a block, once hard filters pass (that phase, not
 disliked by this coach, enough players for each group and not more than two set-ups' worth):
@@ -22,7 +22,8 @@ disliked by this coach, enough players for each group and not more than two set-
   preference this coach's like, other coaches' votes
   recency    drills from the team's last few sessions score lower, for variety
   plans      drills players already have at training in their own plans score a little higher
-A drill is used once per session. Each group's version starts at the group's median level on the first focus
+In groups mode the technical and opposed blocks run in the level groups; the warm-up, small-sided game and
+cool-down run with everyone together. A drill is used once per session. Each group's version starts at the group's median level on the first focus
 tag the drill's versions describe; otherwise at the base version. A phase with no fitting drill becomes the coach's
 own block.
 """
@@ -45,6 +46,7 @@ OWN_BLOCKS = {
     "small_sided_game": "Small-sided game",
     "cool_down": "Cool-down: a light jog and stretches",
 }
+TOGETHER = {"warm_up", "small_sided_game", "cool_down"}  # run with the whole squad, even in groups mode
 FOCUS_WEIGHTS = (1.0, 0.6, 0.4)
 RECENCY = {1: 4, 2: 2, 3: 1}
 
@@ -63,11 +65,18 @@ def setups(drill: dict, size: int) -> int | None:
     return 2 if size <= 2 * high else None
 
 
+def block_groups(phase: str, groups: list[dict]) -> list[dict]:
+    """Who runs a block: the level groups, or everyone together."""
+    if phase in TOGETHER and len(groups) > 1:
+        return [{"levels": [lv for g in groups for lv in g["levels"]]}]
+    return groups
+
+
 def assess(drill: dict, phase: str, minutes: int, data: dict) -> dict | None:
     """A candidate's score for this block with the notes that explain it, or None when it can't be used."""
     if drill["session_phase"] != phase or drill["my_vote"] < 0 or not drill["variations"]:
         return None
-    counts = [setups(drill, len(g["levels"])) for g in data["groups"]]
+    counts = [setups(drill, len(g["levels"])) for g in block_groups(phase, data["groups"])]
     if any(c is None for c in counts):
         return None
     score, reasons = 0.0, []
@@ -116,12 +125,14 @@ def group_versions(drill: dict, focus: list[str], groups: list[dict]) -> list[in
 
 
 def build_block(phase: str, minutes: int, choice: dict | None, data: dict) -> dict:
+    groups = block_groups(phase, data["groups"])
+    together = len(data["groups"]) > 1 and len(groups) == 1
     if not choice:
-        return {"phase": phase, "minutes": minutes, "drill": None, "title": OWN_BLOCKS[phase], "variations": [],
+        return {"phase": phase, "minutes": minutes, "drill": None, "title": OWN_BLOCKS[phase], "together": together, "variations": [],
                 "reasons": ["No drill in the library fits this part of the session yet."]}
     drill = choice["drill"]
-    return {"phase": phase, "minutes": minutes, "drill": drill["slug"], "title": drill["title"],
-            "variations": group_versions(drill, data["focus"], data["groups"]), "reasons": choice["reasons"]}
+    return {"phase": phase, "minutes": minutes, "drill": drill["slug"], "title": drill["title"], "together": together,
+            "variations": group_versions(drill, data["focus"], groups), "reasons": choice["reasons"]}
 
 
 def plan(data: dict) -> dict:

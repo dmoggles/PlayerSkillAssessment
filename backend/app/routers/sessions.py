@@ -121,12 +121,14 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
     blocks = []
     for b in db.query(SessionBlock).filter_by(session_id=s.id).order_by(SessionBlock.position):
         drill = db.get(Drill, b.drill_id) if b.drill_id else None
-        if s.versions == "groups":  # one version per group; a coach's own block has none
-            variation_ids = [b.group_variations.get(str(i)) for i in range(len(s.groups))] if b.group_variations else []
+        # In groups mode, a version per group; a block the squad runs together has one. A coach's own block has none.
+        together = s.versions == "groups" and not b.group_variations
+        if s.versions == "groups" and not together:
+            variation_ids = [b.group_variations.get(str(i)) for i in range(len(s.groups))]
         else:
             variation_ids = [b.variation_id] if b.variation_id else []
         variations = {v.id: v for v in db.query(DrillVariation).filter(DrillVariation.id.in_([v for v in variation_ids if v] or [0]))}
-        blocks.append({"id": b.id, "phase": b.phase, "minutes": b.minutes, "title": b.title, "notes": b.notes,
+        blocks.append({"id": b.id, "phase": b.phase, "minutes": b.minutes, "title": b.title, "notes": b.notes, "together": together,
                        "drill": {"slug": drill.slug, "title": drill.title} if drill else None, "chosen_by": b.chosen_by, "reasons": b.reasons,
                        "versions": [{"variation_id": vid, "kind": variations[vid].kind, "title": variations[vid].title,
                                      "levels": [variations[vid].level_min, variations[vid].level_max]} if vid in variations else None
@@ -197,8 +199,8 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
     for position, b in enumerate(result["blocks"], start=1):
         db.add(SessionBlock(session_id=session.id, position=position, phase=b["phase"], minutes=b["minutes"],
                             drill_id=drill_ids.get(b["drill"]), title=b["title"], reasons=b["reasons"],
-                            variation_id=b["variations"][0] if b["variations"] and body.versions == "single" else None,
-                            group_variations={str(i): v for i, v in enumerate(b["variations"])} if body.versions == "groups" else {}))
+                            variation_id=b["variations"][0] if b["variations"] and (body.versions == "single" or b["together"]) else None,
+                            group_variations={str(i): v for i, v in enumerate(b["variations"])} if body.versions == "groups" and not b["together"] else {}))
     db.add_all(SessionAttendance(session_id=session.id, player_id=pid, expected=True) for pid in player_ids)
     record(db, team_id, user, "session_created", date=body.date.isoformat(), title=session.title)
     db.commit()

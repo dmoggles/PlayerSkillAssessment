@@ -6,7 +6,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { AREAS } from '../src/dashboardModel.js'
 import { loadJsx } from './helpers.mjs'
 
-test('dashboard renders five navigation destinations and an empty assessment state', async () => {
+test('dashboard renders every navigation destination and an empty assessment state', async () => {
   const { default: CoachDashboard } = await loadJsx('src/CoachDashboard.jsx')
   const router = createMemoryRouter([{ path: '*', element: React.createElement(CoachDashboard, { user: { email: 'coach@example.com' }, onLogout: () => {} }) }], { initialEntries: ['/app/assessment'] })
   const html = renderToStaticMarkup(React.createElement(RouterProvider, { router }))

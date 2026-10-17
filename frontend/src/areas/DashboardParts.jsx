@@ -21,6 +21,7 @@ export function NavIcon({ name }) {
     player: <><circle cx="12" cy="8" r="3" /><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6" /></>,
     team: <><circle cx="8" cy="9" r="2.5" /><circle cx="16" cy="9" r="2.5" /><path d="M2.5 19c0-3 2.5-5 5.5-5m8 0c3 0 5.5 2 5.5 5M6 20c0-3.3 2.5-5.5 6-5.5s6 2.2 6 5.5" /></>,
     development: <><path d="M4 19h16M6 16l4-4 3 2 5-7M15 7h3v3" /></>,
+    sessions: <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4m8-4v4M4 10h16M8 14h3m-3 3h6" /></>,
   }
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
 }
