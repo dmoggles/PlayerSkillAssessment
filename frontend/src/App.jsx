@@ -63,9 +63,17 @@ function VerifyPage() {
 function ResetPage() {
   const { token } = useParams()
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState('')
-  async function submit(event) { event.preventDefault(); try { await resetPassword(token, password); setMessage('Password changed. Sign in now.') } catch (e) { setMessage(errorText(e)) } }
-  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack"><label className="field">New password<input type="password" minLength={12} required value={password} onChange={e => setPassword(e.target.value)} /></label><button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
+  async function submit(event) {
+    event.preventDefault()
+    if (password !== confirm) { setMessage('The passwords do not match.'); return }
+    try { await resetPassword(token, password); setMessage('Password changed. Sign in now.') } catch (e) { setMessage(errorText(e)) }
+  }
+  return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack">
+    <label className="field">New password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
+    <label className="field">Confirm new password<input type="password" minLength={12} autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
+    <button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/">Sign in</Link></div>
 }
 
 // An invitation link: join the team when signed in as the invited coach, otherwise create the account (or sign in).
@@ -75,6 +83,7 @@ function InvitePage({ user, onSignedIn }) {
   const [invite, setInvite] = useState(null)
   const [message, setMessage] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
   useEffect(() => { getInvite(token).then(setInvite).catch(e => setInvite({ error: errorText(e) })) }, [token])
   const destination = invite?.kind === 'site' ? '/app/settings' : '/app/assessment'
@@ -82,6 +91,7 @@ function InvitePage({ user, onSignedIn }) {
   async function accept() { try { await acceptInvite(token); navigate(destination) } catch (e) { setMessage(errorText(e)) } }
   async function createAccount(event) {
     event.preventDefault()
+    if (password !== confirm) { setMessage('The passwords do not match.'); return }
     setBusy(true)
     setMessage('')
     try {
@@ -103,6 +113,7 @@ function InvitePage({ user, onSignedIn }) {
     <p className="invite-lead">{invite.kind === 'team' ? `You've been invited to coach ${invite.team}.` : 'Create your account, then set up your team.'}</p>
     <label className="field">Email<input type="email" value={invite.email} readOnly /></label>
     <label className="field">Choose a password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
+    <label className="field">Confirm password<input type="password" minLength={12} autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
     <p className="legal-consent">By creating an account you agree to the <Link to="/terms">terms</Link>. The <Link to="/privacy">privacy notice</Link> explains how your information is used.</p>
     <button className="submit-btn" disabled={busy}>{busy ? 'Creating account…' : invite.kind === 'team' ? `Create account and join` : 'Create account'}</button>
   </form>
