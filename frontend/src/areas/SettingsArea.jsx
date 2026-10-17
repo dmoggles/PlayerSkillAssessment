@@ -3,6 +3,7 @@ import { activatePeriod, addPlayer, archivePlayer, playerExportUrl, createTeam, 
   removeMember, renamePeriod, renamePlayer, setMemberRole, setPlayerGroup, updateTeam } from '../api'
 import ChangePasswordForm from '../ChangePasswordForm'
 import DeleteAccountForm from '../DeleteAccountForm'
+import { MyVideoSuggestions } from '../VideoSuggestions'
 import LegalLinks from '../legal/LegalLinks'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
 import MatrixSummary from '../MatrixSummary'
@@ -67,6 +68,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <p className="settings-account-email">{user.email}</p>
       <ChangePasswordForm />
       <button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
+      <MyVideoSuggestions />
       <DeleteAccountForm confirmDiscard={confirmDiscard} />
       <p className="app-version">Version {APP_VERSION}</p>
       <LegalLinks />

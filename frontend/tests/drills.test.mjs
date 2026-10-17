@@ -132,3 +132,18 @@ test('playing groups: one shared group filters the library, a mixed squad shows 
   assert.equal(auditText({ action: 'playing_group_changed', actor_email: 'o@x', details: { player: 'Ana', period: 'Fall', from: 10, to: 11 } }), "o@x set Ana's playing group to U11 (Fall), was U10")
   assert.equal(auditText({ action: 'playing_group_changed', actor_email: 'o@x', details: { player: 'Ana', period: 'Fall', from: 11, to: null } }), "o@x cleared Ana's playing group (Fall)")
 })
+
+test('coaches are invited to suggest a video, more visibly when a drill has none', async () => {
+  const { SuggestVideo } = await loadJsx('src/VideoSuggestions.jsx')
+  const { SUGGESTION_STATUS, REJECT_REASONS } = await loadJsx('src/drillModel.js')
+  const drill = { slug: 'rondo-4v1' }
+  const none = renderToStaticMarkup(React.createElement(SuggestVideo, { drill, variation: { id: 1, kind: 'base', title: 'Base' }, prominent: true }))
+  assert.match(none, /video-suggest prominent/)
+  assert.match(none, /No video for this drill yet/)
+  assert.match(none, /aria-expanded="false"[^>]*>Suggest a video</)
+  const some = renderToStaticMarkup(React.createElement(SuggestVideo, { drill, variation: null }))
+  assert.doesNotMatch(some, /No video for this drill yet/)
+  assert.match(some, /class="link-btn"/)
+  assert.deepEqual(Object.keys(SUGGESTION_STATUS), ['pending', 'approved', 'rejected', 'hidden'])
+  assert.ok(Object.keys(REJECT_REASONS).includes('safeguarding'))
+})

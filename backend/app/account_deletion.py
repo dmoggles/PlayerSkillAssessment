@@ -2,13 +2,14 @@
 who saved an assessment or plan is cleared, and activity logs say "a deleted account" instead of their email."""
 from sqlalchemy import or_
 from sqlalchemy.orm import Session as DbSession
-from .models import (Assessment, AssessmentRevision, AuditEvent, AuthToken, CycleCheckin, DevelopmentCycle, DrillVote,
-                     MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, Session, Team, User)
+from .models import (Assessment, AssessmentRevision, AuditEvent, AuthToken, CycleCheckin, DevelopmentCycle,
+                     DrillVideoSuggestion, DrillVote, MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, Session, Team, User)
 
 DELETED_ACCOUNT = "a deleted account"
 AUTHORED = ((Assessment, "updated_by"), (AssessmentRevision, "editor_id"), (DevelopmentCycle, "created_by"),
             (CycleCheckin, "created_by"), (PlayerReport, "updated_by"), (PlayerPlan, "created_by"),
-            (MatrixVersion, "created_by"), (MatrixDraft, "updated_by"))
+            (MatrixVersion, "created_by"), (MatrixDraft, "updated_by"),
+            (DrillVideoSuggestion, "suggested_by"), (DrillVideoSuggestion, "reviewed_by"))
 
 
 def teams_needing_another_owner(db: DbSession, user: User) -> list[str]:

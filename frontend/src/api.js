@@ -40,6 +40,8 @@ export const deleteAccount = password => data(api.post('/auth/delete-account', {
 export const changePassword = (currentPassword, newPassword) => data(api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }))
 export const acceptInvite = token => data(api.post('/invites/accept', { token }))
 export const getInvite = token => data(api.get(`/invites/${encodeURIComponent(token)}`))
+export const suggestVideo = (slug, suggestion) => data(api.post(`/drills/${encodeURIComponent(slug)}/video-suggestions`, suggestion))
+export const getMyVideoSuggestions = () => data(api.get('/me/video-suggestions'))
 export const getSiteInvites = () => data(api.get('/admin/invites'))
 export const sendSiteInvite = email => data(api.post('/admin/invites', { email }))
 export const cancelSiteInvite = id => data(api.delete(`/admin/invites/${id}`))

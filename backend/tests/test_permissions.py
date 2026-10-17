@@ -22,6 +22,8 @@ ACCESS = {
     ("GET", "/drills"): (SIGNED_IN, None, None),
     ("GET", "/drills/{slug}"): (SIGNED_IN, None, None),
     ("PUT", "/drills/{slug}/vote"): (SIGNED_IN, {"vote": 1}, None),
+    ("POST", "/drills/{slug}/video-suggestions"): (SIGNED_IN, {"url": "https://www.youtube.com/watch?v=aaaaaaaaaaa"}, None),
+    ("GET", "/me/video-suggestions"): (SIGNED_IN, None, None),
     ("GET", "/teams/{team_id}/players/{player_id}/drill-suggestions"): (MEMBER, None, {"period_id": "{period_id}", "skills": "passing"}),
     ("GET", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, None, {"period_id": "{period_id}"}),
     ("POST", "/teams/{team_id}/players/{player_id}/plan"): (MEMBER, "plan", None),

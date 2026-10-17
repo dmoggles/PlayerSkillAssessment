@@ -405,6 +405,37 @@ class DrillLink(Base):
     relation: Mapped[str] = mapped_column(String(12), primary_key=True)
 
 
+class DrillVideoSuggestion(Base):
+    """A video a coach suggests for a drill. Site admins review it; approved ones are shown with the drill's own
+    videos. Kept apart from drill_media, which the drill loader rewrites from the data files on every deploy."""
+    __tablename__ = "drill_video_suggestions"
+    __table_args__ = (UniqueConstraint("drill_id", "host", "video_id"),
+                      CheckConstraint("status IN ('pending', 'approved', 'rejected', 'hidden')", name="ck_drill_video_suggestions_status"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), index=True)
+    # The variation the video shows; null means the drill as a whole.
+    variation_id: Mapped[int | None] = mapped_column(ForeignKey("drill_variations.id", ondelete="SET NULL"))
+    url: Mapped[str] = mapped_column(String(500))
+    host: Mapped[str] = mapped_column(String(10))
+    video_id: Mapped[str] = mapped_column(String(40))
+    start_seconds: Mapped[int | None] = mapped_column(Integer)
+    # From the host's oEmbed when suggested.
+    title: Mapped[str] = mapped_column(String(200))
+    channel: Mapped[str] = mapped_column(String(120), default="")
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    note: Mapped[str] = mapped_column(String(500), default="")
+    suggested_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[str] = mapped_column(String(10), default="pending", index=True)
+    caption: Mapped[str | None] = mapped_column(String(200))
+    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reject_reason: Mapped[str | None] = mapped_column(String(20))
+    reject_note: Mapped[str | None] = mapped_column(String(300))
+    reports: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class DrillVote(Base):
     """A coach's like (+1) or dislike (-1) of a drill; the reason is optional and for dislikes only."""
     __tablename__ = "drill_votes"

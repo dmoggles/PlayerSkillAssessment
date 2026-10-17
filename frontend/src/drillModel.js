@@ -114,3 +114,7 @@ export function sortDrills(drills) {
   const net = d => d.votes.likes - d.votes.dislikes
   return [...drills].sort((a, b) => rank(a) - rank(b) || net(b) - net(a) || a.title.localeCompare(b.title))
 }
+
+// Video suggestions: where each stands, and why an admin turned one down.
+export const SUGGESTION_STATUS = { pending: 'Waiting for review', approved: 'Added to the drill', rejected: 'Not added', hidden: 'Removed: no longer available' }
+export const REJECT_REASONS = { not_a_demo: "Doesn't show how to run the drill", mismatch: "Doesn't match this drill", quality: 'Poor quality', safeguarding: 'Not suitable to share', other: 'Other' }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { errorMessage, getDrill, getDrills, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
+import { SuggestVideo } from './VideoSuggestions'
 import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
 
 // Settings card: how big the library is, and the way in.
@@ -143,6 +144,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       {shown && <DiagramPlayer key={shown.id} diagram={shown.diagram} caption={shown.caption} />}
     </div>
     {videos.map(v => <VideoLink key={v.id} video={v} />)}
+    {drill.votes && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!drill.media.some(m => m.kind === 'video')} />}
     <p className="muted variation-note" aria-live="polite">Showing: <strong>{selected?.title}</strong>{view.changed.size ? '. Sections marked below differ from the base version.' : ''}</p>
     {view.setup && <section><h4>Setup {changedTag('setup')}</h4><p>{view.setup}</p></section>}
     {view.equipment.length > 0 && <section><h4>Equipment {changedTag('equipment')}</h4><p>{view.equipment.map(e => `${e.quantity} ${equipmentLabel(e.item)}`).join(', ')}</p></section>}

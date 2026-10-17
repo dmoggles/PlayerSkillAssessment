@@ -1033,3 +1033,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .legal-table td { padding: 2px 0; border: 0; }
   .legal-table td:first-child { font-weight: 700; }
 }
+/* Video suggestions: the invitation on a drill, and the coach's own list in Settings. */
+.video-suggest { margin: 4px 0 12px; }
+.video-suggest.prominent { padding: 12px 14px; border: 1px dashed var(--border); border-radius: 10px; }
+.video-suggest.prominent > p { margin: 0 0 8px; }
+.video-suggest button.primary-btn { padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.video-suggest form { max-width: 520px; margin: 10px 0; gap: 12px; }
+.video-suggest textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .88rem; resize: vertical; }
+.video-suggest .hint { margin: 0; font-size: .82rem; }
+.video-suggest form button[type=submit] { justify-self: start; align-self: flex-start; }
+.my-video-suggestions { margin-top: 18px; }
+.my-video-suggestions h4 { margin: 0 0 6px; font-size: .9rem; }
+.my-video-suggestions ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: .88rem; }
+.my-video-suggestions small { display: block; }
