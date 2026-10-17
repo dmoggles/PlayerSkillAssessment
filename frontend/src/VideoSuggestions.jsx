@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { errorMessage, getMyVideoSuggestions, suggestVideo } from './api'
+import { APP_NAME } from './brand'
 import { REJECT_REASONS, SUGGESTION_STATUS } from './drillModel'
 
 // On a drill: a coach suggests a video. A site admin checks every suggestion before other coaches see it.
@@ -40,7 +41,7 @@ export function SuggestVideo({ drill, variation, prominent = false }) {
       {variation && variation.kind !== 'base' && <label className="checkbox"><input type="checkbox" checked={forVariation} onChange={e => setForVariation(e.target.checked)} /> It shows this variation: {variation.title}</label>}
       <div className="field"><label htmlFor="video-note">Why it's a good fit <span className="muted">(optional)</span></label>
         <textarea id="video-note" rows={2} maxLength={500} value={note} onChange={e => setNote(e.target.value)} /></div>
-      <p className="muted hint">Suggest public coaching videos that show how to run the drill, never footage of your own players. A site admin checks every suggestion before other coaches see it.</p>
+      <p className="muted hint">If it's approved, the video will be shown to everyone who uses {APP_NAME}. Only suggest a video that is public, or that you have the owner's permission to share. A site admin checks every suggestion first.</p>
       <button type="submit" className="primary-btn" disabled={busy}>{busy ? 'Sending…' : 'Send suggestion'}</button>
     </form>}
     {error && <p className="error" role="alert">{error}</p>}
