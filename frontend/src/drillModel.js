@@ -12,7 +12,8 @@ export function videoEmbedUrl(url, start) {
     const id = u.hostname === 'youtu.be' ? path[0]
       : u.hostname.endsWith('youtube.com') ? (['shorts', 'embed', 'live'].includes(path[0]) ? path[1] : u.searchParams.get('v'))
       : null
-    if (id) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1${start ? `&start=${start}` : ''}`
+    // rel=0: suggestions at the end come from the same channel only (players watch these from shared reports).
+    if (id) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0${start ? `&start=${start}` : ''}`
     const vimeo = u.hostname.endsWith('vimeo.com') ? u.pathname.split('/').filter(Boolean).pop() : null
     if (vimeo && /^\d+$/.test(vimeo)) return `https://player.vimeo.com/video/${vimeo}?autoplay=1&dnt=1${start ? `#t=${start}s` : ''}`
   } catch { /* not a valid URL */ }

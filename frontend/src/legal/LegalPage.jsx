@@ -53,6 +53,7 @@ function PrivacyNotice() {
       <li>The teams you belong to and your role in each.</li>
       <li>Which coach saved each assessment, plan or report, and a team activity log (for example, who invited whom or deleted a period), which names coaches by email.</li>
       <li>Drills you've liked or disliked.</li>
+      <li>Videos you suggest for drills, with your note. Only site admins see who suggested a video or why; if you delete your account, an approved video stays on its drill without your name.</li>
       <li>Security records: your signed-in sessions, and counts of failed sign-ins, kept so we can stop password guessing.</li>
       <li>Our web server's access logs: IP address, browser, the page requested and the time. Links that contain private codes (self-assessment, shared report and invitation links) are left out of them.</li>
     </ul>
@@ -85,6 +86,8 @@ function PrivacyNotice() {
 
     <h2>Cookies</h2>
     <p>We use one cookie, which keeps you signed in. It's essential to the service, so we don't ask for consent. There are no advertising or analytics cookies, and fonts are served from our own server.</p>
+    <h2>Drill videos</h2>
+    <p>Drill videos are hosted by YouTube or Vimeo. Nothing loads from them until you press Play. Then the video plays from YouTube's privacy-enhanced player (youtube-nocookie.com) or Vimeo's player with tracking turned off, and YouTube's or Vimeo's own privacy policy applies to it. When a coach suggests a video, our server looks up its title from YouTube or Vimeo, sending only the video's link.</p>
 
     <h2>How we protect it</h2>
     <p>Connections are encrypted (HTTPS), passwords are hashed, backups are encrypted with a key kept off our servers, servers are kept up to date behind a firewall, and access is limited to the people who run the service.</p>
@@ -114,6 +117,9 @@ function PlayersNotice() {
 
     <h2>Who can see it</h2>
     <p>Only the coaches in your team. Your coach can send you or your parents a private link to your report. Anyone with the link can open it until it runs out (usually after four or five weeks), so please don't share it. Your information is never used for adverts and never sold.</p>
+
+    <h2>Videos</h2>
+    <p>Some drills in your plan have videos. They come from YouTube or Vimeo, and nothing loads until you press Play. Once a video plays, YouTube or Vimeo can see that someone is watching it.</p>
 
     <h2>Self-assessment links</h2>
     <p>If your coach sends you a link to score yourself, it's just for you: it works once, for 7 days. Be honest; there are no wrong answers, and it helps your coach help you.</p>
