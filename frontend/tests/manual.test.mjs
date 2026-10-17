@@ -54,3 +54,15 @@ test('the manual shows its contents, a page with previous and next links, and se
   assert.ok(hits.some(h => h.slug === 'self-assessment') && hits.some(h => h.slug === 'reports'))
   assert.deepEqual(searchPages('xyzzy'), [])
 })
+
+test('every public route prerenders to its own page, for search engines and link previews', async () => {
+  const { render, PUBLIC_ROUTES } = await loadJsx('src/prerender.jsx')
+  assert.ok(PUBLIC_ROUTES.length >= 15)
+  for (const route of PUBLIC_ROUTES) {
+    assert.ok(route.title && route.description, `${route.path} needs a title and description`)
+    const html = render(route.path)
+    assert.match(html, /<h1>/, `${route.path} renders its page`)
+    assert.match(html, /class="site-header"|class="public-brand"/, `${route.path} renders the site frame`)
+  }
+  assert.match(render('/manual/reports'), /<h1>Reports for players and parents<\/h1>/)
+})

@@ -4,10 +4,9 @@ import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, use
 const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
-const LegalPage = lazy(() => import('./legal/LegalPage'))
-const ManualPage = lazy(() => import('./manual/ManualPage'))
 import UpdateBanner from './UpdateBanner'
 import Landing from './site/Landing'
+import { LegalPage, ManualPage } from './site/lazyPages'
 import LegalLinks from './legal/LegalLinks'
 import { APP_NAME, BrandMark, Wordmark } from './brand'
 import { acceptInvite, errorMessage, forgotPassword, getInvite, login, logout, register, resendVerification, resetPassword, restoreSession, verify } from './api'

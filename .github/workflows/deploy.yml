@@ -78,7 +78,10 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
-          build-args: APP_VERSION=${{ github.event.release.tag_name }}
+          build-args: |
+            APP_VERSION=${{ github.event.release.tag_name }}
+            SITE_URL=https://idp.tapline.football
+            SITE_INDEXING=true
           push: true
           tags: |
             ${{ matrix.image }}:${{ github.event.release.tag_name }}

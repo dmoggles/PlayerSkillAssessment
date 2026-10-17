@@ -75,6 +75,10 @@ The API removes expired sessions, email links and stale sign-in throttle records
 
 The interactive API docs (`/api/docs`) and schema (`/api/openapi.json`) are served only when `API_DOCS_ENABLED=true`, which the local Compose override sets. Development and production deployments do not expose them unless you add that setting to their env file.
 
+### Public pages and search engines
+
+The landing page, the manual (`frontend/src/manual/pages/*.md`) and the legal pages are prerendered to static HTML at build time (`frontend/scripts/prerender.mjs`), each with its own title, description and link-preview tags; the coach app and private links get the plain shell, `app.html`. The web image takes two build arguments: `SITE_URL`, the site's address, and `SITE_INDEXING`. Only the production workflow sets `SITE_INDEXING=true`, which writes a `sitemap.xml` and a `robots.txt` that keeps the app and private links out of search; every other build is `noindex` and disallows everything.
+
 ### Versions
 
 Each image carries the version it was built from. The app shows it in the sidebar and under Settings → Account, and `/api/health` returns it. Production uses the GitHub release tag (use semantic versions such as `v0.1.0`), development uses `dev-<short commit>`, and local builds use `git describe --tags --always --dirty` (for example `v0.1.0-3-gabc1234`, or a short commit with `-dirty` for uncommitted changes).

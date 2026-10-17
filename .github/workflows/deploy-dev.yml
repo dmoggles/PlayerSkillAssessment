@@ -83,7 +83,10 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
-          build-args: APP_VERSION=${{ steps.version.outputs.value }}
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.value }}
+            SITE_URL=https://assessment-dev.tapline.football
+            SITE_INDEXING=false
           push: true
           tags: |
             ${{ matrix.image }}:dev
