@@ -2323,17 +2323,17 @@
           "quantity": 2
         }
       ],
-      "setup": "A 20 x 15 m area along a touchline, with two cone gates on the far side. A thrower on the line, two receivers and one defender on the pitch. If your league uses kick-ins instead, play the ball in along the ground from the line.",
+      "setup": "A 20 m stretch of touchline and 15 m in from it. Two cone gates on the end line the team attacks towards: one near the touchline, one infield. A thrower on the line, two receivers and one defender on the pitch. If your league uses kick-ins instead, play the ball in along the ground from the line.",
       "instructions": [
         "The two receivers move to get free; the defender marks one of them.",
         "The thrower throws to the free player, then steps onto the pitch as an option.",
-        "The team scores by dribbling through either gate; the defender scores by winning the ball and dribbling over the touchline.",
+        "The team attacks along the line and scores by dribbling through either gate; the defender scores by winning the ball and dribbling over the opposite end line.",
         "A foul throw goes to the defender. Rotate after three throws each."
       ],
       "coaching_points": [
         "Thrower: both feet on the ground on or behind the line; ball from behind the head with both hands.",
         "Look before you throw: pick the free player, not the nearest one.",
-        "Receivers: check away, then come short into space; time it with the thrower.",
+        "Receivers: one goes down the line, one comes short; check away first, then time your move with the thrower.",
         "Throw to feet or thigh so it's easy to control, and step straight on to be an option."
       ],
       "tags": {
@@ -2405,11 +2405,11 @@
             6,
             12
           ],
-          "setup": "A 20 x 15 m area along a touchline, with two cone gates on the far side. A thrower on the line, three receivers and two defenders on the pitch.",
+          "setup": "A 20 m stretch of touchline and 15 m in from it. Two cone gates on the end line the team attacks towards: one near the touchline, one infield. A thrower on the line, three receivers and two defenders on the pitch.",
           "instructions": [
             "Three receivers move to get free; two defenders mark.",
             "The thrower throws to the free player and steps on as an option.",
-            "Score by dribbling through either gate; defenders score by winning the ball and dribbling over the touchline.",
+            "Score by dribbling through either gate; defenders score by winning the ball and dribbling over the opposite end line.",
             "Rotate after three throws each."
           ]
         },
@@ -2456,49 +2456,49 @@
                 "type": "cone",
                 "at": [
                   0,
-                  1
+                  0.5
                 ]
               },
               "t2": {
                 "type": "cone",
                 "at": [
                   20,
-                  1
+                  0.5
                 ]
               },
               "g1": {
                 "type": "cone",
                 "at": [
-                  3.5,
-                  14.5
+                  19.5,
+                  3
                 ]
               },
               "g2": {
                 "type": "cone",
                 "at": [
-                  6.5,
-                  14.5
+                  19.5,
+                  6
                 ]
               },
               "g3": {
                 "type": "cone",
                 "at": [
-                  13.5,
-                  14.5
+                  19.5,
+                  9.5
                 ]
               },
               "g4": {
                 "type": "cone",
                 "at": [
-                  16.5,
-                  14.5
+                  19.5,
+                  12.5
                 ]
               },
               "T": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
+                  6,
                   0.4
                 ]
               },
@@ -2506,7 +2506,7 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
+                  8,
                   6
                 ]
               },
@@ -2517,14 +2517,14 @@
             },
             "steps": [
               {
-                "label": "A1 checks away from the thrower",
+                "label": "A1 checks away, down the line",
                 "actions": [
                   {
                     "run": {
                       "who": "A1",
                       "to": [
-                        12,
-                        9
+                        11,
+                        7
                       ]
                     }
                   }
@@ -2537,8 +2537,8 @@
                     "run": {
                       "who": "A1",
                       "to": [
-                        8,
-                        5
+                        7,
+                        4
                       ]
                     }
                   },
@@ -2557,7 +2557,7 @@
                     "run": {
                       "who": "T",
                       "to": [
-                        9.5,
+                        7.5,
                         2
                       ]
                     }
@@ -2587,49 +2587,49 @@
                 "type": "cone",
                 "at": [
                   0,
-                  1
+                  0.5
                 ]
               },
               "t2": {
                 "type": "cone",
                 "at": [
                   20,
-                  1
+                  0.5
                 ]
               },
               "g1": {
                 "type": "cone",
                 "at": [
-                  3.5,
-                  14.5
+                  19.5,
+                  3
                 ]
               },
               "g2": {
                 "type": "cone",
                 "at": [
-                  6.5,
-                  14.5
+                  19.5,
+                  6
                 ]
               },
               "g3": {
                 "type": "cone",
                 "at": [
-                  13.5,
-                  14.5
+                  19.5,
+                  9.5
                 ]
               },
               "g4": {
                 "type": "cone",
                 "at": [
-                  16.5,
-                  14.5
+                  19.5,
+                  12.5
                 ]
               },
               "T": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
+                  6,
                   0.4
                 ]
               },
@@ -2637,24 +2637,24 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  7,
-                  5
+                  9,
+                  4
                 ]
               },
               "A2": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  13,
-                  5
+                  6,
+                  8
                 ]
               },
               "D": {
                 "type": "player",
                 "team": "B",
                 "at": [
-                  10,
-                  6.5
+                  8,
+                  5.5
                 ]
               },
               "ball": {
@@ -2664,14 +2664,14 @@
             },
             "steps": [
               {
-                "label": "Both receivers check away; the defender follows A2",
+                "label": "Both receivers check away; the defender follows A1 down the line",
                 "actions": [
                   {
                     "run": {
                       "who": "A1",
                       "to": [
-                        5,
-                        9
+                        13,
+                        3
                       ]
                     }
                   },
@@ -2679,8 +2679,8 @@
                     "run": {
                       "who": "A2",
                       "to": [
-                        15,
-                        9
+                        4,
+                        11
                       ]
                     }
                   },
@@ -2688,60 +2688,66 @@
                     "run": {
                       "who": "D",
                       "to": [
-                        13,
-                        8
+                        11,
+                        4
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "A1 comes short into space; a throw to their feet",
+                "label": "A2 comes short; a throw to their feet, and the defender leaves A1 to close A2",
                 "actions": [
                   {
                     "run": {
-                      "who": "A1",
+                      "who": "A2",
                       "to": [
-                        6,
-                        4.5
+                        5,
+                        5
                       ]
                     }
                   },
                   {
                     "pass": {
                       "from": "T",
-                      "to": "A1"
+                      "to": "A2"
                     }
                   },
                   {
                     "run": {
-                      "who": "A2",
+                      "who": "D",
+                      "to": [
+                        7,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
                       "to": [
                         15,
-                        7
+                        3.5
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "The thrower steps on to give an option; A1 turns away from the defender",
+                "label": "A1 is free: A2 plays it down the line; the thrower steps on as another option",
                 "actions": [
                   {
-                    "run": {
-                      "who": "T",
-                      "to": [
-                        9,
-                        2
-                      ]
+                    "pass": {
+                      "from": "A2",
+                      "to": "A1"
                     }
                   },
                   {
-                    "dribble": {
+                    "run": {
                       "who": "A1",
                       "to": [
-                        5,
-                        8
+                        16,
+                        3
                       ]
                     }
                   },
@@ -2749,31 +2755,31 @@
                     "run": {
                       "who": "D",
                       "to": [
-                        8,
-                        7.5
+                        6.2,
+                        5.8
                       ]
                     }
                   },
                   {
                     "run": {
-                      "who": "A2",
+                      "who": "T",
                       "to": [
-                        13,
-                        11
+                        7,
+                        2
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "A1 dribbles through the gate to score",
+                "label": "A1 dribbles through the gate near the touchline",
                 "actions": [
                   {
                     "dribble": {
                       "who": "A1",
                       "to": [
-                        5,
-                        14.5
+                        19.5,
+                        4.5
                       ]
                     }
                   }
@@ -2796,49 +2802,49 @@
                 "type": "cone",
                 "at": [
                   0,
-                  1
+                  0.5
                 ]
               },
               "t2": {
                 "type": "cone",
                 "at": [
                   20,
-                  1
+                  0.5
                 ]
               },
               "g1": {
                 "type": "cone",
                 "at": [
-                  3.5,
-                  14.5
+                  19.5,
+                  3
                 ]
               },
               "g2": {
                 "type": "cone",
                 "at": [
-                  6.5,
-                  14.5
+                  19.5,
+                  6
                 ]
               },
               "g3": {
                 "type": "cone",
                 "at": [
-                  13.5,
-                  14.5
+                  19.5,
+                  9.5
                 ]
               },
               "g4": {
                 "type": "cone",
                 "at": [
-                  16.5,
-                  14.5
+                  19.5,
+                  12.5
                 ]
               },
               "T": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
+                  6,
                   0.4
                 ]
               },
@@ -2846,23 +2852,23 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  5,
-                  5
+                  10,
+                  3
                 ]
               },
               "A2": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
-                  7
+                  7,
+                  8
                 ]
               },
               "A3": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  15,
+                  3,
                   5
                 ]
               },
@@ -2870,15 +2876,15 @@
                 "type": "player",
                 "team": "B",
                 "at": [
-                  7,
-                  6.5
+                  10,
+                  4.5
                 ]
               },
               "D2": {
                 "type": "player",
                 "team": "B",
                 "at": [
-                  13,
+                  7,
                   6.5
                 ]
               },
@@ -2889,32 +2895,14 @@
             },
             "steps": [
               {
-                "label": "All three receivers move; the two defenders mark A1 and A3",
+                "label": "All three receivers move; the two defenders mark A1 and A2",
                 "actions": [
                   {
                     "run": {
                       "who": "A1",
                       "to": [
-                        4,
-                        8
-                      ]
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "A2",
-                      "to": [
-                        10,
-                        10
-                      ]
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "A3",
-                      "to": [
-                        16,
-                        8
+                        14,
+                        3
                       ]
                     }
                   },
@@ -2922,8 +2910,17 @@
                     "run": {
                       "who": "D1",
                       "to": [
-                        5,
-                        7
+                        13,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        9,
+                        10
                       ]
                     }
                   },
@@ -2931,37 +2928,8 @@
                     "run": {
                       "who": "D2",
                       "to": [
-                        15,
-                        7
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "label": "A2 comes short through the middle, unmarked; a throw to their feet",
-                "actions": [
-                  {
-                    "run": {
-                      "who": "A2",
-                      "to": [
-                        10,
-                        5
-                      ]
-                    }
-                  },
-                  {
-                    "pass": {
-                      "from": "T",
-                      "to": "A2"
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "A1",
-                      "to": [
-                        3,
-                        10
+                        8.5,
+                        8.5
                       ]
                     }
                   },
@@ -2969,54 +2937,25 @@
                     "run": {
                       "who": "A3",
                       "to": [
-                        17,
-                        10
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "label": "The thrower steps on; A2 plays it back to them as D1 closes and D2 is drawn in",
-                "actions": [
-                  {
-                    "run": {
-                      "who": "T",
-                      "to": [
-                        9,
-                        2.5
-                      ]
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "D1",
-                      "to": [
-                        9,
+                        2,
                         6
                       ]
                     }
-                  },
-                  {
-                    "run": {
-                      "who": "D2",
-                      "to": [
-                        12,
-                        7
-                      ]
-                    }
-                  },
-                  {
-                    "pass": {
-                      "from": "A2",
-                      "to": "T"
-                    }
                   }
                 ]
               },
               {
-                "label": "The thrower switches it to A3, who is free on the far side",
+                "label": "A3 drops off, unmarked; a throw to their feet",
                 "actions": [
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        3,
+                        4
+                      ]
+                    }
+                  },
                   {
                     "pass": {
                       "from": "T",
@@ -3025,10 +2964,24 @@
                   },
                   {
                     "run": {
-                      "who": "A3",
+                      "who": "A2",
                       "to": [
-                        16,
-                        11
+                        11,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The thrower steps on; A3 plays it back to them as D2 comes across",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "T",
+                      "to": [
+                        6,
+                        2.5
                       ]
                     }
                   },
@@ -3036,22 +2989,66 @@
                     "run": {
                       "who": "D2",
                       "to": [
-                        12.5,
-                        5
+                        5,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "pass": {
+                      "from": "A3",
+                      "to": "T"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The thrower plays it down the line to A1, who has spun away from D1",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "T",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        16,
+                        2.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D1",
+                      "to": [
+                        14.5,
+                        4.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        14,
+                        9
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "A3 dribbles through the gate to score",
+                "label": "A1 dribbles through the gate near the touchline",
                 "actions": [
                   {
                     "dribble": {
-                      "who": "A3",
+                      "who": "A1",
                       "to": [
-                        15,
-                        14.5
+                        19.5,
+                        4.5
                       ]
                     }
                   }
@@ -3074,49 +3071,49 @@
                 "type": "cone",
                 "at": [
                   0,
-                  1
+                  0.5
                 ]
               },
               "t2": {
                 "type": "cone",
                 "at": [
                   20,
-                  1
+                  0.5
                 ]
               },
               "g1": {
                 "type": "cone",
                 "at": [
-                  3.5,
-                  14.5
+                  19.5,
+                  3
                 ]
               },
               "g2": {
                 "type": "cone",
                 "at": [
-                  6.5,
-                  14.5
+                  19.5,
+                  6
                 ]
               },
               "g3": {
                 "type": "cone",
                 "at": [
-                  13.5,
-                  14.5
+                  19.5,
+                  9.5
                 ]
               },
               "g4": {
                 "type": "cone",
                 "at": [
-                  16.5,
-                  14.5
+                  19.5,
+                  12.5
                 ]
               },
               "C": {
                 "type": "player",
                 "team": "N",
                 "at": [
-                  13,
+                  9,
                   0.4
                 ],
                 "label": "C"
@@ -3125,7 +3122,7 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  10,
+                  6,
                   0.4
                 ]
               },
@@ -3133,31 +3130,31 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  8,
-                  6
+                  9,
+                  5
                 ]
               },
               "A2": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  14,
-                  9
+                  13,
+                  4
                 ]
               },
               "D1": {
                 "type": "player",
                 "team": "B",
                 "at": [
-                  12,
-                  12
+                  4,
+                  10
                 ]
               },
               "D2": {
                 "type": "player",
                 "team": "B",
                 "at": [
-                  5,
+                  12,
                   11
                 ]
               },
@@ -3180,89 +3177,101 @@
                     "run": {
                       "who": "D1",
                       "to": [
-                        12,
-                        10
-                      ]
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "D2",
-                      "to": [
-                        6,
-                        9.5
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "label": "Within five seconds: throw to A1, who is free before the defenders get back",
-                "actions": [
-                  {
-                    "pass": {
-                      "from": "T",
-                      "to": "A1"
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "A1",
-                      "to": [
-                        7,
-                        5
-                      ]
-                    }
-                  },
-                  {
-                    "run": {
-                      "who": "D2",
-                      "to": [
-                        7,
+                        5,
                         8
                       ]
                     }
                   },
                   {
                     "run": {
-                      "who": "A2",
+                      "who": "D2",
                       "to": [
-                        15,
-                        10
+                        12,
+                        8.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        9,
+                        4
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "A1 turns and plays it to A2 as D2 closes",
+                "label": "Within five seconds: a throw down the line to A2, before the defenders get back",
                 "actions": [
                   {
                     "pass": {
-                      "from": "A1",
+                      "from": "T",
                       "to": "A2"
                     }
                   },
                   {
                     "run": {
-                      "who": "D1",
+                      "who": "A2",
                       "to": [
-                        12,
-                        11
+                        14,
+                        2.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        13,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        11,
+                        6
                       ]
                     }
                   }
                 ]
               },
               {
-                "label": "A2 dribbles through the gate to score",
+                "label": "A2 drives along the line as D2 chases",
                 "actions": [
                   {
                     "dribble": {
                       "who": "A2",
                       "to": [
-                        15,
-                        14.5
+                        17,
+                        3
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        15.5,
+                        5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 dribbles through the gate near the touchline",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A2",
+                      "to": [
+                        19.5,
+                        4.5
                       ]
                     }
                   }
