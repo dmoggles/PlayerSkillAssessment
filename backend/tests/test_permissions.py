@@ -105,6 +105,13 @@ ACCESS = {
     ("POST", "/teams/{team_id}/sessions"): (MEMBER, "session", None),
     ("GET", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
     ("PATCH", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, {"title": "Renamed"}, None),
+    # Ordered so the coach's run (last test below) uses the block and session before deleting them.
+    ("POST", "/teams/{team_id}/sessions/{session_id}/blocks"): (MEMBER, {"phase": "cool_down", "minutes": 5, "title": "Stretches"}, None),
+    ("PUT", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, {"minutes": 12}, None),
+    ("GET", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/alternatives"): (MEMBER, None, None),
+    ("DELETE", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, None, None),
+    ("PUT", "/teams/{team_id}/sessions/{session_id}/groups"): (MEMBER, {"groups": [[1], [2]]}, None),
+    ("POST", "/teams/{team_id}/sessions/{session_id}/regenerate"): (MEMBER, None, None),
     ("DELETE", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
 }
 
@@ -135,9 +142,9 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     assessment = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
                   "ratings": [{"skill_id": s, "score": 3} for s in starter_skills()]}
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
-    session_id = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 60,
-                            "focus_tags": ["passing_short"], "player_ids": [player_id]}, headers=headers).json()["id"]
-    ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id, "session_id": session_id,
+    session = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 60,
+                         "focus_tags": ["passing_short"], "player_ids": [player_id]}, headers=headers).json()
+    ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill",
            "invite_id": 0, "suggestion_id": 0, "request_id": 0}

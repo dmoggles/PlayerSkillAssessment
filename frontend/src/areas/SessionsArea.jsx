@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createSession, deleteSession, errorMessage, getSession, getSessionFocus, getSessions, getSkillTags } from '../api'
+import { addSessionBlock, createSession, deleteSession, deleteSessionBlock, errorMessage, getBlockAlternatives, getSession, getSessionFocus, getSessions, getSkillTags,
+  regenerateSession, setSessionGroups, updateSessionBlock } from '../api'
 import { DrillDialog } from '../DrillLibrary'
 import { AREA_LABELS } from '../drillModel'
 import { PHASE_NAMES, SESSION_LENGTHS, blockTimes, focusChip, sessionDate, splitSessions, versionLabel } from '../sessionModel'
@@ -117,6 +118,7 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
 function SessionView({ teamId, sessionId, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
+  const [editing, setEditing] = useState(null)  // a block id, 'groups' or 'add'
   useEffect(() => {
     let live = true
     getSession(teamId, sessionId).then(value => { if (live) setSession(value) }).catch(e => onMessage(errorMessage(e, 'Could not load the session.')))
@@ -126,25 +128,35 @@ function SessionView({ teamId, sessionId, onBack, onMessage }) {
 
   const times = blockTimes(session.blocks, session.start_time)
   const groups = session.versions === 'groups' ? session.groups : null
+  const total = session.blocks.reduce((sum, b) => sum + b.minutes, 0)
+  // Every change returns the whole session, which replaces the one shown.
+  const change = async (call, done = () => setEditing(null)) => {
+    try { setSession(await call()); done() } catch (e) { onMessage(errorMessage(e, 'Could not save the change.')) }
+  }
   const remove = async () => {
     if (!window.confirm(`Delete ${session.title} on ${sessionDate(session.date)}? This can't be undone.`)) return
     try { onMessage((await deleteSession(teamId, session.id)).message); onBack() } catch (e) { onMessage(errorMessage(e)) }
   }
+  const replan = () => { if (window.confirm('Plan the session again? Blocks you chose or added are kept.')) change(() => regenerateSession(teamId, session.id)) }
 
   return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes · ${session.expected} players expected`}>
     <div className="session-actions no-print">
       <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
+      <button type="button" onClick={replan}>Re-plan</button>
       <button type="button" onClick={() => window.print()}>Print</button>
       <button type="button" className="danger-btn" onClick={remove}>Delete</button>
     </div>
-    <p className="session-focus-pills">{session.focus.map(f => <span key={f.tag_id} className="status-pill info-pill">{f.label}</span>)}</p>
+    <p className="session-focus-pills">{session.focus.map(f => <span key={f.tag_id} className="status-pill info-pill">{f.label}</span>)}
+      {total !== session.length && <span className="status-pill warn-pill">{total} of {session.length} minutes planned</span>}</p>
 
-    {groups && <div className="session-groups">{groups.map(g => <div key={g.name} className="session-group"><strong>{g.name}</strong><span>{g.players.map(p => p.name).join(', ') || 'Nobody'}</span></div>)}</div>}
+    {groups && <div className="session-groups">{groups.map(g => <div key={g.name} className="session-group"><strong>{g.name}</strong><span>{g.players.map(p => p.name).join(', ') || 'Nobody'}</span></div>)}
+      {editing !== 'groups' && <button type="button" className="link-btn no-print" onClick={() => setEditing('groups')}>Change groups</button>}</div>}
+    {editing === 'groups' && <GroupsEditor groups={groups} onCancel={() => setEditing(null)} onSave={next => change(() => setSessionGroups(teamId, session.id, next))} />}
 
     <ol className="session-blocks">{session.blocks.map((block, i) => <li key={block.id} className={`session-block phase-${block.phase}`}>
       <div className="session-block-time"><span>{times[i]}</span><small>{block.minutes} min</small></div>
       <div className="session-block-body">
-        <p className="session-block-phase">{PHASE_NAMES[block.phase]}</p>
+        <p className="session-block-phase">{PHASE_NAMES[block.phase]}{block.chosen_by === 'coach' && <span className="status-pill muted-pill">Your choice</span>}</p>
         {block.drill
           ? <h4><button type="button" className="link-btn" onClick={() => setOpenDrill({ slug: block.drill.slug, variationId: block.versions[0]?.variation_id ?? null })}>{block.drill.title}</button></h4>
           : <h4 className="session-own">{block.title}</h4>}
@@ -153,8 +165,93 @@ function SessionView({ teamId, sessionId, onBack, onMessage }) {
           ? <ul className="session-block-versions">{groups.map((g, j) => <li key={g.name}><strong>{g.name}:</strong> {versionLabel(block.versions[j])}</li>)}</ul>
           : <p className="session-block-version">{versionLabel(block.versions[0])}</p>)}
         {block.reasons.length > 0 && <p className="muted session-block-reasons">{block.reasons.join(' ')}</p>}
+        {editing === block.id
+          ? <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={groups} onCancel={() => setEditing(null)}
+            onSave={changes => change(() => updateSessionBlock(teamId, session.id, block.id, changes))}
+            onRemove={() => change(() => deleteSessionBlock(teamId, session.id, block.id))} onMessage={onMessage} />
+          : <button type="button" className="link-btn session-edit no-print" onClick={() => setEditing(block.id)}>Edit</button>}
       </div>
     </li>)}</ol>
+    {editing === 'add'
+      ? <AddBlock onCancel={() => setEditing(null)} onAdd={block => change(() => addSessionBlock(teamId, session.id, block))} />
+      : <button type="button" className="link-btn no-print" onClick={() => setEditing('add')}>+ Add a block</button>}
     {openDrill && <DrillDialog drill={openDrill} onMessage={onMessage} onClose={() => setOpenDrill(null)} />}
   </Section>
+}
+
+const OWN = '__own__'
+
+// Change one block: its minutes, its drill (or your own activity), and its version for each group.
+function BlockEditor({ teamId, sessionId, block, groups, onSave, onRemove, onCancel, onMessage }) {
+  const [minutes, setMinutes] = useState(block.minutes)
+  const [drill, setDrill] = useState(block.drill?.slug ?? OWN)
+  const [title, setTitle] = useState(block.drill ? '' : block.title)
+  const [versions, setVersions] = useState(block.versions.map(v => v?.variation_id ?? ''))
+  const [options, setOptions] = useState(null)
+  useEffect(() => {
+    let live = true
+    getBlockAlternatives(teamId, sessionId, block.id).then(value => { if (live) setOptions(value) }).catch(e => onMessage(errorMessage(e)))
+    return () => { live = false }
+  }, [teamId, sessionId, block.id, onMessage])
+  const sameDrill = drill === (block.drill?.slug ?? OWN)
+  const labels = groups && !block.together ? groups.map(g => g.name) : ['Version']
+
+  const save = event => {
+    event.preventDefault()
+    const changes = { minutes: Number(minutes) }
+    if (!sameDrill) Object.assign(changes, drill === OWN ? { drill: null, title } : { drill })
+    else if (drill === OWN) changes.title = title
+    else if (versions.some(Boolean)) changes.versions = versions.map(Number)
+    onSave(changes)
+  }
+  return <form className="block-editor no-print" onSubmit={save}>
+    <div className="block-editor-row">
+      <label className="field">Minutes<input type="number" min={1} max={120} required value={minutes} onChange={e => setMinutes(e.target.value)} /></label>
+      <label className="field">Drill<select value={drill} onChange={e => setDrill(e.target.value)}>
+        {block.drill && <option value={block.drill.slug}>{block.drill.title} (current)</option>}
+        {options && <optgroup label="Suggested for this part">{options.ranked.filter(o => o.slug !== block.drill?.slug).map(o => <option key={o.slug} value={o.slug}>{o.title}</option>)}</optgroup>}
+        {options && <optgroup label="Any drill">{options.others.filter(o => o.slug !== block.drill?.slug).map(o => <option key={o.slug} value={o.slug}>{o.title} ({PHASE_NAMES[o.phase]})</option>)}</optgroup>}
+        <option value={OWN}>Your own activity…</option>
+      </select></label>
+    </div>
+    {drill === OWN && <label className="field">What you'll do<input required maxLength={160} value={title} onChange={e => setTitle(e.target.value)} /></label>}
+    {drill !== OWN && sameDrill && block.drill_versions.length > 0 && <div className="block-editor-row">{labels.map((label, j) => <label key={label} className="field">{label}
+      <select value={versions[j] ?? ''} onChange={e => setVersions(previous => previous.map((v, k) => (k === j ? e.target.value : v)))}>
+        {block.drill_versions.map(v => <option key={v.id} value={v.id}>{versionLabel(v)} (levels {v.levels[0]}–{v.levels[1]})</option>)}
+      </select></label>)}</div>}
+    {!sameDrill && drill !== OWN && <p className="muted hint">Each group starts at the version that matches its level; you can change it after saving.</p>}
+    <div className="inline-row">
+      <button type="submit" className="primary-btn">Save</button>
+      <button type="button" className="link-btn" onClick={onCancel}>Cancel</button>
+      <button type="button" className="link-btn danger-link" onClick={() => { if (window.confirm('Remove this block from the session?')) onRemove() }}>Remove block</button>
+    </div>
+  </form>
+}
+
+// Add your own activity to a part of the session; choose a drill for it afterwards with Edit if you like.
+function AddBlock({ onAdd, onCancel }) {
+  const [phase, setPhase] = useState('technical')
+  const [minutes, setMinutes] = useState(10)
+  const [title, setTitle] = useState('')
+  return <form className="block-editor no-print" onSubmit={event => { event.preventDefault(); onAdd({ phase, minutes: Number(minutes), title }) }}>
+    <div className="block-editor-row">
+      <label className="field">Part of the session<select value={phase} onChange={e => setPhase(e.target.value)}>{Object.entries(PHASE_NAMES).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+      <label className="field">Minutes<input type="number" min={1} max={120} required value={minutes} onChange={e => setMinutes(e.target.value)} /></label>
+    </div>
+    <label className="field">What you'll do<input required maxLength={160} placeholder="For example: shooting practice from crosses" value={title} onChange={e => setTitle(e.target.value)} /></label>
+    <div className="inline-row"><button type="submit" className="primary-btn">Add block</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>
+}
+
+// Move players between level groups.
+function GroupsEditor({ groups, onSave, onCancel }) {
+  const players = groups.flatMap((g, i) => g.players.map(p => ({ ...p, group: i })))
+  const [choice, setChoice] = useState(() => Object.fromEntries(players.map(p => [p.id, p.group])))
+  const save = event => { event.preventDefault(); onSave(groups.map((_, i) => players.filter(p => choice[p.id] === i).map(p => p.id))) }
+  return <form className="block-editor no-print" onSubmit={save}>
+    <div className="session-player-grid">{players.map(p => <label key={p.id} className="field">{p.name}
+      <select value={choice[p.id]} onChange={e => setChoice(c => ({ ...c, [p.id]: Number(e.target.value) }))}>{groups.map((g, i) => <option key={g.name} value={i}>{g.name}</option>)}</select></label>)}</div>
+    <p className="muted hint">Blocks run in groups start again at each group's level.</p>
+    <div className="inline-row"><button type="submit" className="primary-btn">Save groups</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>
 }

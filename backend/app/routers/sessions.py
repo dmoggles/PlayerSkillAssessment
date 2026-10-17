@@ -11,9 +11,9 @@ from ..cycles import current_plan
 from ..database import get_db
 from ..insights import player_tags, team_insights
 from ..matrix import version_tags
-from ..models import (Assessment, Drill, DrillVariation, Player, PlayerGroup, SessionAttendance, SessionBlock, SkillTag,
+from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SkillTag,
                       TrainingSession, User, utcnow)
-from ..sessions import LENGTHS, plan as plan_session, split_groups
+from ..sessions import LENGTHS, PHASES, block_groups, group_versions, plan as plan_session, ranked, split_groups
 from .drills import _library
 from .teams import scoped_period
 
@@ -107,6 +107,57 @@ def _in_plans(db: DbSession, period_id: int, player_ids: list[int]) -> dict[str,
     return dict(counts)
 
 
+def _planner_data(db: DbSession, team_id: int, period, focus: list[str], group_ids: list[list[int]], length: int, on: date_type,
+                  user: User, exclude: int | None = None) -> dict:
+    """The planner's input for these players, split into these groups (one group in single mode)."""
+    player_ids = [pid for ids in group_ids for pid in ids]
+    levels = _levels(db, period, player_ids, focus[0])
+    return {"length": length, "focus": focus, "groups": [{"levels": [levels[pid] for pid in ids]} for ids in group_ids],
+            "drills": _drills_for_planner(db, _age_group(db, period.id, player_ids), user),
+            "recent": _recent(db, team_id, on, exclude), "in_plans": _in_plans(db, period.id, player_ids)}
+
+
+def _expected_ids(db: DbSession, s: TrainingSession) -> list[int]:
+    return sorted(r.player_id for r in db.query(SessionAttendance).filter_by(session_id=s.id, expected=True))
+
+
+def _session_data(db: DbSession, s: TrainingSession, user: User) -> dict:
+    """The planner's input for a saved session: its expected players, in its groups."""
+    group_ids = [g["player_ids"] for g in s.groups] if s.versions == "groups" else [_expected_ids(db, s)]
+    return _planner_data(db, s.team_id, db.get(Period, s.period_id), s.focus_tags, group_ids, s.length_minutes, s.date, user, exclude=s.id)
+
+
+def _set_versions(block: SessionBlock, s: TrainingSession, variations: list[int], together: bool):
+    """Store a block's versions: one for everyone, or one per group."""
+    if s.versions == "groups" and not together:
+        block.variation_id, block.group_variations = None, {str(i): v for i, v in enumerate(variations)}
+    else:
+        block.variation_id, block.group_variations = (variations[0] if variations else None), {}
+
+
+def _place_drill(db: DbSession, block: SessionBlock, s: TrainingSession, drill: dict | None, data: dict, title: str = ""):
+    """Put a drill (planner format) in a block at each group's starting version, or make it the coach's own block."""
+    groups = block_groups(block.phase, data["groups"])
+    together = s.versions == "groups" and len(groups) == 1
+    if drill is None:
+        block.drill_id, block.title = None, title
+        _set_versions(block, s, [], together)
+        return
+    block.drill_id, block.title = db.query(Drill.id).filter_by(slug=drill["slug"]).scalar(), drill["title"]
+    _set_versions(block, s, group_versions(drill, data["focus"], groups), together)
+
+
+def _renumber(db: DbSession, s: TrainingSession):
+    """Keep blocks in phase order (warm-up first), and numbered 1, 2, 3..."""
+    blocks = db.query(SessionBlock).filter_by(session_id=s.id).order_by(SessionBlock.position, SessionBlock.id).all()
+    for position, b in enumerate(sorted(blocks, key=lambda b: PHASES.index(b.phase)), start=1):
+        b.position = position
+
+
+def _touch(s: TrainingSession, user: User):
+    s.updated_by, s.updated_at = user.id, utcnow()
+
+
 def session_summary(db: DbSession, s: TrainingSession, labels: dict[str, str]) -> dict:
     rows = db.query(SessionAttendance).filter_by(session_id=s.id).all()
     return {"id": s.id, "period_id": s.period_id, "date": s.date.isoformat(), "start_time": s.start_time, "length": s.length_minutes,
@@ -128,7 +179,9 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
         else:
             variation_ids = [b.variation_id] if b.variation_id else []
         variations = {v.id: v for v in db.query(DrillVariation).filter(DrillVariation.id.in_([v for v in variation_ids if v] or [0]))}
+        options = db.query(DrillVariation).filter_by(drill_id=drill.id).order_by(DrillVariation.position).all() if drill else []
         blocks.append({"id": b.id, "phase": b.phase, "minutes": b.minutes, "title": b.title, "notes": b.notes, "together": together,
+                       "drill_versions": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]} for v in options],
                        "drill": {"slug": drill.slug, "title": drill.title} if drill else None, "chosen_by": b.chosen_by, "reasons": b.reasons,
                        "versions": [{"variation_id": vid, "kind": variations[vid].kind, "title": variations[vid].title,
                                      "levels": [variations[vid].level_min, variations[vid].level_max]} if vid in variations else None
@@ -180,10 +233,7 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
 
     levels = _levels(db, period, player_ids, body.focus_tags[0])
     group_ids = split_groups([(pid, levels[pid]) for pid in player_ids], body.group_count) if body.versions == "groups" else [player_ids]
-    data = {"length": body.length, "focus": body.focus_tags,
-            "groups": [{"levels": [levels[pid] for pid in ids]} for ids in group_ids],
-            "drills": _drills_for_planner(db, _age_group(db, period.id, player_ids), user),
-            "recent": _recent(db, team_id, body.date), "in_plans": _in_plans(db, period.id, player_ids)}
+    data = _planner_data(db, team_id, period, body.focus_tags, group_ids, body.length, body.date, user)
     result = plan_session(data)
 
     now = utcnow()
@@ -239,3 +289,171 @@ def delete_session(team_id: int, session_id: int, db: DbSession = Depends(get_db
     db.delete(session)
     db.commit()
     return {"message": "Session deleted."}
+
+
+class BlockIn(BaseModel):
+    phase: Literal["warm_up", "technical", "opposed", "small_sided_game", "cool_down"]
+    minutes: int = Field(ge=1, le=120)
+    drill: str | None = None  # a drill's slug; none for the coach's own activity
+    title: str = Field(default="", max_length=160)
+
+
+class BlockPatch(BaseModel):
+    minutes: int | None = Field(default=None, ge=1, le=120)
+    drill: str | None = None
+    title: str | None = Field(default=None, max_length=160)
+    versions: list[int] | None = Field(default=None, max_length=3)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class GroupsIn(BaseModel):
+    groups: list[list[int]] = Field(min_length=2, max_length=3)
+
+
+def _block(db: DbSession, s: TrainingSession, block_id: int) -> SessionBlock:
+    block = db.get(SessionBlock, block_id)
+    if not block or block.session_id != s.id:
+        raise HTTPException(404, "Block not found")
+    return block
+
+
+def _planner_drill(data: dict, slug: str) -> dict:
+    drill = next((d for d in data["drills"] if d["slug"] == slug), None)
+    if not drill:
+        raise HTTPException(422, "That drill isn't in the library for this age group")
+    return drill
+
+
+@router.post("/teams/{team_id}/sessions/{session_id}/blocks", status_code=201)
+def add_block(team_id: int, session_id: int, body: BlockIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Add a block to its part of the session, with a drill or the coach's own activity."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    if not body.drill and not body.title.strip():
+        raise HTTPException(422, "Choose a drill, or describe the activity")
+    data = _session_data(db, s, user)
+    block = SessionBlock(session_id=s.id, position=10_000, phase=body.phase, minutes=body.minutes, chosen_by="coach", reasons=[])
+    _place_drill(db, block, s, _planner_drill(data, body.drill) if body.drill else None, data, body.title.strip())
+    db.add(block)
+    db.flush()
+    _renumber(db, s)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.put("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}")
+def change_block(team_id: int, session_id: int, block_id: int, body: BlockPatch, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Change a block: its minutes, drill (or the coach's own activity), versions, title or notes."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    block = _block(db, s, block_id)
+    given = body.model_fields_set
+    if "minutes" in given and body.minutes is not None:
+        block.minutes = body.minutes
+    if "drill" in given:
+        data = _session_data(db, s, user)
+        title = (body.title or "").strip() if body.drill is None else ""
+        if body.drill is None and not title:
+            raise HTTPException(422, "Describe the activity for a block without a drill")
+        _place_drill(db, block, s, _planner_drill(data, body.drill) if body.drill else None, data, title)
+    elif "title" in given and body.title is not None and block.drill_id is None:
+        if not body.title.strip():
+            raise HTTPException(422, "Describe the activity")
+        block.title = body.title.strip()
+    if "versions" in given and body.versions is not None:
+        if block.drill_id is None:
+            raise HTTPException(422, "A block without a drill has no versions")
+        allowed = {v.id for v in db.query(DrillVariation).filter_by(drill_id=block.drill_id)}
+        together = s.versions == "groups" and not block.group_variations
+        wanted = 1 if s.versions == "single" or together else len(s.groups)
+        if len(body.versions) != wanted or not set(body.versions) <= allowed:
+            raise HTTPException(422, f"Give {wanted} {'version' if wanted == 1 else 'versions'} of this block's drill")
+        _set_versions(block, s, body.versions, together)
+    if "notes" in given and body.notes is not None:
+        block.notes = body.notes.strip()
+    if given - {"notes"} and block.chosen_by != "coach":
+        # Any change but a note makes the block the coach's: re-planning keeps it.
+        block.chosen_by, block.reasons = "coach", ["Chosen by a coach."]
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.delete("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}")
+def remove_block(team_id: int, session_id: int, block_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    db.delete(_block(db, s, block_id))
+    db.flush()
+    _renumber(db, s)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.get("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/alternatives")
+def block_alternatives(team_id: int, session_id: int, block_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Drills for this part of the session, best first, and every other drill in the library for this age group."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    block = _block(db, s, block_id)
+    data = _session_data(db, s, user)
+    candidates = ranked(block.phase, block.minutes, data)
+    shown = {c["drill"]["slug"] for c in candidates}
+    return {"ranked": [{"slug": c["drill"]["slug"], "title": c["drill"]["title"], "reasons": c["reasons"]} for c in candidates[:8]],
+            "others": sorted(({"slug": d["slug"], "title": d["title"], "phase": d["session_phase"]} for d in data["drills"] if d["slug"] not in shown),
+                             key=lambda d: d["title"])}
+
+
+@router.put("/teams/{team_id}/sessions/{session_id}/groups")
+def set_groups(team_id: int, session_id: int, body: GroupsIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Move players between level groups. Each block run in groups restarts at each group's level."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    if s.versions != "groups":
+        raise HTTPException(409, "This session runs one version for everyone")
+    flat = [pid for g in body.groups for pid in g]
+    if sorted(flat) != _expected_ids(db, s):
+        raise HTTPException(422, "Each expected player must be in exactly one group")
+    s.groups = [{"name": GROUP_NAMES[i], "player_ids": ids} for i, ids in enumerate(body.groups)]
+    data = _session_data(db, s, user)
+    by_slug = {d["slug"]: d for d in data["drills"]}
+    for block in db.query(SessionBlock).filter_by(session_id=s.id):
+        if block.drill_id and block.group_variations:
+            drill = by_slug.get(db.get(Drill, block.drill_id).slug)
+            if drill:
+                _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.post("/teams/{team_id}/sessions/{session_id}/regenerate")
+def regenerate_session(team_id: int, session_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Plan the session again, keeping every block a coach chose or added."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    if not _expected_ids(db, s):
+        raise HTTPException(422, "No players are expected at this session")
+    data = _session_data(db, s, user)
+    blocks = db.query(SessionBlock).filter_by(session_id=s.id).all()
+    kept = [b for b in blocks if b.chosen_by == "coach"]
+    kept_phases = {b.phase for b in kept}
+    data["drills"] = [d for d in data["drills"] if d["slug"] not in {db.get(Drill, b.drill_id).slug for b in kept if b.drill_id}]
+    for b in blocks:
+        if b.chosen_by != "coach":
+            db.delete(b)
+    for i, planned in enumerate(plan_session(data)["blocks"]):
+        if planned["phase"] in kept_phases:
+            continue
+        block = SessionBlock(session_id=s.id, position=10_000 + i, phase=planned["phase"], minutes=planned["minutes"],
+                             title=planned["title"], reasons=planned["reasons"], chosen_by="planner")
+        block.drill_id = db.query(Drill.id).filter_by(slug=planned["drill"]).scalar() if planned["drill"] else None
+        _set_versions(block, s, planned["variations"], planned["together"])
+        db.add(block)
+    db.flush()
+    _renumber(db, s)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)

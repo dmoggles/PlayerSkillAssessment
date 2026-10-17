@@ -44,6 +44,9 @@ def test_drills_are_chosen_for_focus_size_votes_and_variety():
     small = drill("pairs", "technical", players=(2, 2, 4))
     assert pick([small]) == "pairs" and "two of these side by side" in sessions.plan(data([small]))["blocks"][1]["reasons"][-1]
     assert pick([drill("tiny", "technical", players=(1, 1, 3))]) is None  # 8 is more than two set-ups
+    keeper = drill("keeper", "technical", tags={"gk_shot_stopping": 1.0})
+    assert pick([keeper]) is None  # not for an outfield focus
+    assert sessions.plan({**data([keeper]), "focus": ["gk_shot_stopping"]})["blocks"][1]["drill"] == "keeper"
     # One drill per session, even when it fits two phases' worth of blocks.
     twice = sessions.plan(data([drill("rondo", "technical")], length=90))["blocks"]
     assert [b["drill"] for b in twice].count("rondo") == 1
@@ -135,3 +138,67 @@ def test_coaches_plan_list_and_delete_team_sessions(monkeypatch):
     assert owner.get(f"/teams/{team_id}/sessions").json() == []
     actions = [e["action"] for e in owner.get(f"/teams/{team_id}/audit").json()]
     assert actions.count("session_created") == 2 and "session_deleted" in actions
+
+
+def test_coaches_edit_a_session(monkeypatch):
+    clean_database()
+    with SessionLocal() as db:
+        for name in ("drills_v1.json", "drills_v2.json", "drills_v3.json", "drills_v4.json", "drills_v5.json"):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("sessions-editor@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Editors"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skills = starter_skills()
+    ids = []
+    for i in range(10):
+        pid = owner.post(f"/teams/{team_id}/players", json={"name": f"Player {i}"}, headers=headers).json()["id"]
+        ids.append(pid)
+        owner.put(f"/teams/{team_id}/players/{pid}/group", params={"period_id": period_id}, json={"age_group": 12}, headers=headers)
+        owner.put(f"/teams/{team_id}/assessments/coach", headers=headers, json={"player_id": pid, "period_id": period_id, "version": 0, "primary_position": "midfielder",
+                  "ratings": [{"skill_id": s, "score": 1 + (i % 5) if s == "passing_short" else 3} for s in skills]})
+    url = f"/teams/{team_id}/sessions"
+    session = owner.post(url, json={"period_id": period_id, "date": "2026-10-20", "length": 60, "focus_tags": ["passing_short"], "player_ids": ids,
+                                    "versions": "groups", "group_count": 2}, headers=headers).json()
+    url = f"{url}/{session['id']}"
+    technical = next(b for b in session["blocks"] if b["phase"] == "technical")
+    assert technical["drill"] and not technical["together"] and len(technical["drill_versions"]) >= 2
+
+    # Alternatives, then a different drill: the coach's choice, at each group's version.
+    options = owner.get(f"{url}/blocks/{technical['id']}/alternatives").json()
+    other = next(o for o in options["ranked"] if o["slug"] != technical["drill"]["slug"])
+    changed = owner.put(f"{url}/blocks/{technical['id']}", json={"drill": other["slug"], "minutes": 20}, headers=headers).json()
+    block = next(b for b in changed["blocks"] if b["id"] == technical["id"])
+    assert (block["drill"]["slug"], block["minutes"], block["chosen_by"], len(block["versions"])) == (other["slug"], 20, "coach", 2)
+    # Versions chosen by hand must belong to the drill, one per group.
+    easiest = block["drill_versions"][0]["id"]
+    assert owner.put(f"{url}/blocks/{technical['id']}", json={"versions": [easiest]}, headers=headers).status_code == 422
+    assert owner.put(f"{url}/blocks/{technical['id']}", json={"versions": [easiest, 999999]}, headers=headers).status_code == 422
+    same = owner.put(f"{url}/blocks/{technical['id']}", json={"versions": [easiest, easiest]}, headers=headers).json()
+    assert [v["variation_id"] for v in next(b for b in same["blocks"] if b["id"] == technical["id"])["versions"]] == [easiest, easiest]
+
+    # The coach's own activity, added and turned into a block without a drill; blocks stay in phase order.
+    added = owner.post(f"{url}/blocks", json={"phase": "warm_up", "minutes": 5, "title": "Rondo tag"}, headers=headers).json()
+    assert [b["phase"] for b in added["blocks"]][:2] == ["warm_up", "warm_up"] and added["blocks"][1]["title"] == "Rondo tag"
+    assert owner.post(f"{url}/blocks", json={"phase": "warm_up", "minutes": 5}, headers=headers).status_code == 422
+    opposed = next(b for b in added["blocks"] if b["phase"] == "opposed")
+    own = owner.put(f"{url}/blocks/{opposed['id']}", json={"drill": None, "title": "Match play"}, headers=headers).json()
+    assert next(b for b in own["blocks"] if b["id"] == opposed["id"])["drill"] is None
+    removed = owner.delete(f"{url}/blocks/{added['blocks'][1]['id']}", headers=headers).json()
+    assert len(removed["blocks"]) == len(added["blocks"]) - 1
+
+    # Moving players between groups: every expected player exactly once.
+    a, b = [p["id"] for p in removed["groups"][0]["players"]], [p["id"] for p in removed["groups"][1]["players"]]
+    assert owner.put(f"{url}/groups", json={"groups": [a, b[1:]]}, headers=headers).status_code == 422
+    moved = owner.put(f"{url}/groups", json={"groups": [a + b[:1], b[1:]]}, headers=headers).json()
+    assert [len(g["players"]) for g in moved["groups"]] == [6, 4]
+
+    # A note doesn't make a block the coach's choice; other changes do.
+    warm_up = next(b for b in moved["blocks"] if b["phase"] == "warm_up")
+    noted = owner.put(f"{url}/blocks/{warm_up['id']}", json={"notes": "Went well"}, headers=headers).json()
+    assert next(b for b in noted["blocks"] if b["id"] == warm_up["id"])["chosen_by"] == "planner"
+    # Re-planning keeps the coach's choices and replans the rest.
+    again = owner.post(f"{url}/regenerate", headers=headers).json()
+    kept = {b["id"] for b in again["blocks"] if b["chosen_by"] == "coach"}
+    assert technical["id"] in kept and opposed["id"] in kept
+    assert [b["phase"] for b in again["blocks"]] == sorted((b["phase"] for b in again["blocks"]), key=sessions.PHASES.index)

@@ -16,7 +16,8 @@ Output: {"planner": "sessions-v1",
                      "variations": [variation id per group, or one when together], "reasons": [text]}]}
 
 Each block keeps to its session phase. A drill's score for a block, once hard filters pass (that phase, not
-disliked by this coach, enough players for each group and not more than two set-ups' worth):
+disliked by this coach, enough players for each group and not more than two set-ups' worth, and not a goalkeeper
+drill unless the focus is a goalkeeping skill):
   focus      how strongly it trains the focus tags, the first tag counting most (warm-ups and cool-downs don't need to)
   time       how close its usual length is to the block's minutes
   preference this coach's like, other coaches' votes
@@ -75,6 +76,9 @@ def block_groups(phase: str, groups: list[dict]) -> list[dict]:
 def assess(drill: dict, phase: str, minutes: int, data: dict) -> dict | None:
     """A candidate's score for this block with the notes that explain it, or None when it can't be used."""
     if drill["session_phase"] != phase or drill["my_vote"] < 0 or not drill["variations"]:
+        return None
+    # Goalkeeper drills are for a goalkeeping focus, not a squad session's filler.
+    if any(t.startswith("gk_") and w == 1.0 for t, w in drill["tags"].items()) and not any(t.startswith("gk_") for t in data["focus"]):
         return None
     counts = [setups(drill, len(g["levels"])) for g in block_groups(phase, data["groups"])]
     if any(c is None for c in counts):

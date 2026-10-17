@@ -1124,3 +1124,13 @@ a.public-brand { text-decoration: none; }
 }
 .session-form .inline-row .link-btn { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-weight: 600; }
 .session-block-together { margin: 0 0 2px; font-size: .8rem; font-weight: 700; color: var(--accent-ink); }
+.session-block-phase .status-pill { margin-left: 8px; font-size: .62rem; text-transform: none; letter-spacing: 0; }
+.session-edit { margin-top: 6px; padding: 2px 0; font-size: .85rem; }
+.session-view > .link-btn, .session-groups .link-btn { justify-self: start; margin-top: 8px; }
+.block-editor { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafb; }
+.block-editor-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.block-editor input, .block-editor select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.block-editor .hint { margin: 0; font-size: .82rem; }
+.block-editor .inline-row .link-btn, .session-view .link-btn.no-print { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-weight: 600; }
+.block-editor .inline-row .danger-link { margin-left: auto; color: var(--error); }
+.block-editor .inline-row .primary-btn { padding: 8px 14px; }
