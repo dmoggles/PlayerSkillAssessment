@@ -218,6 +218,8 @@ def reset_password(body: ResetBody, db: DbSession = Depends(get_db)):
     if not user:
         raise HTTPException(400, "Invalid link")
     user.password_hash = hasher.hash(body.password)
+    # Only the account's email or a site admin's command line hands out reset links, so using one verifies the account.
+    user.verified_at = user.verified_at or utcnow()
     db.flush()
     db.query(AuthToken).filter_by(user_id=user.id, purpose="reset").delete(synchronize_session=False)
     db.query(Session).filter_by(user_id=user.id).delete()

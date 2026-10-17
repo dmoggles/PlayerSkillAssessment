@@ -1503,6 +1503,19 @@ def test_admin_command_line(monkeypatch, capsys):
     assert cli.main(["invite", "first@example.com"]) == 1
     assert cli.main(["grant", "nobody@example.com"]) == 1
 
+    # An unverified account can't sign in; a reset link from the command line sets a password and verifies it.
+    from app.database import SessionLocal
+    from app.models import User
+    with SessionLocal() as db:
+        db.add(User(email="unverified@example.com", password_hash="not-a-real-hash", verified_at=None))
+        db.commit()
+    capsys.readouterr()
+    assert cli.main(["reset-password", "unverified@example.com"]) == 0
+    reset = capsys.readouterr().out.strip().split("/reset/")[-1]
+    assert client.post("/auth/reset-password", json={"token": reset, "password": "fresh-password-123"}).status_code == 200
+    assert client.post("/auth/login", json={"email": "unverified@example.com", "password": "fresh-password-123"}).status_code == 200
+    assert cli.main(["reset-password", "nobody@example.com"]) == 1
+
 
 def test_invitations_survive_failed_email(monkeypatch):
     from app.config import settings
