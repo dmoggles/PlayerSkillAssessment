@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, JSON, Numeric, SmallInteger, String, Text, UniqueConstraint, text
+from datetime import date as date_type, datetime, timezone
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Index, Integer, JSON, Numeric, SmallInteger, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -403,6 +403,55 @@ class DrillLink(Base):
     from_drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
     to_drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), primary_key=True)
     relation: Mapped[str] = mapped_column(String(12), primary_key=True)
+
+
+class TrainingSession(Base):
+    """A planned team training session on a date: a focus, a length, and blocks of drills (see sessions.py). With
+    versions "groups", the expected players are split into level groups, each running the drills at its own version."""
+    __tablename__ = "training_sessions"
+    __table_args__ = (CheckConstraint("versions IN ('single', 'groups')", name="ck_training_sessions_versions"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
+    period_id: Mapped[int] = mapped_column(ForeignKey("periods.id"), index=True)
+    date: Mapped[date_type] = mapped_column(Date)
+    start_time: Mapped[str | None] = mapped_column(String(5))  # "18:30"
+    length_minutes: Mapped[int] = mapped_column(SmallInteger)
+    title: Mapped[str] = mapped_column(String(120))
+    focus_tags: Mapped[list] = mapped_column(JSONB, default=list)
+    versions: Mapped[str] = mapped_column(String(6), default="single")
+    groups: Mapped[list] = mapped_column(JSONB, default=list)  # [{"name", "player_ids"}], groups mode only
+    notes: Mapped[str] = mapped_column(String(2000), default="")
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class SessionBlock(Base):
+    """One part of a session, in order: a drill at a version (one per group in groups mode), or the coach's own
+    activity when drill_id is null."""
+    __tablename__ = "session_blocks"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("training_sessions.id", ondelete="CASCADE"), index=True)
+    position: Mapped[int] = mapped_column(SmallInteger)
+    phase: Mapped[str] = mapped_column(String(20))
+    minutes: Mapped[int] = mapped_column(SmallInteger)
+    drill_id: Mapped[int | None] = mapped_column(ForeignKey("drills.id"))
+    title: Mapped[str] = mapped_column(String(160), default="")
+    variation_id: Mapped[int | None] = mapped_column(ForeignKey("drill_variations.id", ondelete="SET NULL"))
+    group_variations: Mapped[dict] = mapped_column(JSONB, default=dict)  # {"0": variation_id, ...}
+    reasons: Mapped[list] = mapped_column(JSONB, default=list)
+    chosen_by: Mapped[str] = mapped_column(String(8), default="planner")
+    notes: Mapped[str] = mapped_column(String(1000), default="")
+
+
+class SessionAttendance(Base):
+    """Who is expected at a session (entered beforehand, for planning) and who came (afterwards)."""
+    __tablename__ = "session_attendance"
+    session_id: Mapped[int] = mapped_column(ForeignKey("training_sessions.id", ondelete="CASCADE"), primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), primary_key=True, index=True)
+    expected: Mapped[bool] = mapped_column(Boolean, default=True)
+    attended: Mapped[bool | None] = mapped_column(Boolean)
 
 
 class AccessRequest(Base):

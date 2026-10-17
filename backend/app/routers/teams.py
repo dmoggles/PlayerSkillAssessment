@@ -6,7 +6,7 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User, SessionAttendance, TrainingSession
 from .. import invites
 from .accounts import delivery_message
 
@@ -67,7 +67,8 @@ def scoped_period(db: DbSession, team_id: int, period_id: int) -> Period:
 
 
 def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
-    """Delete assessments, ratings, revisions, priorities, reports, saved plans, cycles and their check-ins, playing groups and self links for the given players or periods."""
+    """Delete assessments, ratings, revisions, priorities, reports, saved plans, cycles and their check-ins, playing groups,
+    self links and training sessions (or a player's place in them) for the given players or periods."""
     def scoped(model):
         query = db.query(model)
         if player_ids is not None:
@@ -81,6 +82,17 @@ def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     db.query(CycleCheckin).filter(CycleCheckin.cycle_id.in_(scoped(DevelopmentCycle).with_entities(DevelopmentCycle.id))).delete(synchronize_session=False)
     for model in (Assessment, PriorityConfirmation, PlayerReport, SelfLink, PlayerPlan, PlayerGroup, DevelopmentCycle):
         scoped(model).delete(synchronize_session=False)
+    # Training sessions: a period's sessions go with it (their blocks and attendance cascade); a player leaves
+    # every session they were in, including its level groups.
+    if period_ids is not None:
+        db.query(TrainingSession).filter(TrainingSession.period_id.in_(period_ids)).delete(synchronize_session=False)
+    if player_ids is not None:
+        gone = {pid for (pid,) in player_ids} if hasattr(player_ids, "all") else set(player_ids)  # a query or a list
+        db.query(SessionAttendance).filter(SessionAttendance.player_id.in_(gone)).delete(synchronize_session=False)
+        team_ids = {t for (t,) in db.query(Player.team_id).filter(Player.id.in_(gone)).distinct()}
+        for session in db.query(TrainingSession).filter(TrainingSession.team_id.in_(team_ids), TrainingSession.versions == "groups"):
+            if any(gone & set(g["player_ids"]) for g in session.groups):
+                session.groups = [{**g, "player_ids": [p for p in g["player_ids"] if p not in gone]} for g in session.groups]
 
 
 def owner_count(db: DbSession, team_id: int) -> int:
@@ -133,6 +145,7 @@ def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db),
         raise HTTPException(422, "Type the team name exactly to confirm")
     player_ids = db.query(Player.id).filter_by(team_id=team_id)
     purge_assessment_data(db, player_ids=player_ids)
+    db.query(TrainingSession).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Player).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(MatrixDraft).filter_by(team_id=team_id).delete(synchronize_session=False)

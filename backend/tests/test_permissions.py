@@ -100,6 +100,12 @@ ACCESS = {
     ("DELETE", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/periods/{period_id}/report/share/extend"): (MEMBER, {"weeks": 1}, None),
     ("POST", "/teams/{team_id}/periods/{period_id}/self-links"): (MEMBER, {}, None),
+    ("GET", "/teams/{team_id}/sessions"): (MEMBER, None, None),
+    ("GET", "/teams/{team_id}/sessions/focus"): (MEMBER, None, {"period_id": "{period_id}"}),
+    ("POST", "/teams/{team_id}/sessions"): (MEMBER, "session", None),
+    ("GET", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
+    ("PATCH", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, {"title": "Renamed"}, None),
+    ("DELETE", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
 }
 
 
@@ -129,7 +135,9 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     assessment = {"player_id": player_id, "period_id": period_id, "version": 0, "primary_position": "defender",
                   "ratings": [{"skill_id": s, "score": 3} for s in starter_skills()]}
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
-    ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id,
+    session_id = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 60,
+                            "focus_tags": ["passing_short"], "player_ids": [player_id]}, headers=headers).json()["id"]
+    ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id, "session_id": session_id,
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill",
            "invite_id": 0, "suggestion_id": 0, "request_id": 0}
@@ -139,7 +147,9 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
         params = {k: v.format(**ids) for k, v in query.items()} if query else None
         json_body = ({**assessment, "version": 1} if body == "assessment"
                      else {"period_id": ids["period_id"]} if body == "plan"
-                     else {"period_id": ids["period_id"], "skill_id": "passing_short", "slot": "club", "action": "reset"} if body == "slot" else body)
+                     else {"period_id": ids["period_id"], "skill_id": "passing_short", "slot": "club", "action": "reset"} if body == "slot"
+                     else {"period_id": ids["period_id"], "date": "2026-10-20", "length": 60, "focus_tags": ["passing_short"], "player_ids": [ids["player_id"]]} if body == "session"
+                     else body)
         return client.request(method, url, json=json_body, params=params, headers={"x-csrf-token": csrf} if csrf else {})
 
     anonymous = TestClient(app)
