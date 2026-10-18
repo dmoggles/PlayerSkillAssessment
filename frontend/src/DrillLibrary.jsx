@@ -46,12 +46,15 @@ export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
         <strong>{d.title}</strong>
         <span className="drill-card-summary">{d.summary}</span>
         <span className="drill-facts">{FORMAT_LABELS[d.format]} · {playersText(d.players)} · {d.duration[1]} min · {levelRange(d.levels)}</span>
-        <span className="drill-tags">{d.tags.length ? d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>) : <span className="status-pill muted-pill">Any focus</span>}</span>
+        <span className="drill-tags">{GENERAL_PHASES.includes(d.session_phase) && <span className="status-pill">{PHASE_LABELS[d.session_phase]}</span>}{d.tags.length ? d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>) : <span className="status-pill muted-pill">Any focus</span>}</span>
         <VoteSummary votes={d.votes} />
       </button>
     </li>)}</ul>
   </>
 }
+
+// Warm-ups and cool-downs say so on their card; the other parts are the default and need no label.
+const GENERAL_PHASES = ['warm_up', 'cool_down']
 
 function ladderHint(tags) {
   if (!tags.length) return 'From easiest to hardest. This drill trains no particular skill, so choose the version that suits the group.'
@@ -88,6 +91,7 @@ function DrillFilters({ filters, options, onChange }) {
       <div className="drill-filter-grid">
         {select('area', 'Area', Object.entries(AREA_LABELS))}
         {select('tag', 'Skill', options.tags.filter(t => !filters.area || t.area === filters.area).map(t => [t.id, t.label]))}
+        {select('phase', 'Part of session', Object.entries(PHASE_LABELS))}
         {select('format', 'Format', Object.entries(FORMAT_LABELS))}
         {select('intensity', 'Intensity', Object.entries(INTENSITY_LABELS))}
         {number('players', 'Players', 1, 40, 'Bigger squads split into groups')}

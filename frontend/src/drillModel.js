@@ -75,7 +75,7 @@ export const DISLIKE_REASONS = { too_advanced: 'Too advanced', too_easy: 'Too ea
 export const equipmentLabel = item => item.replace('_', ' ')
 
 // Empty values mean "any". Numbers are kept as strings, as the inputs give them.
-export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', players: '', age: '', level: '', duration: '', intensity: '', equipment: [], home: false, liked: false }
+export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', phase: '', players: '', age: '', level: '', duration: '', intensity: '', equipment: [], home: false, liked: false }
 
 export const activeFilterCount = filters => Object.entries(filters)
   .filter(([key, value]) => key !== 'text' && (Array.isArray(value) ? value.length : value)).length
@@ -99,10 +99,11 @@ const within = (value, [min, max]) => value === '' || (Number(value) >= min && N
 
 export function matchesFilters(drill, filters) {
   const text = filters.text.trim().toLowerCase()
-  if (text && ![drill.title, drill.summary, ...drill.tags.map(t => t.label)].some(s => s.toLowerCase().includes(text))) return false
+  if (text && ![drill.title, drill.summary, PHASE_LABELS[drill.session_phase] ?? '', ...drill.tags.map(t => t.label)].some(s => s.toLowerCase().includes(text))) return false
   if (filters.area && !drill.tags.some(t => t.area === filters.area)) return false
   if (filters.tag && !drill.tags.some(t => t.id === filters.tag)) return false
   if (filters.format && drill.format !== filters.format) return false
+  if (filters.phase && drill.session_phase !== filters.phase) return false
   if (filters.intensity && drill.intensity !== filters.intensity) return false
   // Players is the squad on hand: a drill needs at least its minimum, and larger squads split into groups.
   if (filters.players !== '' && drill.players[0] > Number(filters.players)) return false

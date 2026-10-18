@@ -6,7 +6,7 @@ The drill library is shared by every team. Open it from **Settings → Drill lib
 
 ## Finding a drill
 
-Search by name or skill, or filter by area, skill, format (individual, small group, unit or whole team), intensity and the equipment you have. **Can be done at home** shows drills a player can do alone or with a parent; each one says how to do it indoors safely.
+Search by name or skill, or filter by area, skill, part of the session (warm-up, technical, opposed, small-sided game or cool-down), format (individual, small group, unit or whole team), intensity and the equipment you have. **Can be done at home** shows drills a player can do alone or with a parent; each one says how to do it indoors safely.
 
 ## Inside a drill
 
