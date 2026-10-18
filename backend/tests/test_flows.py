@@ -590,6 +590,10 @@ def test_demo_seed_gives_an_account_a_full_squad(monkeypatch, capsys):
     assert team["name"] == seed_demo.DEFAULT_TEAM
     listed = client.get(f"/teams/{team['id']}/sessions").json()
     assert any(s["attended"] for s in listed) and any(not s["attended"] for s in listed)
+    assert [t["name"] for t in client.get(f"/teams/{team['id']}/session-templates").json()] == ["Match prep", "Technical night"]
+    from_template = next(s for s in listed if s["template"] and s["template"]["name"] == "Match prep")
+    blocks = client.get(f"/teams/{team['id']}/sessions/{from_template['id']}").json()["blocks"]
+    assert "full_squad_game" in [b["phase"] for b in blocks] and from_template["length"] == 75
 
 
 def test_database_allows_only_one_active_period_per_team(monkeypatch):

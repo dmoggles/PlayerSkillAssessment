@@ -1,6 +1,6 @@
 // Labels and small formatting helpers for drills.
 export const FORMAT_LABELS = { individual: 'Individual', small_group: 'Small group', unit: 'Unit', team: 'Whole team' }
-export const PHASE_LABELS = { warm_up: 'Warm-up', technical: 'Technical', opposed: 'Opposed', small_sided_game: 'Small-sided game', cool_down: 'Cool-down' }
+export const PHASE_LABELS = { warm_up: 'Warm-up', technical: 'Technical', opposed: 'Opposed', small_sided_game: 'Small-sided game', full_squad_game: 'Full squad game', cool_down: 'Cool-down' }
 export const levelRange = ([min, max]) => (min === max ? `Level ${min}` : `Levels ${min}–${max}`)
 export const playersText = ([min, , max]) => (min === max ? `${min} ${min === 1 ? 'player' : 'players'}` : `${min}–${max} players`)
 

@@ -2,8 +2,8 @@
 
 The account owns the team. It gets 16 synthetic players (U12, two goalkeepers, one who has left and one who has just
 joined), three periods of coach and self assessments, confirmed priorities and development plans (some players on
-their second cycle, with a check-in), a few liked drills, and training sessions: past ones with attendance and notes,
-and upcoming ones, one with a player already marked as not coming.
+their second cycle, with a check-in), a few liked drills, two session templates, and training sessions (some planned
+from the templates): past ones with attendance and notes, and upcoming ones, one with a player already marked as not coming.
 
 Rerunning replaces the team (and everything in it) with the same data again. The account itself is left alone, so
 create it first with `python -m app.admin create-user EMAIL`.
@@ -16,7 +16,7 @@ from datetime import date, timedelta
 from .database import SessionLocal
 from .matrix import starter_version
 from .models import (CycleCheckin, DevelopmentCycle, Drill, DrillVote, Membership, Period, Player, PlayerGroup, PlayerReport,
-                     PriorityConfirmation, Team, User, utcnow)
+                     PriorityConfirmation, SessionTemplate, Team, User, utcnow)
 from .routers.plans import save_generated
 from .routers.sessions import (AttendanceIn, AttendanceRow, BlockPatch, SessionIn, SessionPatch, change_block, create_session,
                                set_attendance, suggested_focus, update_session)
@@ -42,6 +42,10 @@ SESSION_NOTES = (
     "Wet pitch, so we cut the game short. Group B found the opposed drill hard.",
     "Best session in a while: lots of shots, and the keepers were busy.",
     "Quiet one with a few away. Kept it simple.",
+)
+TEMPLATES = (
+    ("Match prep", 75, {"warm_up": 15, "opposed": 20, "small_sided_game": 15, "full_squad_game": 20, "cool_down": 5}),
+    ("Technical night", 60, {"warm_up": 10, "technical": 30, "small_sided_game": 15, "cool_down": 5}),
 )
 BLOCK_NOTES = ("Made the area smaller halfway through.", "Needed more balls, so add a spare bag next time.")
 
@@ -135,13 +139,19 @@ def add_sessions(db, user: User, team: Team, period: Period, players: list[Playe
     rng = random.Random("demo/sessions")
     squad = [p.id for p in players if p.active]
     focus = [f["tag_id"] for f in suggested_focus(team.id, period.id, db, user)]
+    templates = [SessionTemplate(team_id=team.id, name=name, length_minutes=length, minutes=minutes, created_by=user.id, updated_by=user.id)
+                 for name, length, minutes in TEMPLATES]
+    db.add_all(templates)
+    db.commit()
     past, upcoming = training_days(today)
     for index, day in enumerate(past + upcoming):
         away = set(rng.sample(squad, rng.choice((0, 1, 2))))
         groups = index % 3 == 1
+        # Most sessions use the default breakdown; every other one uses one of the team's templates.
+        template = templates[index // 2 % 2] if index % 2 else None
         session = create_session(team.id, SessionIn(
             period_id=period.id, date=day, start_time="18:00" if day.weekday() == 1 else "18:30",
-            length=(60, 75, 90, 60)[index % 4], focus_tags=[focus[index % len(focus)]] + ([focus[(index + 1) % len(focus)]] if index % 2 else []),
+            length=None if template else (60, 75, 90, 60)[index % 4], template_id=template.id if template else None, focus_tags=[focus[index % len(focus)]] + ([focus[(index + 1) % len(focus)]] if index % 2 else []),
             player_ids=[pid for pid in squad if pid not in away], versions="groups" if groups else "single",
             group_count=3 if index % 6 == 4 else 2), db, user)
         if day < today:

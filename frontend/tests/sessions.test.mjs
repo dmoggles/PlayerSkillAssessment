@@ -29,3 +29,26 @@ test('the Sessions area is in the navigation and opens on the list', async () =>
   const noPeriod = renderToStaticMarkup(React.createElement(SessionsArea, { team: { id: 1, name: 'Falcons' }, period: null, players: [], onMessage: () => {} }))
   assert.match(noPeriod, /Add a period in Settings to plan sessions/)
 })
+
+test('a session template must add up to its length, and lists its parts in session order', async () => {
+  const { DEFAULT_BREAKDOWNS, breakdownText, templateProblems, templateTotal } = await loadJsx('src/sessionModel.js')
+  for (const [length, minutes] of Object.entries(DEFAULT_BREAKDOWNS)) assert.equal(templateTotal(minutes), Number(length))
+  assert.equal(breakdownText({ cool_down: 5, full_squad_game: 25, warm_up: '10', technical: '' }), 'Warm-up 10 · Full squad game 25 · Cool-down 5')
+  const draft = { name: 'Match prep', length: '60', minutes: { warm_up: '10', opposed: '20', full_squad_game: '25', cool_down: '5', technical: '' } }
+  assert.deepEqual(templateProblems(draft), [])
+  assert.deepEqual(templateProblems({ ...draft, length: '70' }), ['The parts add up to 60 of 70 minutes.'])
+  assert.deepEqual(templateProblems({ name: ' ', length: '10', minutes: { warm_up: '' } }),
+    ['Give the template a name.', 'The length is 15 to 150 minutes.', 'Give at least one part some minutes.'])
+})
+
+test('the templates view lists the team templates, and the editor counts the minutes', async () => {
+  const { TemplatesView } = await loadJsx('src/areas/SessionsArea.jsx')
+  const templates = [{ id: 1, name: 'Match prep', length: 60, minutes: { warm_up: 10, opposed: 25, full_squad_game: 25 }, used: 2 }]
+  const html = renderToStaticMarkup(React.createElement(TemplatesView, { team: { id: 1, name: 'Falcons' }, initial: templates, onBack: () => {}, onMessage: () => {} }))
+  assert.match(html, /Session templates/)
+  assert.match(html, /Match prep/)
+  assert.match(html, /60 min · Warm-up 10 · Opposed 25 · Full squad game 25 · used for 2 sessions/)
+  assert.match(html, /New template/)
+  const empty = renderToStaticMarkup(React.createElement(TemplatesView, { team: { id: 1, name: 'Falcons' }, initial: [], onBack: () => {}, onMessage: () => {} }))
+  assert.match(empty, /No templates yet/)
+})

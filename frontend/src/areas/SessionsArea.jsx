@@ -1,23 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
-import { addSessionBlock, createSession, deleteSession, deleteSessionBlock, errorMessage, getBlockAlternatives, getSession, getSessionFocus, getSessions, getSkillTags,
-  regenerateSession, setSessionAttendance, setSessionGroups, updateSession, updateSessionBlock } from '../api'
+import { addSessionBlock, createSession, createSessionTemplate, deleteSession, deleteSessionBlock, deleteSessionTemplate, errorMessage, getBlockAlternatives, getSession,
+  getSessionFocus, getSessions, getSessionTemplates, getSkillTags, regenerateSession, setSessionAttendance, setSessionGroups, updateSession, updateSessionBlock,
+  updateSessionTemplate } from '../api'
 import { DrillDialog } from '../DrillLibrary'
 import { AREA_LABELS } from '../drillModel'
-import { PHASE_NAMES, SESSION_LENGTHS, blockTimes, focusChip, sessionDate, splitSessions, versionLabel } from '../sessionModel'
+import { DEFAULT_BREAKDOWNS, PHASE_NAMES, SESSION_LENGTHS, blockTimes, breakdownText, focusChip, sessionDate, splitSessions, templateProblems, templateTotal,
+  versionLabel } from '../sessionModel'
 import { Section } from './DashboardParts'
 
 const tomorrow = () => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10) }
 
-// Sessions: the team's training sessions, planning a new one, and one session's plan.
+// Sessions: the team's training sessions, planning a new one, one session's plan, and the team's session templates.
 export default function SessionsArea({ team, period, players, onMessage }) {
   const [view, setView] = useState({ kind: 'list' })
   if (view.kind === 'new') return <NewSession team={team} period={period} players={players} onMessage={onMessage}
     onCancel={() => setView({ kind: 'list' })} onCreated={session => setView({ kind: 'session', id: session.id })} />
+  if (view.kind === 'templates') return <TemplatesView team={team} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
   if (view.kind === 'session') return <SessionView key={view.id} teamId={team.id} sessionId={view.id} players={players} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
-  return <SessionList team={team} period={period} onMessage={onMessage} onNew={() => setView({ kind: 'new' })} onOpen={id => setView({ kind: 'session', id })} />
+  return <SessionList team={team} period={period} onMessage={onMessage} onNew={() => setView({ kind: 'new' })} onOpen={id => setView({ kind: 'session', id })}
+    onTemplates={() => setView({ kind: 'templates' })} />
 }
 
-function SessionList({ team, period, onNew, onOpen, onMessage }) {
+function SessionList({ team, period, onNew, onOpen, onTemplates, onMessage }) {
   const [sessions, setSessions] = useState(null)
   useEffect(() => {
     let live = true
@@ -28,11 +32,14 @@ function SessionList({ team, period, onNew, onOpen, onMessage }) {
   const card = s => <li key={s.id}><button type="button" className="session-card" onClick={() => onOpen(s.id)}>
     <span className="session-card-date">{sessionDate(s.date, s.start_time)}</span>
     <strong>{s.title}</strong>
-    <span className="muted">{s.length} min · {s.focus.map(f => f.label).join(', ')} · {s.attended ? `${s.attended} came` : `${s.expected} expected`}{s.versions === 'groups' ? ' · level groups' : ''}</span>
+    <span className="muted">{s.length} min{s.template ? ` (${s.template.name})` : ''} · {s.focus.map(f => f.label).join(', ')} · {s.attended ? `${s.attended} came` : `${s.expected} expected`}{s.versions === 'groups' ? ' · level groups' : ''}</span>
   </button></li>
   return <Section title="Training sessions" description="Team sessions planned around what your players are working on">
-    {period ? <button type="button" className="primary-btn session-new" onClick={onNew}>Plan a session</button>
-      : <p className="muted">Add a period in Settings to plan sessions.</p>}
+    <div className="inline-row session-list-actions">
+      {period ? <button type="button" className="primary-btn session-new" onClick={onNew}>Plan a session</button>
+        : <p className="muted">Add a period in Settings to plan sessions.</p>}
+      <button type="button" className="session-new" onClick={onTemplates}>Templates</button>
+    </div>
     {sessions === null ? <p className="muted" role="status">Loading sessions…</p> : <>
       <h3 className="session-list-heading">Upcoming</h3>
       {upcoming.length ? <ul className="session-list">{upcoming.map(card)}</ul> : <p className="muted">No sessions planned.</p>}
@@ -46,6 +53,8 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
   const [date, setDate] = useState(tomorrow())
   const [time, setTime] = useState('')
   const [length, setLength] = useState(60)
+  const [templates, setTemplates] = useState([])
+  const [templateId, setTemplateId] = useState('')
   const [suggested, setSuggested] = useState(null)
   const [tags, setTags] = useState([])
   const [focus, setFocus] = useState(null)
@@ -57,12 +66,14 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
     let live = true
     getSessionFocus(team.id, period.id).then(value => { if (live) setSuggested(value) }).catch(() => { if (live) setSuggested([]) })
     getSkillTags().then(value => { if (live) setTags(value.filter(t => t.active)) }).catch(() => {})
+    getSessionTemplates(team.id).then(value => { if (live) setTemplates(value) }).catch(() => {})
     return () => { live = false }
   }, [team.id, period.id])
   // Until the coach changes it, the focus is the top suggestion.
   const chosen = focus ?? (suggested?.length ? [suggested[0].tag_id] : [])
   const labels = Object.fromEntries([...tags.map(t => [t.id, t.label]), ...(suggested ?? []).map(s => [s.tag_id, s.label])])
   const toggleFocus = id => setFocus(chosen.includes(id) ? chosen.filter(t => t !== id) : [...chosen, id].slice(0, 3))
+  const template = templates.find(t => String(t.id) === templateId)
   const togglePlayer = id => setExpected(previous => { const next = new Set(previous); if (next.has(id)) next.delete(id); else next.add(id); return next })
 
   async function submit(event) {
@@ -70,7 +81,8 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
     if (!chosen.length) { onMessage('Choose at least one focus for the session.'); return }
     setBusy(true)
     try {
-      onCreated(await createSession(team.id, { period_id: period.id, date, start_time: time || null, length: Number(length), focus_tags: chosen,
+      onCreated(await createSession(team.id, { period_id: period.id, date, start_time: time || null,
+        ...(template ? { template_id: template.id } : { length: Number(length) }), focus_tags: chosen,
         player_ids: [...expected], versions, group_count: Number(groupCount) }))
     } catch (e) { onMessage(errorMessage(e, 'Could not plan the session.')); setBusy(false) }
   }
@@ -80,8 +92,16 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
       <div className="session-form-row">
         <label className="field">Date<input type="date" required value={date} onChange={e => setDate(e.target.value)} /></label>
         <label className="field"><span>Start time <span className="muted">(optional)</span></span><input type="time" value={time} onChange={e => setTime(e.target.value)} /></label>
-        <label className="field">Length<select value={length} onChange={e => setLength(e.target.value)}>{SESSION_LENGTHS.map(m => <option key={m} value={m}>{m} minutes</option>)}</select></label>
       </div>
+      <div className="session-form-row">
+        <label className="field">Plan<select value={templateId} onChange={e => setTemplateId(e.target.value)}>
+          <option value="">Default for the length</option>
+          {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select></label>
+        {template ? <p className="field session-template-length">Length<strong>{template.length} minutes</strong></p>
+          : <label className="field">Length<select value={length} onChange={e => setLength(e.target.value)}>{SESSION_LENGTHS.map(m => <option key={m} value={m}>{m} minutes</option>)}</select></label>}
+      </div>
+      <p className="muted hint">{breakdownText(template ? template.minutes : DEFAULT_BREAKDOWNS[length])}{!templates.length && ' · Save your own breakdowns under Templates.'}</p>
 
       <fieldset className="session-focus"><legend>Focus</legend>
         <p className="muted hint">{suggested?.length ? "Suggested from what your players are working on. Choose up to three; the first counts most." : 'No priorities confirmed yet, so choose a focus.'}</p>
@@ -139,7 +159,7 @@ function SessionView({ teamId, sessionId, players, onBack, onMessage }) {
   }
   const replan = () => { if (window.confirm('Plan the session again? Blocks you chose or added are kept.')) change(() => regenerateSession(teamId, session.id)) }
 
-  return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes · ${session.expected} players expected`}>
+  return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes${session.template ? ` (${session.template.name})` : ''} · ${session.expected} players expected`}>
     <div className="session-actions no-print">
       <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
       <button type="button" onClick={replan}>Re-plan</button>
@@ -301,5 +321,83 @@ function GroupsEditor({ groups, onSave, onCancel }) {
       <select value={choice[p.id]} onChange={e => setChoice(c => ({ ...c, [p.id]: Number(e.target.value) }))}>{groups.map((g, i) => <option key={g.name} value={i}>{g.name}</option>)}</select></label>)}</div>
     <p className="muted hint">Blocks run in groups start again at each group's level.</p>
     <div className="inline-row"><button type="submit" className="primary-btn">Save groups</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>
+}
+
+const PARTS = Object.keys(PHASE_NAMES)
+const draftFrom = template => ({ name: template?.name ?? '', length: String(template?.length ?? 60),
+  minutes: Object.fromEntries(PARTS.map(p => [p, String((template ? template.minutes : DEFAULT_BREAKDOWNS[60])[p] ?? '')])) })
+
+// The team's session templates: a length and the minutes for each part, shared by the team's coaches.
+export function TemplatesView({ team, onBack, onMessage, initial = null }) {
+  const [templates, setTemplates] = useState(initial)
+  const [editing, setEditing] = useState(null)  // a template, or 'new'
+  useEffect(() => {
+    if (initial) return undefined
+    let live = true
+    getSessionTemplates(team.id).then(value => { if (live) setTemplates(value) }).catch(e => onMessage(errorMessage(e, 'Could not load the templates.')))
+    return () => { live = false }
+  }, [team.id, onMessage, initial])
+  const saved = template => {
+    setTemplates(list => [...(list ?? []).filter(t => t.id !== template.id), template].sort((a, b) => a.name.localeCompare(b.name)))
+    setEditing(null)
+  }
+  const remove = async template => {
+    const used = template.used ? ` The ${template.used === 1 ? 'session' : `${template.used} sessions`} planned with it stay as they are.` : ''
+    if (!window.confirm(`Delete the template ${template.name}?${used}`)) return
+    try {
+      onMessage((await deleteSessionTemplate(team.id, template.id)).message)
+      setTemplates(list => list.filter(t => t.id !== template.id))
+    } catch (e) { onMessage(errorMessage(e)) }
+  }
+  return <Section title="Session templates" description={`Your own breakdowns of a session for ${team.name}, shared by the team's coaches`}>
+    <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
+    {templates === null ? <p className="muted" role="status">Loading templates…</p> : <>
+      {templates.length === 0 && editing === null && <p className="muted">No templates yet. A template sets a session's length and how long each part takes; leave out the parts you don't want.</p>}
+      <ul className="session-list">{templates.map(t => <li key={t.id}>{editing?.id === t.id
+        ? <TemplateEditor teamId={team.id} template={t} onSaved={saved} onCancel={() => setEditing(null)} onMessage={onMessage} />
+        : <div className="session-card">
+          <strong>{t.name}</strong>
+          <span className="muted">{t.length} min · {breakdownText(t.minutes)}{t.used ? ` · used for ${t.used} ${t.used === 1 ? 'session' : 'sessions'}` : ''}</span>
+          <span className="inline-row"><button type="button" className="link-btn" onClick={() => setEditing(t)}>Edit</button>
+            <button type="button" className="link-btn danger-link" onClick={() => remove(t)}>Delete</button></span>
+        </div>}</li>)}</ul>
+      {editing === 'new' ? <TemplateEditor teamId={team.id} onSaved={saved} onCancel={() => setEditing(null)} onMessage={onMessage} />
+        : <button type="button" className="primary-btn session-new" onClick={() => setEditing('new')}>New template</button>}
+    </>}
+  </Section>
+}
+
+function TemplateEditor({ teamId, template = null, onSaved, onCancel, onMessage }) {
+  const [draft, setDraft] = useState(() => draftFrom(template))
+  const [busy, setBusy] = useState(false)
+  const problems = templateProblems(draft)
+  const total = templateTotal(draft.minutes)
+  const setPart = (part, value) => setDraft(d => ({ ...d, minutes: { ...d.minutes, [part]: value } }))
+  async function submit(event) {
+    event.preventDefault()
+    if (problems.length) return
+    const body = { name: draft.name.trim(), length: Number(draft.length),
+      minutes: Object.fromEntries(PARTS.filter(p => Number(draft.minutes[p]) > 0).map(p => [p, Number(draft.minutes[p])])) }
+    setBusy(true)
+    try { onSaved(template ? await updateSessionTemplate(teamId, template.id, body) : await createSessionTemplate(teamId, body)) }
+    catch (e) { onMessage(errorMessage(e, 'Could not save the template.')); setBusy(false) }
+  }
+  return <form className="session-form template-editor" onSubmit={submit}>
+    <div className="session-form-row">
+      <label className="field">Name<input required maxLength={60} value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="For example Match prep" /></label>
+      <label className="field">Length (minutes)<input type="number" inputMode="numeric" min={15} max={150} required value={draft.length} onChange={e => setDraft(d => ({ ...d, length: e.target.value }))} /></label>
+    </div>
+    <fieldset><legend>Minutes for each part <small className="muted">(leave a part empty to leave it out)</small></legend>
+      <div className="template-parts">{PARTS.map(p => <label key={p} className="field">{PHASE_NAMES[p]}
+        <input type="number" inputMode="numeric" min={0} max={90} placeholder="Not included" value={draft.minutes[p]} onChange={e => setPart(p, e.target.value)} /></label>)}</div>
+      <p className={total === Number(draft.length) ? 'muted' : 'status-pill warn-pill'} role="status">{total} of {Number(draft.length) || 0} minutes</p>
+    </fieldset>
+    {template?.used > 0 && <p className="muted hint">Sessions already planned with this template keep their breakdown.</p>}
+    {problems.length > 0 && <ul className="muted hint">{problems.map(p => <li key={p}>{p}</li>)}</ul>}
+    <div className="inline-row">
+      <button type="submit" className="primary-btn" disabled={busy || problems.length > 0}>{busy ? 'Saving…' : template ? 'Save changes' : 'Save template'}</button>
+      <button type="button" className="link-btn" onClick={onCancel}>Cancel</button>
+    </div>
   </form>
 }

@@ -1,6 +1,31 @@
 // Team training sessions: labels and the list's upcoming and past halves.
 export const SESSION_LENGTHS = [45, 60, 75, 90]
-export const PHASE_NAMES = { warm_up: 'Warm-up', technical: 'Technical', opposed: 'Opposed', small_sided_game: 'Small-sided game', cool_down: 'Cool-down' }
+export const PHASE_NAMES = { warm_up: 'Warm-up', technical: 'Technical', opposed: 'Opposed', small_sided_game: 'Small-sided game', full_squad_game: 'Full squad game', cool_down: 'Cool-down' }
+// The planner's default breakdown for each length (TEMPLATES in backend/app/sessions.py).
+export const DEFAULT_BREAKDOWNS = {
+  45: { warm_up: 8, technical: 12, opposed: 12, small_sided_game: 10, cool_down: 3 },
+  60: { warm_up: 10, technical: 15, opposed: 15, small_sided_game: 15, cool_down: 5 },
+  75: { warm_up: 10, technical: 20, opposed: 20, small_sided_game: 20, cool_down: 5 },
+  90: { warm_up: 12, technical: 20, opposed: 25, small_sided_game: 25, cool_down: 8 },
+}
+
+// "Warm-up 10 · Technical 20 · Cool-down 5": the parts a breakdown includes, in session order.
+export const breakdownText = minutes => Object.keys(PHASE_NAMES).filter(p => Number(minutes[p]) > 0).map(p => `${PHASE_NAMES[p]} ${Number(minutes[p])}`).join(' · ')
+
+export const templateTotal = minutes => Object.values(minutes).reduce((sum, m) => sum + (Number(m) || 0), 0)
+
+// What stops a template draft from being saved (the server checks the same).
+export function templateProblems({ name, length, minutes }) {
+  const problems = []
+  if (!name.trim()) problems.push('Give the template a name.')
+  const total = Number(length)
+  if (!Number.isInteger(total) || total < 15 || total > 150) problems.push('The length is 15 to 150 minutes.')
+  const parts = Object.values(minutes).filter(m => m !== '' && m !== null && m !== undefined).map(Number)
+  if (!parts.some(m => m > 0)) problems.push('Give at least one part some minutes.')
+  else if (parts.some(m => !Number.isInteger(m) || m < 0 || m > 90)) problems.push('Each part takes up to 90 minutes.')
+  else if (Number.isInteger(total) && templateTotal(minutes) !== total) problems.push(`The parts add up to ${templateTotal(minutes)} of ${total} minutes.`)
+  return problems
+}
 
 const today = () => new Date().toISOString().slice(0, 10)
 
