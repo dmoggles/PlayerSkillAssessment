@@ -178,7 +178,7 @@ def shared_report_drill(token: str, slug: str, db: DbSession = Depends(get_db)):
     report, player, period, team = open_shared_report(db, token)
     saved = current_plan(db, player.id, period.id)
     drill = db.query(Drill).filter_by(slug=slug, status="published").first()
-    if not saved or not drill or slug not in {s["drill"] for s in home_view(saved.plan)["slots"]}:
+    if not saved or not drill or drill.team_id not in (None, team.id) or slug not in {s["drill"] for s in home_view(saved.plan)["slots"]}:
         raise HTTPException(404, "Drill not found")
     return drill_out(db, drill, None)
 

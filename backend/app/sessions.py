@@ -9,7 +9,7 @@ Input:  {"length": 60,
          "drills": [{"slug", "title", "session_phase", "players": [min, ideal, max], "duration": [min, typical],
                      "tags": {tag_id: weight}, "ladder_tags": [tag_id],
                      "variations": [{"id", "kind", "title", "levels": [min, max]}],   # easiest first
-                     "my_vote": -1/0/1, "net_votes": int}],
+                     "my_vote": -1/0/1, "net_votes": int, "team": bool}],  # team: the team's own drill
          "recent": {slug: sessions ago (1 = the team's last session)},
          "in_plans": {slug: players who have it at training in their plans}}
 Output: {"planner": "sessions-v1",
@@ -116,6 +116,8 @@ def assess(drill: dict, phase: str, minutes: int, data: dict, longer: int = 0) -
         shorter = "technical and opposed practices are" if len(givers) > 1 else f"{givers[0]} practice is"
         reasons.append(f"Needs {low} minutes to be done properly, so the {shorter} a little shorter.")
     score -= abs(typical - minutes) / 5 + (2 if minutes < low else 0)
+    if drill.get("team"):
+        reasons.append("Your team's own drill.")
     if drill["my_vote"] > 0:
         score += 2
         reasons.append("You like this drill.")

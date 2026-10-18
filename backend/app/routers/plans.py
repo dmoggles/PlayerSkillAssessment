@@ -25,7 +25,7 @@ def _drill_data(drills, drill_tags, ladder_tags, variations, votes, tags) -> lis
              "ladder_tags": sorted(ladder_tags.get(d.id, set())),
              "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]}
                             for v in variations.get(d.id, [])],
-             "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"]}
+             "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"], "team": d.team_id is not None}
             for d in drills if variations.get(d.id)]
 
 
@@ -74,8 +74,8 @@ def planner_input(db: DbSession, team_id: int, player_id: int, period_id: int, s
     """Everything the planner needs, as plain data."""
     age_group, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
     labels = {s["id"]: s["label"] for section in document(db, period.matrix_version_id)["sections"] for s in section["skills"]}
-    drills = _drill_data(*_library(db, age_group, user))
-    catalog = {d["slug"]: d for d in _drill_data(*_library(db, None, user))}  # any drill a coach may choose
+    drills = _drill_data(*_library(db, age_group, user, team_id))
+    catalog = {d["slug"]: d for d in _drill_data(*_library(db, None, user, team_id))}  # any drill a coach may choose
     cycle = current_cycle(db, player_id, period_id)
     saved = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first() if cycle else None
     return {

@@ -316,7 +316,8 @@ class MatrixDraft(Base):
 
 
 class Drill(Base):
-    """One drill in the shared library (curated by app admins, loaded from data files)."""
+    """One drill: in the shared library (curated by app admins, loaded from data files), or a team's own, written by
+    its coaches (team_id set, source_version "team"; the loader never touches these)."""
     __tablename__ = "drills"
     id: Mapped[int] = mapped_column(primary_key=True)
     slug: Mapped[str] = mapped_column(String(80), unique=True)
@@ -343,8 +344,30 @@ class Drill(Base):
     # How to run a home drill indoors (soft ball, household items), shown as its own section.
     indoors: Mapped[str | None] = mapped_column(Text)
     source_version: Mapped[str | None] = mapped_column(String(40))
+    team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id", ondelete="CASCADE"), index=True)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class DrillSubmission(Base):
+    """A team drill offered to the shared library. Accepting it reserves a library slug; it is published when a data
+    file with that slug is loaded, after an admin has written it up with diagrams like any library drill."""
+    __tablename__ = "drill_submissions"
+    __table_args__ = (CheckConstraint("status IN ('pending', 'accepted', 'declined', 'published')", name="ck_drill_submissions_status"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), index=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id", ondelete="CASCADE"), index=True)
+    submitted_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    note: Mapped[str] = mapped_column(String(1000), default="")
+    status: Mapped[str] = mapped_column(String(10), default="pending")
+    reason: Mapped[str] = mapped_column(String(1000), default="")
+    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    library_slug: Mapped[str | None] = mapped_column(String(80), unique=True)
+    library_drill_id: Mapped[int | None] = mapped_column(ForeignKey("drills.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class DrillTag(Base):

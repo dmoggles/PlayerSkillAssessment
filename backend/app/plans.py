@@ -8,7 +8,8 @@ Input:  {"weeks": 4,
          "drills": [{"slug", "title", "home_friendly", "duration": [min, typical], "tags": {tag_id: weight},
                      "tag_labels": {tag_id: label}, "ladder_tags": [tag_id],
                      "variations": [{"id", "kind", "title", "levels": [min, max]}],  # easiest first
-                     "my_vote": -1/0/1, "net_votes": int}],      # candidates: the player's age group, published
+                     "my_vote": -1/0/1, "net_votes": int, "team": bool}],  # candidates: the player's age group,
+                                                                                # published; team: the team's own drill
          "catalog": {slug: drill},                                # optional: any drill a coach may pin
          "history": [{"drill", "skill_id", "slot", "cycles_ago": 1.., "last_index": int, "checkin": trend|None}],
          "squad": {skill_id: {slug: teammates using it at training}},
@@ -65,6 +66,8 @@ def assess(priority: dict, slot: str, drill: dict, data: dict) -> dict:
     score = 10 * s + 3 * drill["my_vote"] + 0.2 * max(-5, min(5, drill["net_votes"]))
     if drill["my_vote"] == 1:
         notes.append("liked")
+    if drill.get("team"):
+        notes.append("your team's own drill")
     if follows(priority, drill) and priority["level"] is not None:
         low, high = drill["variations"][0]["levels"][0], drill["variations"][-1]["levels"][1]
         score += 1 if low <= priority["level"] <= high else -1

@@ -231,6 +231,63 @@ def _sync(db: DbSession, model, drill_id: int, rows: list[dict]) -> list:
     return out
 
 
+def apply_row(db: DbSession, drill: Drill, r: dict, version: str, variations_by_kind: bool = False):
+    """Set a drill's fields, tags, media and variations from a checked data row (links are the loader's job).
+
+    Media and variations are updated in place, so their ids stay the same from one save to the next: saved plans
+    and sessions point at variation ids. The loader matches them by position; a team drill, whose easier and harder
+    versions come and go, matches variations by kind (it has at most one of each). Extra rows are removed."""
+    (drill.players_min, drill.players_ideal, drill.players_max), (drill.age_min, drill.age_max) = r["players"], r["ages"]
+    drill.duration_min, drill.duration_typical = r["duration"]
+    drill.space_width_m, drill.space_length_m = r.get("space") or (None, None)
+    for key in ("title", "format", "session_phase", "intensity"):
+        setattr(drill, key, r[key])
+    drill.summary, drill.setup = r.get("summary", ""), r.get("setup", "")
+    drill.indoors = r.get("indoors")
+    drill.equipment, drill.instructions, drill.coaching_points = r.get("equipment", []), r.get("instructions", []), r.get("coaching_points", [])
+    drill.home_friendly, drill.status = r.get("home_friendly", False), r.get("status", "published")
+    drill.source_version, drill.updated_at = version, utcnow()
+    db.flush()
+    db.query(DrillTag).filter_by(drill_id=drill.id).delete()
+    ladder = set(r["tags"] if r.get("ladder_tags") is None else r["ladder_tags"])
+    db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight, on_ladder=tag in ladder) for tag, weight in r["tags"].items())
+    media = _sync(db, DrillMedia, drill.id, [dict(kind=m["kind"], caption=m.get("caption", ""), url=m.get("url"),
+                  video_start_seconds=m.get("start_seconds"), diagram=m.get("diagram")) for m in r.get("media", [])])
+    variations = [dict(kind=v["kind"], title=v["title"], change=v.get("change", ""),
+                       level_min=v["levels"][0], level_max=v["levels"][1],
+                       diagram_media_id=media[v["diagram"]].id if "diagram" in v else None,
+                       video_media_id=media[v["video"]].id if "video" in v else None,
+                       setup=v.get("setup"), equipment=v.get("equipment"), instructions=v.get("instructions"),
+                       coaching_points=v.get("coaching_points"),
+                       players_min=v["players"][0] if "players" in v else None,
+                       players_ideal=v["players"][1] if "players" in v else None,
+                       players_max=v["players"][2] if "players" in v else None,
+                       space_width_m=v["space"][0] if "space" in v else None,
+                       space_length_m=v["space"][1] if "space" in v else None) for v in r["variations"]]
+    if variations_by_kind:
+        _sync_by_kind(db, drill.id, variations)
+    else:
+        _sync(db, DrillVariation, drill.id, variations)
+
+
+def _sync_by_kind(db: DbSession, drill_id: int, rows: list[dict]):
+    """Make a drill's variations match `rows` (at most one of each kind), keeping each kind's row and id."""
+    existing = {v.kind: v for v in db.query(DrillVariation).filter_by(drill_id=drill_id)}
+    wanted = {values["kind"] for values in rows}
+    for kind, row in existing.items():
+        if kind not in wanted:
+            db.delete(row)
+        else:
+            row.position = -row.position - 1  # out of the way of the new positions (they are unique per drill)
+    db.flush()
+    for i, values in enumerate(rows):
+        row = existing.get(values["kind"]) or DrillVariation(drill_id=drill_id)
+        for key, value in {**values, "position": i + 1}.items():
+            setattr(row, key, value)
+        db.add(row)
+    db.flush()
+
+
 def load_file(db: DbSession, path: Path) -> dict:
     """Apply one data file: insert or update its drills by slug and retire the ones it no longer lists."""
     data = json.loads(path.read_text())
@@ -239,6 +296,7 @@ def load_file(db: DbSession, path: Path) -> dict:
     slugs = [r.get("slug") for r in rows]
     problems = [f"{r.get('slug')}: {problem}" for r in rows for problem in drill_problems(r, active)]
     problems += [f"duplicate slug {s}" for s in {s for s in slugs if slugs.count(s) > 1}]
+    problems += [f"{d.slug}: belongs to a team's own drill" for d in db.query(Drill).filter(Drill.slug.in_(slugs), Drill.team_id.isnot(None))]
     for r in rows:
         problems += [f"{r['slug']}: link to unknown drill {link.get('to')}" for link in r.get("links", [])
                      if link.get("to") not in slugs and not db.query(Drill).filter_by(slug=link.get("to")).first()]
@@ -252,36 +310,8 @@ def load_file(db: DbSession, path: Path) -> dict:
         if not drill:
             drill = Drill(slug=r["slug"], created_at=utcnow())
             db.add(drill)
-        (drill.players_min, drill.players_ideal, drill.players_max), (drill.age_min, drill.age_max) = r["players"], r["ages"]
-        drill.duration_min, drill.duration_typical = r["duration"]
-        drill.space_width_m, drill.space_length_m = r.get("space") or (None, None)
-        for key in ("title", "format", "session_phase", "intensity"):
-            setattr(drill, key, r[key])
-        drill.summary, drill.setup = r.get("summary", ""), r.get("setup", "")
-        drill.indoors = r.get("indoors")
-        drill.equipment, drill.instructions, drill.coaching_points = r.get("equipment", []), r.get("instructions", []), r.get("coaching_points", [])
-        drill.home_friendly, drill.status = r.get("home_friendly", False), r.get("status", "published")
-        drill.source_version, drill.updated_at = version, utcnow()
-        db.flush()
-        db.query(DrillTag).filter_by(drill_id=drill.id).delete()
+        apply_row(db, drill, r, version)
         db.query(DrillLink).filter_by(from_drill_id=drill.id).delete()
-        ladder = set(r["tags"] if r.get("ladder_tags") is None else r["ladder_tags"])
-        db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight, on_ladder=tag in ladder) for tag, weight in r["tags"].items())
-        # Media and variations are updated in place by position, so their ids stay the same from one load to the
-        # next: saved plans point at variation ids. Extra rows at the end are removed.
-        media = _sync(db, DrillMedia, drill.id, [dict(kind=m["kind"], caption=m.get("caption", ""), url=m.get("url"),
-                      video_start_seconds=m.get("start_seconds"), diagram=m.get("diagram")) for m in r.get("media", [])])
-        _sync(db, DrillVariation, drill.id, [dict(kind=v["kind"], title=v["title"], change=v.get("change", ""),
-              level_min=v["levels"][0], level_max=v["levels"][1],
-              diagram_media_id=media[v["diagram"]].id if "diagram" in v else None,
-              video_media_id=media[v["video"]].id if "video" in v else None,
-              setup=v.get("setup"), equipment=v.get("equipment"), instructions=v.get("instructions"),
-              coaching_points=v.get("coaching_points"),
-              players_min=v["players"][0] if "players" in v else None,
-              players_ideal=v["players"][1] if "players" in v else None,
-              players_max=v["players"][2] if "players" in v else None,
-              space_width_m=v["space"][0] if "space" in v else None,
-              space_length_m=v["space"][1] if "space" in v else None) for v in r["variations"]])
         by_slug[r["slug"]] = (drill, r)
     db.flush()
     for drill, r in by_slug.values():

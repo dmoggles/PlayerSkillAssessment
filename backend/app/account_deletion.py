@@ -3,7 +3,7 @@ who saved an assessment or plan is cleared, and activity logs say "a deleted acc
 from sqlalchemy import or_
 from sqlalchemy.orm import Session as DbSession
 from .models import (AccessRequest, Assessment, AssessmentRevision, AuditEvent, AuthToken, CycleCheckin, DevelopmentCycle,
-                     DrillVideoSuggestion, DrillVote, MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, Session, SessionTemplate, Team, TrainingSession, User)
+                     Drill, DrillSubmission, DrillVideoSuggestion, DrillVote, MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, Session, SessionTemplate, Team, TrainingSession, User)
 
 DELETED_ACCOUNT = "a deleted account"
 AUTHORED = ((Assessment, "updated_by"), (AssessmentRevision, "editor_id"), (DevelopmentCycle, "created_by"),
@@ -11,7 +11,8 @@ AUTHORED = ((Assessment, "updated_by"), (AssessmentRevision, "editor_id"), (Deve
             (MatrixVersion, "created_by"), (MatrixDraft, "updated_by"),
             (DrillVideoSuggestion, "suggested_by"), (DrillVideoSuggestion, "reviewed_by"), (AccessRequest, "handled_by"),
             (TrainingSession, "created_by"), (TrainingSession, "updated_by"),
-            (SessionTemplate, "created_by"), (SessionTemplate, "updated_by"))
+            (SessionTemplate, "created_by"), (SessionTemplate, "updated_by"),
+            (Drill, "created_by"), (Drill, "updated_by"), (DrillSubmission, "submitted_by"), (DrillSubmission, "reviewed_by"))
 
 
 def teams_needing_another_owner(db: DbSession, user: User) -> list[str]:

@@ -1,16 +1,29 @@
-"""The shared drill library, read by any signed-in coach."""
+"""The shared drill library, read by any signed-in coach, and each team's own drills, seen only by its coaches."""
 from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, model_validator
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import version_tags
-from ..models import utcnow, Assessment, Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
+from ..models import utcnow, Assessment, Drill, DrillSubmission, Membership, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
 from .video_suggestions import approved_videos
 
 router = APIRouter(tags=["drills"])
+
+
+def visible_drills(db: DbSession, team_id: int | None = None):
+    """Published drills: the shared library, plus this team's own when a team is given (the caller checks membership)."""
+    return db.query(Drill).filter(Drill.status == "published", or_(Drill.team_id.is_(None), Drill.team_id == team_id) if team_id else Drill.team_id.is_(None))
+
+
+def drill_for(db: DbSession, slug: str, user: User) -> Drill:
+    """A published drill by slug: a library drill, or a team's own when the user coaches that team. Otherwise 404."""
+    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
+    if not drill or (drill.team_id and not db.query(Membership).filter_by(team_id=drill.team_id, user_id=user.id).first()):
+        raise HTTPException(404, "Drill not found")
+    return drill
 
 
 def _tags(db: DbSession, drill_ids: list[int]) -> dict[int, list[dict]]:
@@ -38,12 +51,15 @@ def summary(drill: Drill, tags: list[dict], levels: tuple[int, int], votes: dict
             "duration": [drill.duration_min, drill.duration_typical], "session_phase": drill.session_phase,
             "intensity": drill.intensity, "home_friendly": drill.home_friendly, "tags": tags,
             "equipment_items": sorted({e["item"] for e in drill.equipment}),
-            "levels": list(levels), "votes": votes}
+            "levels": list(levels), "votes": votes, "team_id": drill.team_id}
 
 
 @router.get("/drills")
-def list_drills(db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    drills = db.query(Drill).filter_by(status="published").order_by(Drill.title).all()
+def list_drills(team_id: int | None = None, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The library; with a team, that team's own drills too."""
+    if team_id is not None:
+        require_member(team_id, db, user)
+    drills = visible_drills(db, team_id).order_by(Drill.title).all()
     ids = [d.id for d in drills]
     levels = {drill_id: (lo, hi) for drill_id, lo, hi in db.query(
         DrillVariation.drill_id, func.min(DrillVariation.level_min), func.max(DrillVariation.level_max)).filter(
@@ -54,10 +70,7 @@ def list_drills(db: DbSession = Depends(get_db), user: User = Depends(current_us
 
 @router.get("/drills/{slug}")
 def drill_detail(slug: str, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
-    if not drill:
-        raise HTTPException(404, "Drill not found")
-    return drill_out(db, drill, user)
+    return drill_out(db, drill_for(db, slug, user), user)
 
 
 def drill_out(db: DbSession, drill: Drill, user: User | None) -> dict:
@@ -82,7 +95,18 @@ def drill_out(db: DbSession, drill: Drill, user: User | None) -> dict:
             "media": [{"id": m.id, "kind": m.kind, "caption": m.caption, "url": m.url, "start_seconds": m.video_start_seconds,
                        "diagram": m.diagram} for m in media],
             "suggested_videos": approved_videos(db, drill.id),
-            "links": [{"slug": d.slug, "title": d.title, "relation": link.relation} for link, d in links] if user else []}
+            "links": [{"slug": d.slug, "title": d.title, "relation": link.relation} for link, d in links] if user else [],
+            "team_id": drill.team_id, "submission": submission_out(db, drill) if user and drill.team_id else None}
+
+
+def submission_out(db: DbSession, drill: Drill) -> dict | None:
+    """Where the team drill's latest offer to the shared library stands."""
+    s = db.query(DrillSubmission).filter_by(drill_id=drill.id).order_by(DrillSubmission.id.desc()).first()
+    if not s:
+        return None
+    library = db.get(Drill, s.library_drill_id) if s.library_drill_id else None
+    return {"id": s.id, "status": s.status, "note": s.note, "reason": s.reason, "created_at": s.created_at,
+            "library": {"slug": library.slug, "title": library.title} if library and library.status == "published" else None}
 
 
 DislikeReason = Literal["too_advanced", "too_easy", "unclear", "equipment_or_space", "did_not_work", "other"]
@@ -102,9 +126,7 @@ class VoteIn(BaseModel):
 @router.put("/drills/{slug}/vote")
 def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """Like or dislike a drill. Each coach has one vote per drill; totals are shared, the vote itself is private."""
-    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
-    if not drill:
-        raise HTTPException(404, "Drill not found")
+    drill = drill_for(db, slug, user)
     existing = db.get(DrillVote, (user.id, drill.id))
     if payload.vote == 0:
         if existing:
@@ -120,10 +142,10 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
 SUGGESTIONS_PER_SKILL = 3
 
 
-def _library(db: DbSession, age_group: int | None, user: User):
+def _library(db: DbSession, age_group: int | None, user: User, team_id: int | None = None):
     """Published drills for an age group (all of them when it is not known), with their tags, ladder tags,
-    variations, votes and tag labels."""
-    drills = db.query(Drill).filter_by(status="published").all()
+    variations, votes and tag labels. With a team, its own drills are included."""
+    drills = visible_drills(db, team_id).all()
     if age_group:
         drills = [d for d in drills if d.age_min <= age_group <= d.age_max]
     ids = [d.id for d in drills]
@@ -168,9 +190,9 @@ def drill_suggestions(team_id: int, player_id: int, period_id: int, skills: list
     A drill matches through the tags it shares with the skill. The coach's own dislikes are left out, their likes
     come first; then the strength of the match and the other coaches' votes decide. Drills outside the player's
     playing group in that period are left out."""
-    team, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
+    age_group, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
 
-    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, team, user)
+    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, age_group, user, team_id)
 
     out = {}
     for skill_id in dict.fromkeys(skills):

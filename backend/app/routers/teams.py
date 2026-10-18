@@ -6,7 +6,7 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User, SessionAttendance, SessionTemplate, TrainingSession
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User, SessionAttendance, SessionTemplate, TrainingSession, Drill
 from .. import invites
 from .accounts import delivery_message
 
@@ -147,6 +147,8 @@ def delete_team(team_id: int, body: TeamDelete, db: DbSession = Depends(get_db),
     purge_assessment_data(db, player_ids=player_ids)
     db.query(TrainingSession).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(SessionTemplate).filter_by(team_id=team_id).delete(synchronize_session=False)
+    # The team's own drills go too (their versions, votes and submissions cascade). Library drills never belong to a team.
+    db.query(Drill).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Player).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(Period).filter_by(team_id=team_id).delete(synchronize_session=False)
     db.query(MatrixDraft).filter_by(team_id=team_id).delete(synchronize_session=False)

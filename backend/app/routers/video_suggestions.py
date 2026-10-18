@@ -50,7 +50,8 @@ def mine_out(suggestion: DrillVideoSuggestion, drill: Drill, variation: DrillVar
 
 @router.post("/drills/{slug}/video-suggestions", response_model=MySuggestion, status_code=201)
 def suggest_video(slug: str, body: SuggestionIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    drill = db.query(Drill).filter_by(slug=slug, status="published").first()
+    # Library drills only: a team adds a video to its own drill by editing it.
+    drill = db.query(Drill).filter_by(slug=slug, status="published", team_id=None).first()
     if not drill:
         raise HTTPException(404, "Drill not found")
     variation = None

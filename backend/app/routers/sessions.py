@@ -53,14 +53,14 @@ def _tag_labels(db: DbSession, tag_ids) -> dict[str, str]:
     return {t.id: t.label for t in db.query(SkillTag).filter(SkillTag.id.in_(list(tag_ids) or ["_"]))}
 
 
-def _drills_for_planner(db: DbSession, age_group: int | None, user: User) -> list[dict]:
-    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, age_group, user)
+def _drills_for_planner(db: DbSession, age_group: int | None, user: User, team_id: int) -> list[dict]:
+    drills, drill_tags, ladder_tags, variations, votes, tags = _library(db, age_group, user, team_id)
     return [{"slug": d.slug, "title": d.title, "session_phase": d.session_phase,
              "players": [d.players_min, d.players_ideal, d.players_max], "duration": [d.duration_min, d.duration_typical],
              "tags": drill_tags.get(d.id, {}), "tag_labels": {t["id"]: t["label"] for t in tags.get(d.id, [])},
              "ladder_tags": sorted(ladder_tags.get(d.id, set())),
              "variations": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]} for v in variations.get(d.id, [])],
-             "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"]}
+             "my_vote": votes[d.id]["mine"], "net_votes": votes[d.id]["likes"] - votes[d.id]["dislikes"], "team": d.team_id is not None}
             for d in drills if variations.get(d.id)]
 
 
@@ -107,7 +107,7 @@ def _planner_data(db: DbSession, team_id: int, period, focus: list[str], group_i
     player_ids = [pid for ids in group_ids for pid in ids]
     levels = _levels(db, period, player_ids, focus[0])
     return {"length": length, "minutes": minutes, "focus": focus, "groups": [{"levels": [levels[pid] for pid in ids]} for ids in group_ids],
-            "drills": _drills_for_planner(db, _age_group(db, period.id, player_ids), user),
+            "drills": _drills_for_planner(db, _age_group(db, period.id, player_ids), user, team_id),
             "recent": _recent(db, team_id, on, exclude), "in_plans": _in_plans(db, period.id, player_ids)}
 
 
