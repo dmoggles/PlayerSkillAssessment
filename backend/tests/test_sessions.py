@@ -44,6 +44,9 @@ def test_drills_are_chosen_for_focus_size_votes_and_variety():
     small = drill("pairs", "technical", players=(2, 2, 4))
     assert pick([small]) == "pairs" and "two of these side by side" in sessions.plan(data([small]))["blocks"][1]["reasons"][-1]
     assert pick([drill("tiny", "technical", players=(1, 1, 3))]) is None  # 8 is more than two set-ups
+    # Drills for one or two players are home practice, even when a small group could run two of them.
+    home = drill("wall-passes", "technical", players=(1, 1, 2))
+    assert sessions.plan(data([home], groups=((3, 3, 3, 3),)))["blocks"][1]["drill"] is None
     keeper = drill("keeper", "technical", tags={"gk_shot_stopping": 1.0})
     assert pick([keeper]) is None  # not for an outfield focus
     assert sessions.plan({**data([keeper]), "focus": ["gk_shot_stopping"]})["blocks"][1]["drill"] == "keeper"
