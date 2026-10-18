@@ -14,8 +14,8 @@ export default function InviteLink({ invite, days, onDone }) {
     <p><strong>{invite.emailed ? `Invitation emailed to ${invite.email}.` : `The email to ${invite.email} couldn't be sent.`}</strong> {invite.emailed ? 'You can also send the link yourself:' : 'The invitation is ready: send this link yourself.'}</p>
     <div className="issued-link">
       <input readOnly aria-label={`Invitation link for ${invite.email}`} value={invite.link} onFocus={e => e.target.select()} />
-      <button type="button" onClick={copy}>{copied ? 'Copied' : 'Copy link'}</button>
-      {canShare && <button type="button" onClick={share}>Share…</button>}
+      <button className="primary-btn" type="button" onClick={copy}>{copied ? 'Copied' : 'Copy link'}</button>
+      {canShare && <button className="secondary-btn" type="button" onClick={share}>Share…</button>}
     </div>
     <p className="muted">Only {invite.email} can use it, once, within {days} days. It won't be shown again; invite them again for a new link.</p>
     <button type="button" className="link-btn" onClick={onDone}>Done</button>

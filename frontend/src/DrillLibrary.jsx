@@ -15,7 +15,7 @@ export function DrillLibrarySummary({ onOpen }) {
   }, [])
   return <div className="matrix-card">
     <p>{count === null ? 'Loading…' : count === false ? 'Could not load the drill library.' : `${count} ${count === 1 ? 'drill' : 'drills'}, each tagged to skills with easier and harder variations.`}</p>
-    <button type="button" onClick={onOpen}>Browse drill library</button>
+    <button className="secondary-btn" type="button" onClick={onOpen}>Browse drill library</button>
   </div>
 }
 
@@ -203,8 +203,8 @@ export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen
       : s.status === 'declined' ? `Not added to the shared library${s.reason ? `: ${s.reason}` : '.'}`
       : <>Now in the shared library{s.library ? <> as <button type="button" className="link-btn" onClick={() => onOpen(s.library.slug)}>{s.library.title}</button></> : ''}.</>}</p>}
     {onEdit && <div className="inline-row">
-      <button type="button" onClick={() => onEdit(drill)}>Edit</button>
-      {canOffer && !offering && <button type="button" onClick={() => setOffering(true)}>Submit to the shared library</button>}
+      <button className="secondary-btn" type="button" onClick={() => onEdit(drill)}>Edit</button>
+      {canOffer && !offering && <button className="secondary-btn" type="button" onClick={() => setOffering(true)}>Submit to the shared library</button>}
       <button type="button" className="danger-btn" onClick={remove}>Delete</button>
     </div>}
     {offering && <form className="team-drill-offer" onSubmit={submit}>
@@ -236,7 +236,7 @@ export function VideoLink({ video }) {
   if (!embed) return <p><a href={video.url} target="_blank" rel="noreferrer">{video.caption || 'Watch the video'}</a></p>
   return <section className="drill-video">
     <div className="drill-video-head">
-      <button type="button" aria-expanded={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Close video' : '▶ Play video'}</button>
+      <button className="secondary-btn" type="button" aria-expanded={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Close video' : '▶ Play video'}</button>
       {video.forVariation && <span className="status-pill warn-pill variation-changed">For this variation</span>}
       {video.suggested && <span className="status-pill muted-pill">Suggested by a coach</span>}
       {video.caption && <p>{video.caption}</p>}

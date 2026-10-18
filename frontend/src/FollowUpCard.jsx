@@ -18,7 +18,7 @@ export default function FollowUpCard({ matrix, followUp, chosen = new Set(), can
       </div>
       {onKeep && !['improved', 'retired'].includes(item.trend) && (chosen.has(item.skill_id)
         ? <span className="follow-up-kept">In this period</span>
-        : <button type="button" disabled={!canKeep(item.skill_id)} title={canKeep(item.skill_id) ? undefined : 'Not available for the current position or assessment'} onClick={() => onKeep(item.skill_id)}>Keep</button>)}
+        : <button className="secondary-btn" type="button" disabled={!canKeep(item.skill_id)} title={canKeep(item.skill_id) ? undefined : 'Not available for the current position or assessment'} onClick={() => onKeep(item.skill_id)}>Keep</button>)}
     </li>)}</ol>
   </section>
 }

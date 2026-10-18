@@ -39,7 +39,7 @@ function SessionList({ team, period, onNew, onOpen, onTemplates, onMessage }) {
     <div className="inline-row session-list-actions">
       {period ? <button type="button" className="primary-btn session-new" onClick={onNew}>Plan a session</button>
         : <p className="muted">Add a period in Settings to plan sessions.</p>}
-      <button type="button" className="session-new" onClick={onTemplates}>Templates</button>
+      <button type="button" className="secondary-btn session-new" onClick={onTemplates}>Templates</button>
     </div>
     {sessions === null ? <p className="muted" role="status">Loading sessions…</p> : <>
       <h3 className="session-list-heading">Upcoming</h3>
@@ -172,8 +172,8 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
   return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes${session.template ? ` (${session.template.name})` : ''} · ${session.expected} players expected`}>
     <div className="session-actions no-print">
       <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
-      <button type="button" onClick={replan}>Re-plan</button>
-      <button type="button" onClick={() => window.print()}>Print</button>
+      <button className="secondary-btn" type="button" onClick={replan}>Re-plan</button>
+      <button className="secondary-btn" type="button" onClick={() => window.print()}>Print</button>
       <button type="button" className="danger-btn" onClick={remove}>Delete</button>
     </div>
     <p className="session-focus-pills">{session.focus.map(f => <span key={f.tag_id} className="status-pill info-pill">{f.label}</span>)}

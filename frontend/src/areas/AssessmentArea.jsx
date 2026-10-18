@@ -39,11 +39,11 @@ export default function AssessmentArea({ team, player, period, matrix, form, rev
         </fieldset>
         {carried.length > 0 && <div className="carried-banner" role="status">
           <span><strong>{carried.length} {carried.length === 1 ? 'rating is' : 'ratings are'} carried from last period.</strong> Review each one: change it, or press Keep if it still holds. Carried ratings stay marked until then.</span>
-          {!readOnly && <button type="button" onClick={() => form.setCarried([])}>Mark all as reviewed</button>}
+          {!readOnly && <button className="secondary-btn" type="button" onClick={() => form.setCarried([])}>Mark all as reviewed</button>}
         </div>}
         <div className="desktop-assessment">
           <SkillForm matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={setNote} readOnly={readOnly} onChange={form.rate} carried={carried} onKeepCarried={form.keepCarried} />
-          {!readOnly && <button className="submit-btn">Save assessment</button>}
+          {!readOnly && <button className="primary-btn submit-btn">Save assessment</button>}
         </div>
         <MobileAssessment matrix={matrix} position={skillSetFor(position)} ratings={ratings} notes={notes} onNoteChange={setNote} readOnly={readOnly} onChange={form.rate} carried={carried} onKeepCarried={form.keepCarried} />
       </form>
@@ -63,11 +63,11 @@ function SelfLinkSection({ teamId, playerId, periodId, onMessage }) {
     try { await revokeSelfLink(teamId, playerId, periodId); setLink(''); onMessage('Link revoked.') } catch (e) { onMessage(errorMessage(e)) }
   }
   return <Section title="Player self-assessment" description="Share a one-time link for this player and period">
-    <div className="inline-row"><button type="button" onClick={make}>Create link</button><button type="button" onClick={revoke}>Revoke link</button></div>
+    <div className="inline-row"><button className="primary-btn" type="button" onClick={make}>Create link</button><button className="danger-btn" type="button" onClick={revoke}>Revoke link</button></div>
     {link && <div className="field link-field">
       <label>Copy this link now; it will not be shown again</label>
       <input readOnly value={link} onFocus={e => e.target.select()} />
-      <button type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button>
+      <button className="secondary-btn" type="button" onClick={() => navigator.clipboard.writeText(link)}>Copy link</button>
     </div>}
   </Section>
 }

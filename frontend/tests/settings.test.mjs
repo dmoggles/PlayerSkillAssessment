@@ -28,7 +28,7 @@ test('mobile Settings has an account sign-out control', async () => {
   assert.match(html, /Change password/)
   assert.match(html, /Delete account…/)
   assert.match(html, /<p class="app-version">Version local<\/p>/)
-  assert.match(html, /<section class="panel dashboard-panel settings-account">[\s\S]*?coach@example\.com[\s\S]*?<button type="button">Sign out<\/button>/)
+  assert.match(html, /<section class="panel dashboard-panel settings-account">[\s\S]*?coach@example\.com[\s\S]*?<button class="secondary-btn" type="button">Sign out<\/button>/)
 })
 
 test('self-assessment board summarises statuses and copies new links as one list', async () => {

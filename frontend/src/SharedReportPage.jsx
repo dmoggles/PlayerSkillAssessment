@@ -25,7 +25,7 @@ export default function SharedReportPage() {
   return <div className="page public-page shared-report-page">
     {error ? <section className="public-card"><h1>Player report</h1><p role="alert">{error}</p></section>
       : !report ? <p className="muted" role="status">Loading report…</p>
-        : <><div className="shared-report-actions"><button type="button" onClick={() => window.print()}>Print or save as PDF</button></div>
+        : <><div className="shared-report-actions"><button className="primary-btn" type="button" onClick={() => window.print()}>Print or save as PDF</button></div>
           <PlayerReport report={report} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
           {drillError && <p className="error" role="alert">{drillError}</p>}
           {openDrill && <DrillDialog drill={openDrill} loadDrill={loadDrill} onMessage={setDrillError} onClose={() => setOpenDrill(null)} />}</>}

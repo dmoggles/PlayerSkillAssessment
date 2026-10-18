@@ -35,13 +35,13 @@ export default function SiteAdminSection({ onMessage }) {
     <AccessRequestsList onMessage={onMessage} onInvited={sent => setInvites(previous => [sent, ...(previous ?? []).filter(i => i.email !== sent.email)])} />
     <form className="inline-row" onSubmit={send}>
       <input type="email" aria-label="New coach's email" placeholder="New coach's email" required value={email} onChange={e => setEmail(e.target.value)} />
-      <button disabled={busy}>{busy ? 'Sending…' : 'Invite new club'}</button>
+      <button className="primary-btn" disabled={busy}>{busy ? 'Sending…' : 'Invite new club'}</button>
     </form>
     {newInvite && <InviteLink invite={newInvite} days={14} onDone={() => setNewInvite(null)} />}
     {invites?.length > 0 && <ul className="site-invites">
       {invites.map(invite => <li key={invite.id} className="settings-item">
         <span><strong>{invite.email}</strong><small>Waiting for sign-up · link expires {day(invite.expires_at)}</small></span>
-        <button type="button" onClick={() => cancel(invite)}>Cancel</button>
+        <button className="danger-btn" type="button" onClick={() => cancel(invite)}>Cancel</button>
       </li>)}
     </ul>}
     {invites?.length === 0 && <p className="muted">No invitations waiting.</p>}

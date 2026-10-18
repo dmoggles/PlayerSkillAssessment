@@ -105,9 +105,9 @@ export default function DiagramPlayer({ diagram, caption }) {
       label={`${caption || 'Drill diagram'}. Step ${index + 1} of ${total}: ${timeline.steps[index].label}`} />
     <figcaption>
       <div className="diagram-controls">
-        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous step">◀</button>
-        <button type="button" onClick={() => (playing ? setPlaying(false) : play())}>{playing ? 'Pause' : index === total - 1 && progress >= 1 ? 'Replay' : 'Play'}</button>
-        <button type="button" onClick={() => go(index + 1)} disabled={index === total - 1} aria-label="Next step">▶</button>
+        <button className="diagram-btn" type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous step">◀</button>
+        <button className="diagram-btn" type="button" onClick={() => (playing ? setPlaying(false) : play())}>{playing ? 'Pause' : index === total - 1 && progress >= 1 ? 'Replay' : 'Play'}</button>
+        <button className="diagram-btn" type="button" onClick={() => go(index + 1)} disabled={index === total - 1} aria-label="Next step">▶</button>
         <span className="muted">Step {index + 1} of {total}</span>
       </div>
       <p className="diagram-step" aria-live="polite">{timeline.steps[index].label}</p>

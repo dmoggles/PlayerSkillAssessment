@@ -261,7 +261,7 @@ test('a check-in asks better, same or worse for each focus skill, and results sh
   const html = renderToStaticMarkup(React.createElement(CheckinForm, { cycle, names: { a: 'Short passing', b: 'Dribbling' }, onSubmit: () => {}, onSkip: () => {}, onCancel: () => {} }))
   assert.match(html, /Check-in: how did cycle 1 go\?/)
   assert.equal((html.match(/type="radio"/g) ?? []).length, 6, 'three choices for each of two skills')
-  assert.match(html, /<button type="submit" disabled="">Save check-in and start cycle 2<\/button>/, 'disabled until every skill has a result')
+  assert.match(html, /<button class="primary-btn" type="submit" disabled="">Save check-in and start cycle 2<\/button>/, 'disabled until every skill has a result')
   assert.match(html, /Skip check-in/)
   const { ConfirmedPrioritiesView } = await loadJsx('src/ConfirmedPrioritiesView.jsx')
   const matrix = { sections: [{ id: 't', skills: [{ id: 'a', label: 'Short passing' }, { id: 'b', label: 'Dribbling' }] }] }

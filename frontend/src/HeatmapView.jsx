@@ -121,7 +121,7 @@ export default function HeatmapView({ matrix, assessments }) {
             const index = Math.min(indexes[section.id] ?? 0, section.skills.length - 1)
             const skill = section.skills[index]
             return <section key={section.id} className={`assessment-accordion ${open ? 'open' : ''}`}>
-              <h3><button id={`team-heading-${section.id}`} type="button" aria-expanded={open} aria-controls={`team-panel-${section.id}`} onClick={() => setExpandedId(open ? '' : section.id)}><span>{section.label}</span><span className="accordion-meta">{section.skills.length} skills <span aria-hidden="true" className="accordion-chevron">⌄</span></span></button></h3>
+              <h3><button className="accordion-btn" id={`team-heading-${section.id}`} type="button" aria-expanded={open} aria-controls={`team-panel-${section.id}`} onClick={() => setExpandedId(open ? '' : section.id)}><span>{section.label}</span><span className="accordion-meta">{section.skills.length} skills <span aria-hidden="true" className="accordion-chevron">⌄</span></span></button></h3>
               {open && skill && <div id={`team-panel-${section.id}`} role="region" aria-labelledby={`team-heading-${section.id}`} className="assessment-accordion-panel">
                 <div className="skill-card-top"><span>Skill {index + 1} of {section.skills.length}</span><span>{columns.length} {level === 'position' ? 'positions' : columns.length === 1 ? 'player' : 'players'}</span></div>
                 <div className="skill-swipe-region" tabIndex={0} aria-label={`${skill.label}. Swipe left or right, or use Previous and Next.`}
@@ -137,7 +137,7 @@ export default function HeatmapView({ matrix, assessments }) {
                     })}</dl>
                   </article>
                 </div>
-                <div className="skill-pager"><button type="button" onClick={() => move(section, -1)} disabled={index === 0} aria-label="Previous skill">← Previous</button><span aria-live="polite">{index + 1} / {section.skills.length}</span><button type="button" onClick={() => move(section, 1)} disabled={index === section.skills.length - 1} aria-label="Next skill">Next →</button></div>
+                <div className="skill-pager"><button className="pager-btn" type="button" onClick={() => move(section, -1)} disabled={index === 0} aria-label="Previous skill">← Previous</button><span aria-live="polite">{index + 1} / {section.skills.length}</span><button className="pager-btn" type="button" onClick={() => move(section, 1)} disabled={index === section.skills.length - 1} aria-label="Next skill">Next →</button></div>
               </div>}
             </section>
           })}

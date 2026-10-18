@@ -26,7 +26,7 @@ export default function MobileAssessment({ matrix, position, ratings, onChange, 
       const index = Math.min(indexes[section.id] ?? 0, section.skills.length - 1)
       const skill = section.skills[index]
       return <section className={`assessment-accordion ${open ? 'open' : ''}`} key={section.id}>
-        <h3><button id={`assessment-heading-${section.id}`} type="button" aria-expanded={open} aria-controls={`assessment-panel-${section.id}`} onClick={() => setExpandedId(open ? '' : section.id)}><span>{section.label}</span><span className="accordion-meta">{ratedCount(section, ratings)}/{section.skills.length} rated <span aria-hidden="true" className="accordion-chevron">⌄</span></span></button></h3>
+        <h3><button className="accordion-btn" id={`assessment-heading-${section.id}`} type="button" aria-expanded={open} aria-controls={`assessment-panel-${section.id}`} onClick={() => setExpandedId(open ? '' : section.id)}><span>{section.label}</span><span className="accordion-meta">{ratedCount(section, ratings)}/{section.skills.length} rated <span aria-hidden="true" className="accordion-chevron">⌄</span></span></button></h3>
         {open && skill && <div id={`assessment-panel-${section.id}`} role="region" aria-labelledby={`assessment-heading-${section.id}`} className="assessment-accordion-panel">
           <div className="skill-card-top"><span>Skill {index + 1} of {section.skills.length}</span><span>{typeof ratings[skill.id] === 'number' ? `Rated ${ratings[skill.id]}/5` : 'Not rated'}</span></div>
           <div className="skill-swipe-region" tabIndex={0} aria-label={`${skill.label}. Swipe left or right, or use Previous and Next.`}
@@ -36,10 +36,10 @@ export default function MobileAssessment({ matrix, position, ratings, onChange, 
             onTouchCancel={() => { touchStart.current = null }}>
             <SkillForm matrix={matrix} position={position} ratings={ratings} onChange={onChange} notes={notes} onNoteChange={onNoteChange} readOnly={readOnly} carried={carried} onKeepCarried={onKeepCarried} sectionId={section.id} skillId={skill.id} showSectionTitle={false} />
           </div>
-          <div className="skill-pager"><button type="button" onClick={() => move(section, -1)} disabled={index === 0} aria-label="Previous skill">← Previous</button><span aria-live="polite">{index + 1} / {section.skills.length}</span><button type="button" onClick={() => move(section, 1)} disabled={index === section.skills.length - 1} aria-label="Next skill">Next →</button></div>
+          <div className="skill-pager"><button className="pager-btn" type="button" onClick={() => move(section, -1)} disabled={index === 0} aria-label="Previous skill">← Previous</button><span aria-live="polite">{index + 1} / {section.skills.length}</span><button className="pager-btn" type="button" onClick={() => move(section, 1)} disabled={index === section.skills.length - 1} aria-label="Next skill">Next →</button></div>
         </div>}
       </section>
     })}</div>
-    {!readOnly && <div className="mobile-assessment-save"><span>{rated === total ? 'All skills rated' : `${total - rated} still unrated`}</span><button type="submit">Save assessment</button></div>}
+    {!readOnly && <div className="mobile-assessment-save"><span>{rated === total ? 'All skills rated' : `${total - rated} still unrated`}</span><button className="primary-btn" type="submit">Save assessment</button></div>}
   </div>
 }

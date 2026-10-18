@@ -21,6 +21,6 @@ export default function UpdateBanner() {
   if (!outdated) return null
   return <div className="update-banner" role="status">
     <span>A new version of the app is available. Save any changes, then reload.</span>
-    <button type="button" onClick={() => window.location.reload()}>Reload</button>
+    <button className="primary-btn" type="button" onClick={() => window.location.reload()}>Reload</button>
   </div>
 }

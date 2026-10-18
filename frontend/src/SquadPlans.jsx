@@ -17,7 +17,7 @@ export default function SquadPlans({ teamId, periodId, onGenerated }) {
     <div className="squad-plans-row">
       <span><strong>Squad plans</strong> <span className="muted">for every player with saved priorities</span></span>
       <label className="checkbox"><input type="checkbox" checked={replace} onChange={e => setReplace(e.target.checked)} /> Replace existing plans</label>
-      <button type="button" onClick={run} disabled={busy}>{busy ? 'Generating…' : 'Generate plans for the squad'}</button>
+      <button className="secondary-btn" type="button" onClick={run} disabled={busy}>{busy ? 'Generating…' : 'Generate plans for the squad'}</button>
     </div>
     {result && <p className="muted" role="status">
       {result.generated.length ? `Generated ${result.generated.length}: ${result.generated.join(', ')}.` : 'No plans generated.'}

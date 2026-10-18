@@ -44,7 +44,7 @@ function AuthForm({ onSignedIn, embedded = false, initialEmail = '' }) {
     <form onSubmit={submit} className="stack">
       <label className="field">Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
       {mode !== 'forgot' && mode !== 'resend' && <label className="field">Password<input type="password" minLength={12} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></label>}
-      <button className="submit-btn" disabled={busy}>{busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'resend' ? 'Resend link' : 'Send reset link'}</button>
+      <button className="primary-btn submit-btn" disabled={busy}>{busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'resend' ? 'Resend link' : 'Send reset link'}</button>
     </form>
     {message && <p role="status" className="notice">{message}</p>}
     {!embedded && <p className="invite-only-note">New to {APP_NAME}? It's invitation-only for now: ask a coach at your club to invite you.</p>}
@@ -74,7 +74,7 @@ function ResetPage() {
   return <div className="page public-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>Reset password</h1><form onSubmit={submit} className="stack">
     <label className="field">New password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
     <label className="field">Confirm new password<input type="password" minLength={12} autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
-    <button className="submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/sign-in">Sign in</Link></div>
+    <button className="primary-btn submit-btn">Save password</button></form>{message && <p role="status" className="notice">{message}</p>}<Link to="/sign-in">Sign in</Link></div>
 }
 
 // An invitation link: join the team when signed in as the invited coach, otherwise create the account (or sign in).
@@ -107,7 +107,7 @@ function InvitePage({ user, onSignedIn }) {
   if (!invite) body = <section className="public-card"><p role="status">Checking your invitation…</p></section>
   else if (invite.error) body = <section className="public-card"><p role="alert" className="error">{invite.error}</p><Link to="/sign-in">Go to sign in</Link></section>
   else if (user && user.email !== invite.email) body = <section className="public-card"><p>This invitation is for {invite.email}, but you're signed in as {user.email}. Sign out, then open the link again.</p></section>
-  else if (user && invite.kind === 'team') body = <section className="public-card"><p>Signed in as {user.email}</p><button className="submit-btn" onClick={accept}>Join {invite.team}</button></section>
+  else if (user && invite.kind === 'team') body = <section className="public-card"><p>Signed in as {user.email}</p><button className="primary-btn submit-btn" onClick={accept}>Join {invite.team}</button></section>
   else if (user) body = <section className="public-card"><p>You're signed in as {user.email}.</p><Link to={destination}>Set up your team</Link></section>
   else if (invite.account_exists) body = <><p className="invite-lead">You already have an account. Sign in to {invite.kind === 'team' ? `join ${invite.team}` : 'continue'}.</p><AuthForm onSignedIn={onSignedIn} embedded initialEmail={invite.email} /></>
   else body = <form onSubmit={createAccount} className="stack">
@@ -116,7 +116,7 @@ function InvitePage({ user, onSignedIn }) {
     <label className="field">Choose a password<input type="password" minLength={12} autoComplete="new-password" required value={password} onChange={e => setPassword(e.target.value)} /><small>At least 12 characters</small></label>
     <label className="field">Confirm password<input type="password" minLength={12} autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
     <p className="legal-consent">By creating an account you agree to the <Link to="/terms">terms</Link>. The <Link to="/privacy">privacy notice</Link> explains how your information is used.</p>
-    <button className="submit-btn" disabled={busy}>{busy ? 'Creating account…' : invite.kind === 'team' ? `Create account and join` : 'Create account'}</button>
+    <button className="primary-btn submit-btn" disabled={busy}>{busy ? 'Creating account…' : invite.kind === 'team' ? `Create account and join` : 'Create account'}</button>
   </form>
   return <div className="page public-page login-page"><div className="public-brand"><BrandMark tone="light" size={44} /><Wordmark tone="light" /></div><h1>{title}</h1>{body}{message && <p role="alert" className="error">{message}</p>}</div>
 }

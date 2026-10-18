@@ -28,8 +28,8 @@ export default function AccessRequestsList({ onMessage, onInvited }) {
           <small>{day(request.created_at)}{request.teams ? ` · ${request.teams} ${request.teams === 1 ? 'team' : 'teams'}` : ''}{request.has_account ? ' · already has an account' : ''}</small>
           {request.message && <small className="access-message">{request.message}</small>}</span>
         <span className="item-actions">
-          {!request.has_account && <button type="button" onClick={() => act(request, inviteFromAccessRequest)}>Invite</button>}
-          <button type="button" onClick={() => act(request, declineAccessRequest)}>Decline</button>
+          {!request.has_account && <button className="primary-btn" type="button" onClick={() => act(request, inviteFromAccessRequest)}>Invite</button>}
+          <button className="secondary-btn" type="button" onClick={() => act(request, declineAccessRequest)}>Decline</button>
         </span>
       </li>)}
     </ul>}

@@ -30,7 +30,7 @@ export default function PeriodForm({ teamId, players, latestPeriod, onCreated, o
   return <form className="period-form" onSubmit={submit}>
     <div className="inline-row">
       <input aria-label="New period label" placeholder="New period label" required maxLength={100} value={label} onChange={e => setLabel(e.target.value)} disabled={Boolean(review)} />
-      <button disabled={busy}>{review ? 'Create period' : newSeason ? 'Next: playing groups' : 'Add period'}</button>
+      <button className="primary-btn" disabled={busy}>{review ? 'Create period' : newSeason ? 'Next: playing groups' : 'Add period'}</button>
     </div>
     <label className="checkbox"><input type="checkbox" checked={newSeason} disabled={Boolean(review)} onChange={e => setNewSeason(e.target.checked)} /> This period starts a new season</label>
     {latestPeriod && <label className="checkbox"><input type="checkbox" checked={carry} disabled={Boolean(review)} onChange={e => setCarry(e.target.checked)} /> Start from {latestPeriod.label}'s ratings <small className="muted">(marked as carried until you review each one)</small></label>}

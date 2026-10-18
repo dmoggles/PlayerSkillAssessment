@@ -25,12 +25,12 @@ export default function ChangePasswordForm() {
   }
 
   return <div className="change-password">
-    <button type="button" aria-expanded={open} onClick={() => { setOpen(value => !value); setMessage('') }}>Change password</button>
+    <button className="secondary-btn" type="button" aria-expanded={open} onClick={() => { setOpen(value => !value); setMessage('') }}>Change password</button>
     {open && <form className="stack" onSubmit={submit}>
       <label className="field">Current password<input type="password" autoComplete="current-password" required value={current} onChange={event => setCurrent(event.target.value)} /></label>
       <label className="field">New password<input type="password" autoComplete="new-password" minLength={12} maxLength={200} required value={next} onChange={event => setNext(event.target.value)} /></label>
       <label className="field">Confirm new password<input type="password" autoComplete="new-password" minLength={12} maxLength={200} required value={confirm} onChange={event => setConfirm(event.target.value)} /></label>
-      <button disabled={busy}>Save password</button>
+      <button className="primary-btn" disabled={busy}>Save password</button>
     </form>}
     {message && <p className="notice" role="status">{message}</p>}
   </div>

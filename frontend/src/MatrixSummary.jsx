@@ -17,6 +17,6 @@ export default function MatrixSummary({ teamId, onEdit }) {
     <p>Uses <strong>{state.current.name}</strong>, version {state.current.version}{state.current.own ? '' : ' (the shared starter template)'}.</p>
     {state.draft && <p className="muted">Draft in progress: {pending} {pending === 1 ? 'change' : 'changes'} not yet published.</p>}
     <p className="muted">Changing skills makes ratings harder to compare across periods. Adding skills is safe.</p>
-    <button type="button" onClick={onEdit}>{state.draft ? 'Continue editing' : 'Edit skill matrix'}</button>
+    <button className="secondary-btn" type="button" onClick={onEdit}>{state.draft ? 'Continue editing' : 'Edit skill matrix'}</button>
   </div>
 }

@@ -33,14 +33,14 @@ export default function SelfAssessmentBoard({ teamId, period, rosterKey, onMessa
 
   return <div className="self-board">
     {!period.is_active && <p className="muted">Links can only be issued for the active period. Showing status for {period.label}.</p>}
-    <div className="self-board-toolbar"><span className="muted">{rows.length ? statusSummary(rows) : 'No active players yet.'}</span>{period.is_active && <button type="button" onClick={() => issue()} disabled={busy || pending === 0}>{pending ? `Create links for ${pending} ${pending === 1 ? 'player' : 'players'}` : 'All players have links'}</button>}</div>
+    <div className="self-board-toolbar"><span className="muted">{rows.length ? statusSummary(rows) : 'No active players yet.'}</span>{period.is_active && <button className="primary-btn" type="button" onClick={() => issue()} disabled={busy || pending === 0}>{pending ? `Create links for ${pending} ${pending === 1 ? 'player' : 'players'}` : 'All players have links'}</button>}</div>
     {issued.length > 0 && <div className="issued-links">
-      <div className="issued-links-heading"><strong>New links: copy them now, they will not be shown again</strong><div className="item-actions"><button type="button" onClick={() => navigator.clipboard.writeText(copyAllText(issued)).then(() => onMessage('All new links copied.'))}>Copy all</button><button type="button" onClick={() => setIssued([])}>Done</button></div></div>
-      {issued.map(link => <div className="issued-link" key={link.player_id}><span>{link.player_name}</span><input readOnly aria-label={`${link.player_name} link`} value={link.url} onFocus={e => e.target.select()} /><button type="button" onClick={() => navigator.clipboard.writeText(link.url)}>Copy</button></div>)}
+      <div className="issued-links-heading"><strong>New links: copy them now, they will not be shown again</strong><div className="item-actions"><button className="secondary-btn" type="button" onClick={() => navigator.clipboard.writeText(copyAllText(issued)).then(() => onMessage('All new links copied.'))}>Copy all</button><button className="secondary-btn" type="button" onClick={() => setIssued([])}>Done</button></div></div>
+      {issued.map(link => <div className="issued-link" key={link.player_id}><span>{link.player_name}</span><input readOnly aria-label={`${link.player_name} link`} value={link.url} onFocus={e => e.target.select()} /><button className="secondary-btn" type="button" onClick={() => navigator.clipboard.writeText(link.url)}>Copy</button></div>)}
     </div>}
     <div className="settings-list">{rows.map(row => <div className="settings-item" key={row.player_id}>
       <span>{row.player_name} <span className={`status-pill ${SELF_LINK_STATUS[row.status].pill}`}>{SELF_LINK_STATUS[row.status].label}</span>{statusDetail(row) && <small>{statusDetail(row)}</small>}</span>
-      <div className="item-actions">{period.is_active && row.status !== 'submitted' && <button type="button" disabled={busy} onClick={() => issue([row.player_id])}>{row.status === 'not_sent' ? 'Create link' : 'New link'}</button>}{hasLiveLink(row) && <button type="button" onClick={() => revoke(row)}>Revoke</button>}</div>
+      <div className="item-actions">{period.is_active && row.status !== 'submitted' && <button className="secondary-btn" type="button" disabled={busy} onClick={() => issue([row.player_id])}>{row.status === 'not_sent' ? 'Create link' : 'New link'}</button>}{hasLiveLink(row) && <button className="danger-btn" type="button" onClick={() => revoke(row)}>Revoke</button>}</div>
     </div>)}</div>
   </div>
 }

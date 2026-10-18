@@ -24,8 +24,8 @@ export default function CheckinForm({ cycle, names, onSubmit, onSkip, onCancel }
       <input type="text" maxLength={300} placeholder="Optional note" aria-label={`Note for ${names[p.skill_id] ?? p.skill_id}`} value={entries[p.skill_id].note} onChange={e => set(p.skill_id, { note: e.target.value })} />
     </fieldset>)}
     <div className="inline-row">
-      <button type="submit" disabled={!complete || busy}>Save check-in and start cycle {cycle.number + 1}</button>
-      <button type="button" disabled={busy} onClick={() => run(onSkip)}>Skip check-in</button>
+      <button className="primary-btn" type="submit" disabled={!complete || busy}>Save check-in and start cycle {cycle.number + 1}</button>
+      <button className="secondary-btn" type="button" disabled={busy} onClick={() => run(onSkip)}>Skip check-in</button>
       <button type="button" className="link-btn" onClick={onCancel}>Cancel</button>
     </div>
   </form>

@@ -32,7 +32,7 @@ export default function DevelopmentPlan({ teamId, playerId, periodId, skills, un
       <div><h3 id="plan-title">4-week plan</h3><p className="muted hint">{plan
         ? `Saved ${new Date(saved.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}. The player report shows its home drills; share the report to send them to the player or a parent.`
         : 'Club and home drills for the priorities above, stepping up after two weeks. Generating saves it to the player report.'}</p></div>
-      {!readOnly && <button type="button" onClick={generate} disabled={busy || unsaved || !skills.length}>{busy ? 'Generating…' : plan ? 'Regenerate' : 'Generate plan'}</button>}
+      {!readOnly && <button className={plan ? 'secondary-btn' : 'primary-btn'} type="button" onClick={generate} disabled={busy || unsaved || !skills.length}>{busy ? 'Generating…' : plan ? 'Regenerate' : 'Generate plan'}</button>}
     </div>
     {error && <p className="error" role="alert">{error}</p>}
     {!readOnly && (unsaved || !skills.length) && <p className="muted hint">{plan ? 'Save the priorities above to regenerate the plan from them.' : 'Save the priorities above to generate a plan from them.'}</p>}
@@ -62,7 +62,7 @@ function PlanSlot({ slot, onOpenDrill, editor }) {
       {editor && !editing && <button type="button" className="link-btn plan-change" onClick={() => setEditing(true)}>Change</button>}</p>
     {editing && <SlotEditor slot={slot} editor={editor} onDone={() => setEditing(false)} />}
     <ol className="plan-weeks">{weekRuns(slot.weeks).map(run => <li key={run.from}>
-      <button type="button" onClick={() => onOpenDrill(slot.drill, run.variation.id)}><span className="muted">{run.label}</span> {run.variation.title}</button>
+      <button className="week-btn" type="button" onClick={() => onOpenDrill(slot.drill, run.variation.id)}><span className="muted">{run.label}</span> {run.variation.title}</button>
     </li>)}</ol>
     <ul className="plan-reasons">{slot.reasons.map(r => <li key={r}>{r}</li>)}</ul>
   </div>
@@ -101,9 +101,9 @@ function SlotEditor({ slot, editor, onDone }) {
       {variations.length > 0 && <label className="field">Starting version<select value={start} onChange={e => setStart(e.target.value)}>
         <option value="">Matched to the player's level</option>{variations.map(v => <option key={v.id} value={v.id}>{v.title} (levels {v.levels[0]}–{v.levels[1]})</option>)}</select></label>}
       <div className="inline-row">
-        <button type="button" onClick={() => run({ action: 'choose', drill: choice, start_variation_id: start ? Number(start) : null })}>Use this drill</button>
-        {slot.chosen_by === 'coach' && <button type="button" onClick={() => run({ action: 'reset' })}>Reset to planner's choice</button>}
-        <button type="button" onClick={() => run({ action: 'remove' })}>Remove from plan</button>
+        <button className="primary-btn" type="button" onClick={() => run({ action: 'choose', drill: choice, start_variation_id: start ? Number(start) : null })}>Use this drill</button>
+        {slot.chosen_by === 'coach' && <button className="secondary-btn" type="button" onClick={() => run({ action: 'reset' })}>Reset to planner's choice</button>}
+        <button className="danger-btn" type="button" onClick={() => run({ action: 'remove' })}>Remove from plan</button>
         <button type="button" className="link-btn" onClick={onDone}>Cancel</button>
       </div>
     </>}

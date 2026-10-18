@@ -42,7 +42,7 @@ export default function PlayerPage() {
       <p className="notice">Rate each skill from 1 to 5, or choose “I don’t know”.</p>
       <SkillForm matrix={matrix} position={position} ratings={ratings} onChange={(id, score) => setRatings(previous => ({ ...previous, [id]: score }))} allowUnknown />
       {error && <p className="error" role="alert">{error}</p>}
-      <button className="submit-btn" disabled={status === 'submitting'}>{status === 'submitting' ? 'Saving…' : 'Submit assessment'}</button>
+      <button className="primary-btn submit-btn" disabled={status === 'submitting'}>{status === 'submitting' ? 'Saving…' : 'Submit assessment'}</button>
     </form>
     <MadeWith />
   </div>

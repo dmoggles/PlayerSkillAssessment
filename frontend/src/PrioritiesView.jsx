@@ -131,9 +131,9 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
       <div className="priorities-toolbar"><button type="button" className="priority-help-button" aria-label="How priorities work" onClick={() => helpDialog.current?.showModal()}>?</button></div>
       <dialog ref={helpDialog} className="priority-help-dialog" aria-labelledby="priority-help-title">
         <form method="dialog">
-          <div className="priority-help-heading"><h3 id="priority-help-title">How priorities work</h3><button type="submit" aria-label="Close instructions">×</button></div>
+          <div className="priority-help-heading"><h3 id="priority-help-title">How priorities work</h3><button className="close-btn" type="submit" aria-label="Close instructions">×</button></div>
           <p>The algorithm suggests the three highest-urgency skills. Keep them or choose other skills from the ranked list. Tap an urgency score to see how it was calculated, then save your choices.</p>
-          <button type="submit" className="priority-help-done">Got it</button>
+          <button type="submit" className="primary-btn priority-help-done">Got it</button>
         </form>
       </dialog>
 
@@ -186,14 +186,14 @@ export default function PrioritiesView({ matrix, coach, player, teamId, periodId
         )
       })}
 
-      {!readOnly && <button type="button" className="submit-btn" onClick={save} disabled={status === 'saving'}>
+      {!readOnly && <button type="button" className="primary-btn submit-btn" onClick={save} disabled={status === 'saving'}>
         {status === 'saving' ? 'Saving…' : 'Save priorities'}
       </button>}
       {openDrill && <DrillDialog drill={openDrill} onMessage={setDrillError} onClose={() => { setOpenDrill(null); setDrillsVersion(v => v + 1) }} />}
       <DevelopmentPlan key={currentCycle?.id ?? 'none'} teamId={teamId} playerId={playerId} periodId={periodId} skills={savedSkills} unsaved={dirty} readOnly={readOnly} onSaved={refreshCycles} onOpenDrill={(slug, variationId) => { setDrillError(''); setOpenDrill({ slug, variationId }) }} />
       {!readOnly && currentCycle?.plan && (checkingIn
         ? <CheckinForm cycle={currentCycle} names={skillNames(matrix)} onSubmit={startNextCycle} onSkip={() => startNextCycle([])} onCancel={() => setCheckingIn(false)} />
-        : <div className="next-cycle"><button type="button" onClick={openCheckin}>Start cycle {currentCycle.number + 1}</button><span className="muted">When this plan is done: a quick check-in, then new focus areas. This cycle is kept as history.</span></div>)}
+        : <div className="next-cycle"><button className="secondary-btn" type="button" onClick={openCheckin}>Start cycle {currentCycle.number + 1}</button><span className="muted">When this plan is done: a quick check-in, then new focus areas. This cycle is kept as history.</span></div>)}
       {cycles.length > 1 && <EarlierCycles matrix={matrix} cycles={cycles.slice(1)} />}
       {drillError && <p className="error" role="alert">{drillError}</p>}
       {status === 'saved' && <p className="success">Priorities saved.</p>}
@@ -219,7 +219,7 @@ function LastCycleCard({ matrix, cycle, chosen, canKeep, onKeep }) {
           {result?.note && <p className="follow-up-note">{result.note}</p>}
         </div>
         {onKeep && result?.trend !== 'better' && (chosen.has(p.skill_id) ? <span className="follow-up-kept">In this cycle</span>
-          : <button type="button" disabled={!canKeep(p.skill_id)} onClick={() => onKeep(p.skill_id)}>Keep</button>)}
+          : <button className="secondary-btn" type="button" disabled={!canKeep(p.skill_id)} onClick={() => onKeep(p.skill_id)}>Keep</button>)}
       </li>
     })}</ol>
   </section>

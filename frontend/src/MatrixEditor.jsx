@@ -81,8 +81,8 @@ export default function MatrixEditor({ teamId, onClose, onMessage, onPublished }
       <div><h2>Skill matrix</h2><p className="muted">Draft based on {server.current.name}, version {server.current.version}. Changes autosave and only affect new periods once published.</p></div>
       <div className="matrix-editor-actions">
         <span className={`save-status ${failure ? 'save-status-problem' : ''}`} role="status">{status}</span>
-        {failure === 'conflict' && <button type="button" onClick={load}>Reload</button>}
-        {server.draft && !reviewing && <button type="button" onClick={discard}>Discard draft</button>}
+        {failure === 'conflict' && <button className="secondary-btn" type="button" onClick={load}>Reload</button>}
+        {server.draft && !reviewing && <button className="danger-btn" type="button" onClick={discard}>Discard draft</button>}
         {!reviewing && <button type="button" className="primary-btn" disabled={!server.draft || pending || saving || Boolean(failure)} onClick={() => setReviewing(true)}>Review &amp; publish</button>}
       </div>
     </div>
@@ -99,9 +99,9 @@ export default function MatrixEditor({ teamId, onClose, onMessage, onPublished }
               <input aria-label="Section name" value={section.label} maxLength={80} onChange={e => edit(d => m.renameSection(d, sectionKey, e.target.value))} />
               <span className="status-pill muted-pill">{m.isGoalkeeperSection(section) ? 'Goalkeepers' : 'Outfield'}</span>
               <div className="item-actions">
-                <button type="button" aria-label={`Move ${section.label} up`} disabled={sectionIndex === 0} onClick={() => edit(d => m.moveSection(d, sectionKey, -1))}>↑</button>
-                <button type="button" aria-label={`Move ${section.label} down`} disabled={sectionIndex === doc.sections.length - 1} onClick={() => edit(d => m.moveSection(d, sectionKey, 1))}>↓</button>
-                {!section.skills.length && <button type="button" onClick={() => edit(d => m.removeSection(d, sectionKey))}>Remove</button>}
+                <button className="secondary-btn" type="button" aria-label={`Move ${section.label} up`} disabled={sectionIndex === 0} onClick={() => edit(d => m.moveSection(d, sectionKey, -1))}>↑</button>
+                <button className="secondary-btn" type="button" aria-label={`Move ${section.label} down`} disabled={sectionIndex === doc.sections.length - 1} onClick={() => edit(d => m.moveSection(d, sectionKey, 1))}>↓</button>
+                {!section.skills.length && <button className="danger-btn" type="button" onClick={() => edit(d => m.removeSection(d, sectionKey))}>Remove</button>}
               </div>
             </div>
             <ul>{section.skills.map(skill => {
@@ -115,7 +115,7 @@ export default function MatrixEditor({ teamId, onClose, onMessage, onPublished }
             <button type="button" className="link-btn" onClick={() => { const [next, key] = m.addSkill(doc, sectionKey); edit(() => next); setSelected(key) }}>+ Add skill</button>
           </section>
         })}
-        <div className="inline-row"><button type="button" onClick={() => edit(d => m.addSection(d, 'outfield')[0])}>+ Outfield section</button><button type="button" onClick={() => edit(d => m.addSection(d, 'goalkeeper')[0])}>+ Goalkeeper section</button></div>
+        <div className="inline-row"><button className="secondary-btn" type="button" onClick={() => edit(d => m.addSection(d, 'outfield')[0])}>+ Outfield section</button><button className="secondary-btn" type="button" onClick={() => edit(d => m.addSection(d, 'goalkeeper')[0])}>+ Goalkeeper section</button></div>
       </nav>
 
       <div className="matrix-skill">
@@ -156,7 +156,7 @@ function PublishReview({ server, onCancel, onPublish }) {
     {needsAck && <label className="checkbox publish-ack"><input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} /> I understand that ratings for the changed or retired skills will not be directly comparable with earlier periods.</label>}
 
     <div className="inline-row">
-      <button type="button" onClick={onCancel}>Back to editing</button>
+      <button className="secondary-btn" type="button" onClick={onCancel}>Back to editing</button>
       <button type="button" className="primary-btn" disabled={blocked || busy} onClick={async () => { setBusy(true); await onPublish(acknowledged, applyNow); setBusy(false) }}>{busy ? 'Publishing…' : 'Publish'}</button>
     </div>
   </section>
@@ -200,7 +200,7 @@ function SkillEditor({ doc, found, anchors, tags, tagsById, published, onEdit, o
     <label className="field">Skill name<input value={skill.label} maxLength={80} onChange={e => onEdit(d => m.updateSkill(d, key, { label: e.target.value }))} /></label>
     <div className="inline-row skill-editor-place">
       <label className="field">Section<select value={m.keyOf(section)} onChange={e => onEdit(d => m.moveSkillToSection(d, key, e.target.value))}>{siblings.map(s => <option key={m.keyOf(s)} value={m.keyOf(s)}>{s.label}</option>)}</select></label>
-      <div className="item-actions"><button type="button" disabled={index === 0} onClick={() => onEdit(d => m.moveSkill(d, key, -1))}>Move up</button><button type="button" disabled={index === section.skills.length - 1} onClick={() => onEdit(d => m.moveSkill(d, key, 1))}>Move down</button></div>
+      <div className="item-actions"><button className="secondary-btn" type="button" disabled={index === 0} onClick={() => onEdit(d => m.moveSkill(d, key, -1))}>Move up</button><button className="secondary-btn" type="button" disabled={index === section.skills.length - 1} onClick={() => onEdit(d => m.moveSkill(d, key, 1))}>Move down</button></div>
     </div>
 
     <fieldset className="skill-editor-group"><legend>Level descriptions</legend>
@@ -220,7 +220,7 @@ function SkillEditor({ doc, found, anchors, tags, tagsById, published, onEdit, o
       <ul className="tag-list">{Object.entries(skill.tags ?? {}).map(([id, weight]) => <li key={id}>
         <span>{tagsById[id]?.label ?? id}{tagsById[id] && !tagsById[id].active ? ' (retired)' : ''}</span>
         <select aria-label={`Weight for ${tagsById[id]?.label ?? id}`} value={weight} onChange={e => onEdit(d => m.setTag(d, key, id, Number(e.target.value)))}>{m.TAG_WEIGHTS.map(([w, label]) => <option key={w} value={w}>{label}</option>)}</select>
-        <button type="button" onClick={() => onEdit(d => m.setTag(d, key, id, null))}>Remove</button>
+        <button className="secondary-btn" type="button" onClick={() => onEdit(d => m.setTag(d, key, id, null))}>Remove</button>
       </li>)}</ul>
       <label className="field">Add a tag<select value="" onChange={e => { if (e.target.value) onEdit(d => m.setTag(d, key, e.target.value, Object.keys(skill.tags ?? {}).length ? 0.5 : 1)) }}>
         <option value="">Choose a tag…</option>

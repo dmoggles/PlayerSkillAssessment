@@ -71,7 +71,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
     <Section title="Account" className="settings-account">
       <p className="settings-account-email">{user.email}</p>
       <ChangePasswordForm />
-      <button type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
+      <button className="secondary-btn" type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
       <MyVideoSuggestions />
       <DeleteAccountForm confirmDiscard={confirmDiscard} />
       {/* A new tab, so unsaved work in the app isn't lost. */}
@@ -91,7 +91,7 @@ function TeamsSection({ onCreated, onMessage }) {
   return <Section title="Teams" description="Choose a team or create another coaching workspace">
     <form className="inline-row" onSubmit={submit}>
       <input aria-label="New team name" placeholder="New team name" required maxLength={120} value={name} onChange={e => setName(e.target.value)} />
-      <button>Add team</button>
+      <button className="primary-btn">Add team</button>
     </form>
   </Section>
 }
@@ -122,9 +122,9 @@ function PeriodsSection({ team, periods, setPeriods, players, selectedPeriodId, 
     <div className="settings-list">{periods.map(period => <div className="settings-item" key={period.id}>
       <span>{period.label} {period.is_active && <span className="status-pill">Active</span>}{period.matrix_label && <small>Skill matrix: {period.matrix_label}</small>}</span>
       <div className="item-actions">
-        {!period.is_active && <button type="button" onClick={() => activate(period)}>Set active</button>}
-        <button type="button" onClick={() => rename(period)}>Rename</button>
-        {canManageTeam(team) && <button type="button" onClick={() => remove(period)}>Delete</button>}
+        {!period.is_active && <button className="secondary-btn" type="button" onClick={() => activate(period)}>Set active</button>}
+        <button className="secondary-btn" type="button" onClick={() => rename(period)}>Rename</button>
+        {canManageTeam(team) && <button className="danger-btn" type="button" onClick={() => remove(period)}>Delete</button>}
       </div>
     </div>)}</div>
     <PeriodForm teamId={String(teamId)} players={players} latestPeriod={periods[0] ?? null} onMessage={onMessage}
@@ -163,15 +163,15 @@ function SquadSection({ team, period, players, setPlayers, groups, setGroups, ch
         {period && <select className="group-select" aria-label={`${player.name}'s playing group in ${period.label}`} value={groups[player.id] ?? ''} onChange={e => setGroup(player, e.target.value)}>
           <option value="">Group not set</option>{AGE_GROUPS.map(age => <option key={age} value={age}>U{age}</option>)}
         </select>}
-        <button type="button" onClick={() => rename(player)}>Rename</button>
+        <button className="secondary-btn" type="button" onClick={() => rename(player)}>Rename</button>
         {canExport && <a className="button-link" href={playerExportUrl(teamId, player.id)} download aria-label={`Download ${player.name}'s data`}>Export data</a>}
-        {player.active ? <button type="button" onClick={() => archive(player)}>Archive</button> : <button type="button" onClick={() => restorePlayer(player)}>Restore</button>}
+        {player.active ? <button className="secondary-btn" type="button" onClick={() => archive(player)}>Archive</button> : <button className="secondary-btn" type="button" onClick={() => restorePlayer(player)}>Restore</button>}
         {!player.active && deletePlayer && <button type="button" className="danger-btn" onClick={() => deletePlayer(player)}>Delete…</button>}
       </div>
     </div>)}</div>
     <form className="inline-row" onSubmit={add}>
       <input aria-label="New player name" placeholder="New player name" required maxLength={100} value={name} onChange={e => setName(e.target.value)} />
-      <button>Add player</button>
+      <button className="primary-btn">Add player</button>
     </form>
   </Section>
 }
@@ -206,7 +206,7 @@ function TeamAccessSection({ user, team, setTeams, members, setMembers, dropTeam
   return <Section title="Team access" description="Only team owners can change these settings">
     <div className="settings-item">
       <span><strong>{team.name}</strong><small>Team name</small></span>
-      <button type="button" onClick={rename}>Rename</button>
+      <button className="secondary-btn" type="button" onClick={rename}>Rename</button>
     </div>
     <label className="field team-gender">Players
       <select value={team.player_gender ?? 'mixed'} onChange={e => update({ player_gender: e.target.value }, () => { forgetMatrices(teamId); onMessage('Skill descriptions now use the new wording.') })}>
@@ -217,7 +217,7 @@ function TeamAccessSection({ user, team, setTeams, members, setMembers, dropTeam
     <label className="checkbox"><input type="checkbox" checked={team.self_assessment_enabled} onChange={e => update({ self_assessment_enabled: e.target.checked })} /> Allow player self-assessment</label>
     <form className="inline-row" onSubmit={invite}>
       <input type="email" aria-label="Coach email" placeholder="Coach email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
-      <button>Invite coach</button>
+      <button className="primary-btn">Invite coach</button>
     </form>
     {newInvite && <InviteLink invite={newInvite} days={7} onDone={() => setNewInvite(null)} />}
     <MemberActions user={user} team={team} members={members} setMembers={setMembers} setTeams={setTeams} dropTeam={dropTeam} confirmDiscard={confirmDiscard} onMessage={onMessage} />
@@ -261,8 +261,8 @@ function MemberActions({ user, team, members, setMembers, setTeams = () => {}, d
     return <div className="settings-item" key={member.user_id}>
       <span>{member.email}{self && ' (you)'} <span className="status-pill muted-pill">{member.role}</span>{soleOwner && <small>Make another member an owner before stepping down or leaving</small>}</span>
       {!soleOwner && <div className="item-actions">
-        <button type="button" onClick={() => changeRole(member, member.role === 'owner' ? 'coach' : 'owner')}>{member.role === 'coach' ? 'Make owner' : self ? 'Step down' : 'Make coach'}</button>
-        <button type="button" onClick={() => remove(member)}>{self ? 'Leave' : 'Remove'}</button>
+        <button className="secondary-btn" type="button" onClick={() => changeRole(member, member.role === 'owner' ? 'coach' : 'owner')}>{member.role === 'coach' ? 'Make owner' : self ? 'Step down' : 'Make coach'}</button>
+        <button className="danger-btn" type="button" onClick={() => remove(member)}>{self ? 'Leave' : 'Remove'}</button>
       </div>}
     </div>
   })}</div>

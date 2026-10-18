@@ -7,7 +7,7 @@ export const UNKNOWN = 'unknown'
 function SkillNote({ label, value, onChange, readOnly }) {
   const [open, setOpen] = useState(false)
   if (readOnly) return value ? <p className="skill-note-text">Note: {value}</p> : null
-  if (!open && !value) return <button type="button" className="skill-note-add" onClick={() => setOpen(true)}>Add note</button>
+  if (!open && !value) return <button type="button" className="link-btn skill-note-add" onClick={() => setOpen(true)}>Add note</button>
   return <label className="skill-note">Note <small>Coach only</small><textarea rows={2} maxLength={500} aria-label={`Note on ${label}`} autoFocus={open && !value} value={value} onChange={e => onChange(e.target.value)} /></label>
 }
 

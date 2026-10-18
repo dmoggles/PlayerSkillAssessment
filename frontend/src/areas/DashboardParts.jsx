@@ -10,7 +10,7 @@ export function Section({ title, description, children, className = '' }) {
 export function ArchivedNotice({ player, onRestore }) {
   return <div className="archived-notice" role="note">
     <span><strong>{player.name} is archived.</strong> Their records are read-only. Restore them to the squad to make changes.</span>
-    <button type="button" onClick={onRestore}>Restore player</button>
+    <button className="primary-btn" type="button" onClick={onRestore}>Restore player</button>
   </div>
 }
 
