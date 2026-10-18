@@ -6,7 +6,7 @@ from test_flows import clean_database, signed_in, starter_skills
 
 
 def drill(slug, phase, players=(4, 8, 16), duration=(10, 15), tags=None, ladder=None, vote=0, levels=((1, 2), (2, 3), (3, 4), (4, 5))):
-    tags = tags or {"passing_short": 1.0}
+    tags = {"passing_short": 1.0} if tags is None else tags
     variations = [{"id": f"{slug}-{i}", "kind": ("regression", "base", "escalator", "escalator")[i], "title": f"v{i}", "levels": list(lv)}
                   for i, lv in enumerate(levels)]
     return {"slug": slug, "title": slug.title(), "session_phase": phase, "players": list(players), "duration": list(duration),
@@ -235,3 +235,18 @@ def test_attendance_before_and_after_a_session(monkeypatch):
     assert after["notes"] == "Good energy" and after["blocks"][0]["notes"] == "Too long"
     exported = owner.get(f"/teams/{team_id}/players/{ids[0]}/export").json()["training_sessions"]
     assert exported == [{"date": "2026-10-20", "title": exported[0]["title"], "expected": False, "attended": True, "group": None}]
+
+
+def test_warm_ups_and_cool_downs_may_train_no_particular_skill():
+    import json
+    from app.drills import drill_problems
+    raw = next(d for d in json.loads((DATA_DIR / "drills_v5.json").read_text())["drills"] if d["session_phase"] == "warm_up")
+    active = set(raw["tags"])
+    assert drill_problems({**raw, "tags": {}, "ladder_tags": None}, active) == []
+    assert drill_problems({**raw, "session_phase": "cool_down", "tags": {}, "ladder_tags": None}, active) == []
+    assert "needs at least one Main (1.0) tag" in drill_problems({**raw, "session_phase": "technical", "tags": {}, "ladder_tags": None}, active)
+    # A general warm-up fits any focus; a tagged one that trains the focus is still preferred.
+    general = drill("jog-and-mobility", "warm_up", tags={}, ladder=[])
+    block = sessions.plan(data([general]))["blocks"][0]
+    assert block["drill"] == "jog-and-mobility" and block["reasons"] == ["A general warm-up, for any focus."]
+    assert sessions.plan(data([general, drill("passing-warm-up", "warm_up")]))["blocks"][0]["drill"] == "passing-warm-up"

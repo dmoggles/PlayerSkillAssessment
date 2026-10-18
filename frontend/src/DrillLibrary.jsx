@@ -46,7 +46,7 @@ export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
         <strong>{d.title}</strong>
         <span className="drill-card-summary">{d.summary}</span>
         <span className="drill-facts">{FORMAT_LABELS[d.format]} · {playersText(d.players)} · {d.duration[1]} min · {levelRange(d.levels)}</span>
-        <span className="drill-tags">{d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>)}</span>
+        <span className="drill-tags">{d.tags.length ? d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>) : <span className="status-pill muted-pill">Any focus</span>}</span>
         <VoteSummary votes={d.votes} />
       </button>
     </li>)}</ul>
@@ -128,13 +128,13 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     <button type="button" className="link-btn back-link" onClick={onBack}>{backLabel}</button>
     <header><h3>{drill.title}</h3><p>{drill.summary}</p>
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
-      <p className="drill-tags">{drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>)}</p>
+      <p className="drill-tags">{drill.tags.length ? drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>) : <span className="status-pill muted-pill">Any focus</span>}</p>
       {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
     </header>
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
         <h4 id="ladder-title">Variations</h4>
-        <p className="muted hint">From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.{drill.tags.some(t => !t.on_ladder) ? ` Levels follow ${drill.tags.filter(t => t.on_ladder).map(t => t.label).join(' and ')}.` : ''}</p>
+        <p className="muted hint">{drill.tags.length ? 'From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.' : 'From easiest to hardest. This drill trains no particular skill, so choose the version that suits the group.'}{drill.tags.some(t => !t.on_ladder) ? ` Levels follow ${drill.tags.filter(t => t.on_ladder).map(t => t.label).join(' and ')}.` : ''}</p>
         <ol>{drill.variations.map(v => <li key={v.id}><button type="button" className={selected?.id === v.id ? 'active' : ''} aria-pressed={selected?.id === v.id} onClick={() => setVariationId(v.id)}>
           <span className={`ladder-kind ladder-${v.kind}`}>{v.kind === 'base' ? 'Base' : v.kind === 'regression' ? 'Easier' : 'Harder'}</span>
           <strong>{v.title}</strong><span className="ladder-levels">Levels {v.levels[0]}–{v.levels[1]}</span>

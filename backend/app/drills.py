@@ -14,6 +14,7 @@ from .models import Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, Skil
 DATA_DIR = Path(__file__).parent / "data"
 FORMATS = {"individual", "small_group", "unit", "team"}
 PHASES = {"warm_up", "technical", "opposed", "small_sided_game", "cool_down"}
+GENERAL_PHASES = {"warm_up", "cool_down"}  # may have no skill tags
 INTENSITIES = {"low", "medium", "high"}
 EQUIPMENT = {"cones", "balls", "bibs", "goals", "mini_goals", "mannequins", "hurdles", "ladders", "poles", "other"}
 KIND_ORDER = {"regression": 0, "base": 1, "escalator": 2}
@@ -147,8 +148,10 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
         p.append("needs_better_video must be true or false")
     if "indoors" in raw and not (isinstance(raw["indoors"], str) and raw["indoors"] and raw.get("home_friendly")):
         p.append("indoors must be text, and only on a home-friendly drill")
+    # Warm-ups and cool-downs needn't train a skill; when they're tagged, or for any other phase, one tag is Main.
     tags = raw.get("tags") or {}
-    if not tags or 1.0 not in tags.values():
+    general = raw.get("session_phase") in GENERAL_PHASES and not tags
+    if not general and 1.0 not in tags.values():
         p.append("needs at least one Main (1.0) tag")
     for tag, weight in tags.items():
         if tag not in active_tags:

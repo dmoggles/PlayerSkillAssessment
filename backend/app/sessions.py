@@ -18,7 +18,8 @@ Output: {"planner": "sessions-v1",
 Each block keeps to its session phase. A drill's score for a block, once hard filters pass (that phase, not
 disliked by this coach, made for more than two players (drills for one or two are home practice), enough players
 for each group and not more than two set-ups' worth, and not a goalkeeper drill unless the focus is a goalkeeping skill):
-  focus      how strongly it trains the focus tags, the first tag counting most (warm-ups and cool-downs don't need to)
+  focus      how strongly it trains the focus tags, the first tag counting most (warm-ups and cool-downs don't need to,
+             and may have no tags at all)
   time       how close its usual length is to the block's minutes
   preference this coach's like, other coaches' votes
   recency    drills from the team's last few sessions score lower, for variety
@@ -94,6 +95,8 @@ def assess(drill: dict, phase: str, minutes: int, data: dict) -> dict | None:
         reasons.append(f"Trains {', '.join(drill.get('tag_labels', {}).get(t, t) for t in trained)}.")
     elif phase not in ("warm_up", "cool_down"):
         reasons.append("Doesn't train the session's focus: the closest fit for this part of the session.")
+    elif not drill["tags"]:
+        reasons.append(f"A general {'warm-up' if phase == 'warm_up' else 'cool-down'}, for any focus.")
     low, typical = drill["duration"]
     score -= abs(typical - minutes) / 5 + (2 if minutes < low else 0)
     if drill["my_vote"] > 0:
