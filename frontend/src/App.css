@@ -1113,7 +1113,11 @@ a.public-brand { text-decoration: none; }
 .team-drill-actions { display: grid; gap: 8px; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: .88rem; }
 .team-drill-actions p { margin: 0; }
 .team-drill-actions .status-pill { margin: 0 6px 0 0; }
-.team-drill-actions button:not(.link-btn):not(.danger-btn):not(.primary-btn) { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+/* Beats the panel's green buttons in a row: Edit and Submit are plain, Delete is red, Cancel is a link. */
+.dashboard-panel .team-drill-actions .inline-row button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text); font-weight: 600; }
+.dashboard-panel .team-drill-actions .inline-row .danger-btn { border-color: var(--error); color: var(--error); }
+.dashboard-panel .team-drill-actions .inline-row .primary-btn { border-color: var(--primary); background: var(--primary); color: #fff; }
+.dashboard-panel .team-drill-actions .inline-row .link-btn { border: 0; background: none; color: var(--accent); padding: 7px 2px; }
 .team-drill-offer { display: grid; gap: 8px; }
 .team-drill-submission { font-weight: 600; }
 .team-drill-form textarea, .team-drill-offer textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }

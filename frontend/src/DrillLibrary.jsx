@@ -181,7 +181,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
 }
 
 // A team drill's own controls, and where its offer to the shared library stands.
-function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen, onMessage }) {
+export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen, onMessage }) {
   const [offering, setOffering] = useState(false)
   const [note, setNote] = useState('')
   const [confirmed, setConfirmed] = useState(false)
