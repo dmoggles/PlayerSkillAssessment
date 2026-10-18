@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { deleteTeamDrill, errorMessage, getDrill, getDrills, submitTeamDrill, voteOnDrill } from './api'
+import { deleteTeamDrill, errorMessage, getDrill, getDrills, submitTeamDrill, unlinkTeamDrill, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
 import TeamDrillForm from './TeamDrillForm'
 import { SuggestVideo } from './VideoSuggestions'
@@ -36,10 +36,11 @@ export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage, team
   const reload = useCallback(() => getDrills(teamId).then(setDrills).catch(e => onMessage(errorMessage(e))), [teamId, onMessage])
   const onVoted = useCallback((slug, votes) => setDrills(previous => previous?.map(d => d.slug === slug ? { ...d, votes } : d)), [])
   const options = useMemo(() => filterOptions(drills ?? []), [drills])
-  if (editing) return <TeamDrillForm teamId={teamId} drill={editing === 'new' ? null : editing} onMessage={onMessage}
+  if (editing) return <TeamDrillForm teamId={teamId} drill={editing === 'new' || editing.versionOf ? null : editing} versionOf={editing.versionOf ?? null} onMessage={onMessage}
     onCancel={() => setEditing(null)} onSaved={saved => { setEditing(null); setOpen(saved.slug); reload(); onMessage('Drill saved.') }} />
   if (open) return <DrillDetail key={open} slug={open} onBack={() => setOpen(null)} onOpen={setOpen} onVoted={onVoted} onMessage={onMessage}
-    onEdit={teamId ? setEditing : null} onDeleted={() => { setOpen(null); reload() }} />
+    onEdit={teamId ? setEditing : null} onDeleted={() => { setOpen(null); reload() }} teamId={teamId}
+    onMakeVersion={teamId ? drill => setEditing({ versionOf: drill }) : null} />
   if (!drills) return <p className="muted" role="status">Loading drills…</p>
   const shown = sortDrills(drills.filter(d => matchesFilters(d, filters)))
   return <>
@@ -123,7 +124,7 @@ function DrillFilters({ filters, options, onChange, team = false }) {
 
 // loadDrill fetches the drill; a shared plan's page passes one that goes through the plan's link.
 // onEdit (the library's) lets the team's coaches edit, delete and submit their own drills; dialogs only show them.
-function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill, onEdit = null, onDeleted = () => {} }) {
+function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill, onEdit = null, onDeleted = () => {}, teamId = null, onMakeVersion = null }) {
   const [drill, setDrill] = useState(null)
   const [variationId, setVariationId] = useState(initialVariationId)
   useEffect(() => {
@@ -154,6 +155,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       <p className="drill-tags">{drill.tags.length ? drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>) : <span className="status-pill muted-pill">Any focus</span>}</p>
       {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
       {drill.team_id && <TeamDrillActions drill={drill} onEdit={onEdit} onDeleted={onDeleted} onSubmitted={setDrill} onOpen={onOpen} onMessage={onMessage} />}
+      {!drill.team_id && teamId && <TeamVersion drill={drill} teamId={teamId} onMakeVersion={onMakeVersion} onOpen={onOpen} />}
     </header>
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
@@ -180,6 +182,14 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
   </article>
 }
 
+// On a library drill: the team's own version of it, or the way to make one.
+export function TeamVersion({ drill, teamId, onMakeVersion, onOpen }) {
+  const ours = drill.team_versions?.find(v => v.team_id === teamId)
+  if (ours) return <p className="team-version-note">Your team uses its own version of this drill: <button type="button" className="link-btn" onClick={() => onOpen(ours.slug)}>{ours.title}</button>. This one is hidden from your team's library and plans.</p>
+  if (!onMakeVersion) return null
+  return <p className="team-version-note"><button type="button" className="secondary-btn" onClick={() => onMakeVersion(drill)}>Make our own version</button> <span className="muted">Change the words, numbers or coaching points for your team. Your version replaces this one for your team; it has no diagrams.</span></p>
+}
+
 // A team drill's own controls, and where its offer to the shared library stands.
 export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen, onMessage }) {
   const [offering, setOffering] = useState(false)
@@ -195,9 +205,17 @@ export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen
     try { onSubmitted(await submitTeamDrill(drill.team_id, drill.slug, note.trim())); setOffering(false); onMessage('Drill submitted to the shared library.') }
     catch (e) { onMessage(errorMessage(e)) }
   }
-  const canOffer = !s || s.status === 'declined'
+  const canOffer = (!s || s.status === 'declined') && !drill.shadows
+  const unlink = async () => {
+    try { onSubmitted(await unlinkTeamDrill(drill.team_id, drill.slug)); onMessage(`${drill.shadows.title} is back in your team's library, next to yours.`) } catch (e) { onMessage(errorMessage(e)) }
+  }
+  const useLibrary = async () => {
+    if (!window.confirm(`Use ${drill.shadows.title} from the library instead, and delete your version? Sessions and plans that already use yours keep it.`)) return
+    try { await deleteTeamDrill(drill.team_id, drill.slug); onMessage(`Your team uses ${drill.shadows.title} from the library again.`); onDeleted() } catch (e) { onMessage(errorMessage(e)) }
+  }
   return <div className="team-drill-actions">
     <p><span className="status-pill warn-pill">Your team's drill</span> Only your team's coaches see it.</p>
+    {drill.shadows && <p>Your team's version of <button type="button" className="link-btn" onClick={() => onOpen(drill.shadows.slug)}>{drill.shadows.title}</button> from the shared library, which is hidden from your team's library and plans. Open it to see its diagrams.</p>}
     {s && <p className="team-drill-submission" role="status">{s.status === 'pending' ? 'Submitted to the shared library: waiting for review.'
       : s.status === 'accepted' ? 'Accepted for the shared library: it is being written up with diagrams.'
       : s.status === 'declined' ? `Not added to the shared library${s.reason ? `: ${s.reason}` : '.'}`
@@ -205,7 +223,9 @@ export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen
     {onEdit && <div className="inline-row">
       <button className="secondary-btn" type="button" onClick={() => onEdit(drill)}>Edit</button>
       {canOffer && !offering && <button className="secondary-btn" type="button" onClick={() => setOffering(true)}>Submit to the shared library</button>}
-      <button type="button" className="danger-btn" onClick={remove}>Delete</button>
+      {drill.shadows && <button type="button" className="secondary-btn" onClick={unlink}>Unlink</button>}
+      {drill.shadows ? <button type="button" className="danger-btn" onClick={useLibrary}>Use the library version instead</button>
+        : <button type="button" className="danger-btn" onClick={remove}>Delete</button>}
     </div>}
     {offering && <form className="team-drill-offer" onSubmit={submit}>
       <p className="muted hint">An admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, and we don't name you or your team.</p>

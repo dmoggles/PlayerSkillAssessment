@@ -245,3 +245,24 @@ test('the admin queue shows a submitted drill in full, with accept and decline',
   const accepted = render({ id: 1, status: 'accepted', note: '', team: 'Riverside', created_at: '2026-10-18T10:00:00Z', library_slug: 'four-corners', drill })
   assert.ok(accepted.includes('Download row') && accepted.includes('library slug four-corners') && !accepted.includes('Accept for the library'))
 })
+
+test("a team's own version of a library drill starts from its words only, and the two link to each other", async () => {
+  const { formFromLibrary } = await loadJsx('src/teamDrillModel.js')
+  const library = { title: 'Rondo', summary: 'Keep it', session_phase: 'opposed', format: 'small_group', players: [5, 5, 15], ages: [8, 16], duration: [10, 15],
+    intensity: 'medium', space: [10, 10], equipment: [], setup: 'A square.', instructions: ['Keep it.'], coaching_points: ['Move.'], tags: [{ id: 'p', weight: 1 }],
+    home_friendly: false, indoors: null, media: [{ kind: 'video', url: 'https://youtu.be/x' }, { kind: 'diagram' }],
+    variations: [{ kind: 'regression', title: 'Big square', change: 'Bigger.' }, { kind: 'regression', title: 'Two touch', change: 'Two touches.' },
+      { kind: 'base', title: 'Rondo', change: '' }, { kind: 'escalator', title: 'One touch', change: 'One touch.' }, { kind: 'escalator', title: '5v2', change: 'Two defenders.' }] }
+  const form = formFromLibrary(library)
+  assert.deepEqual([form.easier.title, form.harder.title], ['Two touch', 'One touch'], 'the versions nearest the base')
+  assert.equal(form.video_url, '', 'no videos copied')
+  assert.equal(form.setup, 'A square.')
+
+  const { TeamVersion, TeamDrillActions } = await loadJsx('src/DrillLibrary.jsx')
+  const render = (C, props) => renderToStaticMarkup(React.createElement(C, { onOpen: () => {}, onMessage: () => {}, onDeleted: () => {}, onSubmitted: () => {}, ...props }))
+  assert.match(render(TeamVersion, { drill: { team_versions: [] }, teamId: 1, onMakeVersion: () => {} }), /Make our own version/)
+  assert.match(render(TeamVersion, { drill: { team_versions: [{ team_id: 1, slug: 't1-ours', title: 'Our rondo' }] }, teamId: 1, onMakeVersion: () => {} }), /Your team uses its own version of this drill.*Our rondo/)
+  const ours = render(TeamDrillActions, { drill: { team_id: 1, slug: 't1-ours', title: 'Our rondo', submission: null, shadows: { slug: 'rondo', title: 'Rondo' } }, onEdit: () => {} })
+  assert.match(ours, /Your team&#x27;s version of .*Rondo/)
+  assert.ok(ours.includes('Unlink') && ours.includes('Use the library version instead') && !ours.includes('Submit to the shared library') && !ours.includes('>Delete<'))
+})

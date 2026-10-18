@@ -30,6 +30,15 @@ export function formFromDrill(drill) {
   }
 }
 
+// A copy of a library drill's words, to start the team's own version from. Only its text: no diagrams or videos.
+// Library drills can have several easier or harder versions; the copy takes the ones nearest the base.
+export function formFromLibrary(drill) {
+  const base = drill.variations.findIndex(v => v.kind === 'base')
+  const near = v => (v ? { title: v.title, change: v.change } : null)
+  return { ...formFromDrill(drill), easier: near(drill.variations[base - 1]?.kind === 'regression' ? drill.variations[base - 1] : null),
+    harder: near(drill.variations[base + 1]?.kind === 'escalator' ? drill.variations[base + 1] : null), video_url: '' }
+}
+
 const numbers = values => values.map(v => Number(v))
 
 // What the server is sent: numbers as numbers, empty list items and an empty space left out.
@@ -44,6 +53,7 @@ export function formBody(form) {
     coaching_points: form.coaching_points.map(s => s.trim()).filter(Boolean), tags: form.tags,
     home_friendly: form.home_friendly, indoors: form.home_friendly && form.indoors.trim() ? form.indoors.trim() : null,
     easier: version(form.easier), harder: version(form.harder), video_url: form.video_url.trim() || null,
+    ...(form.shadows ? { shadows: form.shadows } : {}),
   }
 }
 

@@ -30,9 +30,15 @@ Press **Add a drill** to write up a drill you already run. Only your team's coac
 
 **Edit** changes it everywhere, including sessions and plans that use it. **Delete** takes it out of the library; sessions and plans that already use it keep it.
 
+### Your own version of a library drill
+
+Want to run a library drill your way? Press **Make our own version** on it. You start from a copy of its words (set-up, steps, coaching points, and the easier and harder versions nearest the base) and change anything. Your version replaces the library drill for your team: the library drill is hidden from your team's library, and sessions and plans choose yours. Other teams still see the library drill.
+
+Your version has only what you write, with no diagrams or videos from the library drill. It links to the library drill, so its diagrams are a click away. **Unlink** keeps both as separate drills; **Use the library version instead** deletes yours and brings the library drill back. Sessions and plans that already use either drill keep it.
+
 ### Sharing it with everyone
 
-**Submit to the shared library** offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share.
+**Submit to the shared library** offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share. Once it's in the library, your drill becomes your team's version of it, so you don't see both.
 
 ## Suggesting a video
 

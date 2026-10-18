@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createTeamDrill, errorMessage, getSkillTags, updateTeamDrill } from './api'
 import { AREA_LABELS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, equipmentLabel, videoEmbedUrl } from './drillModel'
-import { EQUIPMENT_ITEMS, GENERAL_PHASES, emptyForm, formBody, formFromDrill, formProblems } from './teamDrillModel'
+import { EQUIPMENT_ITEMS, GENERAL_PHASES, emptyForm, formBody, formFromDrill, formFromLibrary, formProblems } from './teamDrillModel'
 
 // Writing or editing one of the team's own drills. Team drills have no diagram: the set-up, the steps and, if the
-// coach has one, a video link describe them. `drill` is the drill being edited (none for a new one).
-export default function TeamDrillForm({ teamId, drill = null, onSaved, onCancel, onMessage, initialTags = null }) {
-  const [form, setForm] = useState(() => (drill ? formFromDrill(drill) : emptyForm()))
+// coach has one, a video link describe them. `drill` is the drill being edited (none for a new one); `versionOf` is a
+// library drill to make the team's own version of, starting from a copy of its words.
+export default function TeamDrillForm({ teamId, drill = null, versionOf = null, onSaved, onCancel, onMessage, initialTags = null }) {
+  const [form, setForm] = useState(() => (drill ? formFromDrill(drill) : versionOf ? { ...formFromLibrary(versionOf), shadows: versionOf.slug } : emptyForm()))
   const [tags, setTags] = useState(initialTags ?? [])
   const [busy, setBusy] = useState(false)
   useEffect(() => {
@@ -50,8 +51,10 @@ export default function TeamDrillForm({ teamId, drill = null, onSaved, onCancel,
     : <button type="button" className="link-btn" onClick={() => set(key, { title: '', change: '' })}>+ Add {label.toLowerCase()}</button>
 
   return <form className="session-form team-drill-form" onSubmit={submit}>
-    <h3>{drill ? `Edit ${drill.title}` : 'Add a drill'}</h3>
-    <p className="muted hint">Only your team's coaches see this drill. It can be chosen for sessions and plans like any drill in the library.</p>
+    <h3>{drill ? `Edit ${drill.title}` : versionOf ? `Your team's version of ${versionOf.title}` : 'Add a drill'}</h3>
+    <p className="muted hint">{versionOf
+      ? `Starts from a copy of the library drill's words; change anything. It replaces ${versionOf.title} for your team, in the library and in sessions and plans. It has no diagrams: the library drill keeps those, and stays a click away.`
+      : "Only your team's coaches see this drill. It can be chosen for sessions and plans like any drill in the library."}</p>
     <label className="field">Name<input required maxLength={120} value={form.title} onChange={e => set('title', e.target.value)} placeholder="Say what players do, for example Four-corner passing" /></label>
     <label className="field"><span>Summary <span className="muted">(optional)</span></span><input maxLength={300} value={form.summary} onChange={e => set('summary', e.target.value)} /></label>
     <div className="session-form-row">
