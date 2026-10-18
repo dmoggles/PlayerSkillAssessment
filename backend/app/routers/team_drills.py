@@ -2,6 +2,7 @@
 library drill. They have no diagrams; a coach can add a YouTube or Vimeo link. A coach can offer one to the shared
 library (see DrillSubmission)."""
 import re
+from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
@@ -9,7 +10,8 @@ from ..audit import record
 from ..auth import current_user, require_member
 from ..database import get_db
 from ..drills import apply_row, drill_problems
-from ..models import Drill, DrillSubmission, SkillTag, User, utcnow
+from ..models import Drill, DrillMedia, DrillSubmission, DrillTag, DrillVariation, SkillTag, Team, User, utcnow
+from .admin import require_admin
 from .drills import drill_out, list_drills
 
 router = APIRouter(tags=["drills"])
@@ -190,3 +192,92 @@ def submit_team_drill(team_id: int, slug: str, body: SubmitIn, db: DbSession = D
     record(db, team_id, user, "team_drill_submitted", title=drill.title)
     db.commit()
     return drill_out(db, drill, user)
+
+
+# Site admins: drills teams offer to the shared library. Accepting reserves a library slug and gives the drill as a
+# data-file row; it is published when a data file with that slug is loaded (see load_file), written up with
+# diagrams like any library drill. Nothing a team writes reaches other teams before that.
+SubmissionStatus = Literal["pending", "accepted", "declined", "published"]
+
+
+def row_for(db: DbSession, drill: Drill, slug: str) -> dict:
+    """A drill as a data-file row: the reverse of apply_row, for starting the library version from."""
+    variations = db.query(DrillVariation).filter_by(drill_id=drill.id).order_by(DrillVariation.position)
+    row = {"slug": slug, "title": drill.title, "summary": drill.summary, "format": drill.format,
+           "players": [drill.players_min, drill.players_ideal, drill.players_max], "ages": [drill.age_min, drill.age_max],
+           "duration": [drill.duration_min, drill.duration_typical], "session_phase": drill.session_phase, "intensity": drill.intensity}
+    if drill.space_width_m is not None:
+        row["space"] = [float(drill.space_width_m), float(drill.space_length_m)]
+    row.update(home_friendly=drill.home_friendly, equipment=drill.equipment, setup=drill.setup, instructions=drill.instructions,
+               coaching_points=drill.coaching_points,
+               tags={t.tag_id: t.weight for t in db.query(DrillTag).filter_by(drill_id=drill.id)},
+               variations=[{"kind": v.kind, "title": v.title, "change": v.change, "levels": [v.level_min, v.level_max]} for v in variations],
+               media=[{"kind": m.kind, "url": m.url, "caption": m.caption} for m in db.query(DrillMedia).filter_by(drill_id=drill.id).order_by(DrillMedia.position)])
+    if drill.indoors:
+        row["indoors"] = drill.indoors
+    return row
+
+
+def submission_item(db: DbSession, s: DrillSubmission) -> dict:
+    drill, team = db.get(Drill, s.drill_id), db.get(Team, s.team_id)
+    return {"id": s.id, "status": s.status, "note": s.note, "reason": s.reason, "created_at": s.created_at, "reviewed_at": s.reviewed_at,
+            "library_slug": s.library_slug, "team": team.name if team else None, "drill": drill_out(db, drill, None)}
+
+
+def _submission(db: DbSession, submission_id: int) -> DrillSubmission:
+    s = db.get(DrillSubmission, submission_id)
+    if not s:
+        raise HTTPException(404, "Submission not found")
+    return s
+
+
+class AcceptIn(BaseModel):
+    library_slug: str = Field(default="", max_length=80)  # empty: made from the title
+
+
+class DeclineIn(BaseModel):
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+@router.get("/admin/drill-submissions")
+def submission_queue(status: SubmissionStatus = "pending", db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    """Waiting ones oldest first, so none waits forever; the other lists newest first."""
+    query = db.query(DrillSubmission).filter_by(status=status)
+    order = DrillSubmission.id if status == "pending" else DrillSubmission.id.desc()
+    return [submission_item(db, s) for s in query.order_by(order).limit(200)]
+
+
+@router.post("/admin/drill-submissions/{submission_id}/accept")
+def accept_submission(submission_id: int, body: AcceptIn, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    s = _submission(db, submission_id)
+    if s.status not in ("pending", "declined"):
+        raise HTTPException(409, "Only submissions waiting for review, or declined, can be accepted")
+    drill = db.get(Drill, s.drill_id)
+    slug = body.library_slug.strip() or re.sub(r"[^a-z0-9]+", "-", drill.title.casefold()).strip("-")[:80]
+    if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug) or re.match(r"t\d+-", slug):
+        raise HTTPException(422, "The library slug is lowercase letters, digits and hyphens, and doesn't start like a team drill's")
+    if db.query(Drill.id).filter_by(slug=slug).first() or db.query(DrillSubmission.id).filter(DrillSubmission.library_slug == slug, DrillSubmission.id != s.id).first():
+        raise HTTPException(409, "A drill already has that slug: choose another")
+    s.status, s.library_slug, s.reason, s.reviewed_by, s.reviewed_at = "accepted", slug, "", admin.id, utcnow()
+    db.commit()
+    return submission_item(db, s)
+
+
+@router.post("/admin/drill-submissions/{submission_id}/decline")
+def decline_submission(submission_id: int, body: DeclineIn, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    """Decline a submission, saying why; the team sees the reason on its drill."""
+    s = _submission(db, submission_id)
+    if s.status not in ("pending", "accepted"):
+        raise HTTPException(409, "This submission has already been declined or published")
+    s.status, s.library_slug, s.reason, s.reviewed_by, s.reviewed_at = "declined", None, body.reason.strip(), admin.id, utcnow()
+    db.commit()
+    return submission_item(db, s)
+
+
+@router.get("/admin/drill-submissions/{submission_id}/row")
+def submission_row(submission_id: int, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    """The drill as a data-file row with its library slug, to add to the next drills file with diagrams."""
+    s = _submission(db, submission_id)
+    if s.status != "accepted":
+        raise HTTPException(409, "Accept the submission first")
+    return row_for(db, db.get(Drill, s.drill_id), s.library_slug)

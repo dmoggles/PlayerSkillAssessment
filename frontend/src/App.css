@@ -1120,6 +1120,9 @@ a.public-brand { text-decoration: none; }
 .team-drill-form fieldset > .link-btn { justify-self: start; }
 .team-drill-equipment .field { text-transform: capitalize; }
 .team-drill-problems { padding-left: 18px; }
+.drill-review p { margin: 0; font-size: .88rem; }
+.drill-review ol, .drill-review ul { margin: 0; padding-left: 20px; font-size: .88rem; }
+.drill-review-versions { list-style: none; padding-left: 0 !important; }
 .focus-chips button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 20px; background: #fff; font-size: .88rem; }
 .focus-chips button.active { border-color: var(--primary); background: var(--accent-tint-strong); color: var(--accent-ink); font-weight: 700; }
 .session-focus-order { margin: 0; font-size: .85rem; color: var(--muted); }

@@ -75,6 +75,18 @@ The API removes expired sessions, email links and stale sign-in throttle records
 
 The interactive API docs (`/api/docs`) and schema (`/api/openapi.json`) are served only when `API_DOCS_ENABLED=true`, which the local Compose override sets. Development and production deployments do not expose them unless you add that setting to their env file.
 
+### Drills
+
+The shared library is content, not schema: `backend/app/data/drills_vN.json`, loaded on every deploy by the migrate container (`python -m app.drills`). Teams can also write their own drills in the app; those belong to the team (`drills.team_id`), are seen only by its coaches, and the loader never touches them.
+
+A team can submit one of its drills to the shared library. Site admins review submissions under **Settings → Drill submissions**:
+
+1. **Accept for the library** reserves a library slug. Nothing is published yet.
+2. **Download row** gives the drill as a data-file row with that slug. Add it to the next drills file, with diagrams and videos, and review it like any library drill.
+3. Deploying the file publishes it: the loader marks the submission published, and the team's drill shows that it's in the library.
+
+**Decline** with a reason the team sees.
+
 ### Public pages and search engines
 
 The landing page, the manual (`frontend/src/manual/pages/*.md`) and the legal pages are prerendered to static HTML at build time (`frontend/scripts/prerender.mjs`), each with its own title, description and link-preview tags; the coach app and private links get the plain shell, `app.html`. The web image takes two build arguments: `SITE_URL`, the site's address, and `SITE_INDEXING`. Only the production workflow sets `SITE_INDEXING=true`, which writes a `sitemap.xml` and a `robots.txt` that keeps the app and private links out of search; every other build is `noindex` and disallows everything.

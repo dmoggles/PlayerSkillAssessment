@@ -53,6 +53,7 @@ function PrivacyNotice() {
       <li>The teams you belong to and your role in each.</li>
       <li>Which coach saved each assessment, plan or report, and a team activity log (for example, who invited whom or deleted a period), which names coaches by email.</li>
       <li>Drills you've liked or disliked.</li>
+      <li>Drills your team writes, and which coach added or last changed each. Only your team's coaches see them. If you submit one to the shared library, site admins see it, your note and your team's name.</li>
       <li>Videos you suggest for drills, with your note. Only site admins see who suggested a video or why; if you delete your account, an approved video stays on its drill without your name.</li>
       <li>Security records: your signed-in sessions, and counts of failed sign-ins, kept so we can stop password guessing.</li>
       <li>Our web server's access logs: IP address, browser, the page requested and the time. Links that contain private codes (self-assessment, shared report and invitation links) are left out of them.</li>
@@ -170,6 +171,7 @@ function Terms() {
 
     <h2>Your content</h2>
     <p>What you record belongs to you and your club. You let us store and process it only to run the service for you. You can export a player's information, delete players, or delete a whole team at any time.</p>
+    <p>Drills your team writes are your team's, and only its coaches see them. When you submit one to the shared library, you confirm it's yours or your club's to share, and you let us edit it, add diagrams and videos, and publish it in the library for every coach and, through shared reports, players. We don't name you or your team in the library. A drill we've published stays there if you later delete yours.</p>
 
     <h2>Availability and liability</h2>
     <p>We work to keep {APP_NAME} available and your information safe, with regular encrypted backups, but we can't promise it will always be available or error-free, and it's provided as it is. Suggestions it makes (focus areas, drills) are aids for coaches; coaches decide what's right for their players, including whether a drill is safe for them.</p>

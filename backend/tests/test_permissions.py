@@ -119,6 +119,10 @@ ACCESS = {
     ("PUT", "/teams/{team_id}/drills/{slug}"): (MEMBER, "team_drill", None),
     ("POST", "/teams/{team_id}/drills/{slug}/submit"): (MEMBER, {"confirm_own": True}, None),
     ("DELETE", "/teams/{team_id}/drills/{slug}"): (MEMBER, None, None),
+    ("GET", "/admin/drill-submissions"): (ADMIN, None, None),
+    ("POST", "/admin/drill-submissions/{submission_id}/accept"): (ADMIN, {}, None),
+    ("POST", "/admin/drill-submissions/{submission_id}/decline"): (ADMIN, {"reason": "Duplicate"}, None),
+    ("GET", "/admin/drill-submissions/{submission_id}/row"): (ADMIN, None, None),
     ("GET", "/teams/{team_id}/session-templates"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/session-templates"): (MEMBER, "template", None),
     ("PUT", "/teams/{team_id}/session-templates/{template_id}"): (MEMBER, "template", None),
@@ -162,7 +166,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     ids = {"team_id": team_id, "template_id": template_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": drill_slug,
-           "invite_id": 0, "suggestion_id": 0, "request_id": 0}
+           "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

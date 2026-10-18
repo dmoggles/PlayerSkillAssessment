@@ -232,3 +232,16 @@ test('the drill editor and the team filter', async () => {
   assert.equal(matchesFilters({ ...base, team_id: null }, { ...EMPTY_FILTERS, mine: true }), false)
   assert.equal(matchesFilters({ ...base, team_id: 3 }, { ...EMPTY_FILTERS, mine: true }), true)
 })
+
+test('the admin queue shows a submitted drill in full, with accept and decline', async () => {
+  const { SubmissionReview } = await loadJsx('src/areas/DrillSubmissionQueue.jsx')
+  const drill = { title: 'Four corners', summary: 'Pass and follow.', session_phase: 'technical', format: 'small_group', players: [4, 8, 12], ages: [8, 14],
+    duration: [10, 15], space: [15, 15], tags: [{ id: 'p', label: 'Short passing', weight: 1 }], setup: 'A square.', equipment: [{ item: 'cones', quantity: 4 }],
+    instructions: ['Pass.'], coaching_points: ['Open up.'], variations: [{ id: 1, kind: 'base', title: 'Four corners', change: '' }, { id: 2, kind: 'escalator', title: 'One touch', change: 'One touch only.' }],
+    media: [] }
+  const render = item => renderToStaticMarkup(React.createElement(SubmissionReview, { item, onDone: () => {}, onMessage: () => {} }))
+  const pending = render({ id: 1, status: 'pending', note: 'Works with U10s', team: 'Riverside', created_at: '2026-10-18T10:00:00Z', drill })
+  for (const text of ['Four corners', 'From Riverside', 'Works with U10s', 'A square.', '4 cones', 'Harder: One touch', 'Accept for the library', 'Decline because']) assert.ok(pending.includes(text), text)
+  const accepted = render({ id: 1, status: 'accepted', note: '', team: 'Riverside', created_at: '2026-10-18T10:00:00Z', library_slug: 'four-corners', drill })
+  assert.ok(accepted.includes('Download row') && accepted.includes('library slug four-corners') && !accepted.includes('Accept for the library'))
+})

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 from sqlalchemy.orm import Session as DbSession
-from .models import Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, SkillTag, utcnow
+from .models import Drill, DrillLink, DrillMedia, DrillSubmission, DrillTag, DrillVariation, SkillTag, utcnow
 
 DATA_DIR = Path(__file__).parent / "data"
 FORMATS = {"individual", "small_group", "unit", "team"}
@@ -321,6 +321,9 @@ def load_file(db: DbSession, path: Path) -> dict:
     for drill in db.query(Drill).filter(Drill.source_version == version, Drill.slug.notin_(slugs), Drill.status != "retired"):
         drill.status = "retired"
         counts["retired"] += 1
+    # A team's drill accepted for the library is published once a data file has its reserved slug.
+    for submission in db.query(DrillSubmission).filter(DrillSubmission.status == "accepted", DrillSubmission.library_slug.in_(slugs)):
+        submission.status, submission.library_drill_id = "published", by_slug[submission.library_slug][0].id
     db.commit()
     return counts
 

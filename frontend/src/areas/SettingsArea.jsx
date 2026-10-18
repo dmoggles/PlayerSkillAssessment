@@ -4,6 +4,7 @@ import { activatePeriod, addPlayer, archivePlayer, playerExportUrl, createTeam, 
 import ChangePasswordForm from '../ChangePasswordForm'
 import DeleteAccountForm from '../DeleteAccountForm'
 import { MyVideoSuggestions } from '../VideoSuggestions'
+import DrillSubmissionQueue from './DrillSubmissionQueue'
 import VideoSuggestionQueue from './VideoSuggestionQueue'
 import LegalLinks from '../legal/LegalLinks'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
@@ -66,6 +67,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
     </>}
     {user.is_admin && <SiteAdminSection onMessage={onMessage} />}
     {user.is_admin && <VideoSuggestionQueue onMessage={onMessage} />}
+    {user.is_admin && <DrillSubmissionQueue onMessage={onMessage} />}
     <Section title="Account" className="settings-account">
       <p className="settings-account-email">{user.email}</p>
       <ChangePasswordForm />
