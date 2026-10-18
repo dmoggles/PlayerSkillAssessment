@@ -34,6 +34,8 @@ export function auditText(event) {
       : `${actor} shared a development plan for ${d.player} (${d.period})`
     case 'plan_share_revoked': return `${actor} revoked the plan link for ${d.player} (${d.period})`
     case 'report_share_revoked': return `${actor} revoked the report link for ${d.player} (${d.period})`
+    case 'session_template_created': return `${actor} added the session template ${d.name}`
+    case 'session_template_deleted': return `${actor} deleted the session template ${d.name}`
     case 'session_created': return `${actor} planned a training session for ${d.date}: ${d.title}`
     case 'session_deleted': return `${actor} deleted the training session on ${d.date}: ${d.title}`
     default: return `${actor}: ${event.action}`

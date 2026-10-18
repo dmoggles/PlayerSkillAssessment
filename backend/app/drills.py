@@ -13,7 +13,7 @@ from .models import Drill, DrillLink, DrillMedia, DrillTag, DrillVariation, Skil
 
 DATA_DIR = Path(__file__).parent / "data"
 FORMATS = {"individual", "small_group", "unit", "team"}
-PHASES = {"warm_up", "technical", "opposed", "small_sided_game", "cool_down"}
+PHASES = {"warm_up", "technical", "opposed", "small_sided_game", "full_squad_game", "cool_down"}
 GENERAL_PHASES = {"warm_up", "cool_down"}  # may have no skill tags
 INTENSITIES = {"low", "medium", "high"}
 EQUIPMENT = {"cones", "balls", "bibs", "goals", "mini_goals", "mannequins", "hurdles", "ladders", "poles", "other"}

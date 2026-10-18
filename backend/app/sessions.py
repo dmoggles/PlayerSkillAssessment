@@ -3,6 +3,7 @@
 Like plans.py, the planner works on plain data, so it can be tested and replaced on its own.
 
 Input:  {"length": 60,
+         "minutes": {phase: minutes},                       # optional: a template's breakdown; else TEMPLATES[length]
          "focus": [tag_id, ...],                            # most important first
          "groups": [{"levels": [level or None per player]}], # one group in single mode, 2-3 in groups mode
          "drills": [{"slug", "title", "session_phase", "players": [min, ideal, max], "duration": [min, typical],
@@ -15,7 +16,8 @@ Output: {"planner": "sessions-v1",
          "blocks": [{"phase", "minutes", "drill": slug|None, "title", "together": bool,
                      "variations": [variation id per group, or one when together], "reasons": [text]}]}
 
-Each block keeps to its session phase. A drill's score for a block, once hard filters pass (that phase, not
+The session has a block for each part in its breakdown, in PHASES order; a template may leave parts out. Each block
+keeps to its session phase. A drill's score for a block, once hard filters pass (that phase, not
 disliked by this coach, made for more than two players (drills for one or two are home practice), enough players
 for each group and not more than two set-ups' worth, and not a goalkeeper drill unless the focus is a goalkeeping skill):
   focus      how strongly it trains the focus tags, the first tag counting most (warm-ups and cool-downs don't need to,
@@ -24,10 +26,10 @@ for each group and not more than two set-ups' worth, and not a goalkeeper drill 
   preference this coach's like, other coaches' votes
   recency    drills from the team's last few sessions score lower, for variety
   plans      drills players already have at training in their own plans score a little higher
-In groups mode the technical and opposed blocks run in the level groups; the warm-up, small-sided game and
-cool-down run with everyone together. A warm-up that needs longer than the template allows (up to MAX_LONGER_WARM_UP
-more minutes, such as a full injury-prevention programme) gets that time from the technical and opposed practices, so
-the session's length doesn't change. A drill is used once per session. Each group's version starts at the group's
+In groups mode the technical and opposed blocks run in the level groups; the warm-up, games and cool-down run with
+everyone together. A warm-up that needs longer than the breakdown allows (up to MAX_LONGER_WARM_UP more minutes, such
+as a full injury-prevention programme) gets that time from the technical and opposed practices, as far as they have
+it to give while keeping MIN_PRACTICE minutes each, so the session's length doesn't change. A drill is used once per session. Each group's version starts at the group's
 median level on the first focus tag the drill's versions describe; otherwise at the base version. A phase with no
 fitting drill becomes the coach's own block.
 """
@@ -36,7 +38,7 @@ from .plans import start_index
 
 PLANNER = "sessions-v1"
 LENGTHS = (45, 60, 75, 90)
-PHASES = ("warm_up", "technical", "opposed", "small_sided_game", "cool_down")
+PHASES = ("warm_up", "technical", "opposed", "small_sided_game", "full_squad_game", "cool_down")
 TEMPLATES = {
     45: {"warm_up": 8, "technical": 12, "opposed": 12, "small_sided_game": 10, "cool_down": 3},
     60: {"warm_up": 10, "technical": 15, "opposed": 15, "small_sided_game": 15, "cool_down": 5},
@@ -48,12 +50,15 @@ OWN_BLOCKS = {
     "technical": "Technical practice of your choice",
     "opposed": "Opposed practice of your choice",
     "small_sided_game": "Small-sided game",
+    "full_squad_game": "Full squad game: a match with everyone",
     "cool_down": "Cool-down: a light jog and stretches",
 }
-TOGETHER = {"warm_up", "small_sided_game", "cool_down"}  # run with the whole squad, even in groups mode
+TOGETHER = {"warm_up", "small_sided_game", "full_squad_game", "cool_down"}  # run with the whole squad, even in groups mode
 # A warm-up that needs longer than the template gives it (a full injury-prevention programme) may take up to this many
 # minutes from the technical and opposed practices, so it is done properly.
 MAX_LONGER_WARM_UP = 10
+MIN_PRACTICE = 5  # a technical or opposed practice giving the warm-up time keeps at least this many minutes
+GIVERS = ("technical", "opposed")  # the parts that give a longer warm-up its time
 FOCUS_WEIGHTS = (1.0, 0.6, 0.4)
 RECENCY = {1: 4, 2: 2, 3: 1}
 
@@ -79,9 +84,9 @@ def block_groups(phase: str, groups: list[dict]) -> list[dict]:
     return groups
 
 
-def assess(drill: dict, phase: str, minutes: int, data: dict, longer: bool = False) -> dict | None:
-    """A candidate's score for this block with the notes that explain it, or None when it can't be used. With `longer`,
-    a warm-up may run past the block's minutes; the result's "minutes" says how long it takes."""
+def assess(drill: dict, phase: str, minutes: int, data: dict, longer: int = 0) -> dict | None:
+    """A candidate's score for this block with the notes that explain it, or None when it can't be used. A warm-up may
+    run up to `longer` minutes past the block's minutes; the result's "minutes" says how long it takes."""
     if drill["session_phase"] != phase or drill["my_vote"] < 0 or not drill["variations"]:
         return None
     # Drills for one or two players are home practice, not part of a team session, even for a small group.
@@ -104,10 +109,12 @@ def assess(drill: dict, phase: str, minutes: int, data: dict, longer: bool = Fal
     elif not drill["tags"]:
         reasons.append(f"A general {'warm-up' if phase == 'warm_up' else 'cool-down'}, for any focus.")
     low, typical = drill["duration"]
-    extended = longer and minutes < low <= minutes + MAX_LONGER_WARM_UP
+    extended = longer and minutes < low <= minutes + longer
     if extended:
         minutes = low
-        reasons.append(f"Needs {low} minutes to be done properly, so the technical and opposed practices are a little shorter.")
+        givers = data.get("givers", GIVERS)
+        shorter = "technical and opposed practices are" if len(givers) > 1 else f"{givers[0]} practice is"
+        reasons.append(f"Needs {low} minutes to be done properly, so the {shorter} a little shorter.")
     score -= abs(typical - minutes) / 5 + (2 if minutes < low else 0)
     if drill["my_vote"] > 0:
         score += 2
@@ -126,7 +133,7 @@ def assess(drill: dict, phase: str, minutes: int, data: dict, longer: bool = Fal
     return {"drill": drill, "score": score, "reasons": reasons, "minutes": minutes}
 
 
-def ranked(phase: str, minutes: int, data: dict, longer: bool = False) -> list[dict]:
+def ranked(phase: str, minutes: int, data: dict, longer: int = 0) -> list[dict]:
     """Candidates for a block, best first."""
     scored = [a for a in (assess(d, phase, minutes, data, longer) for d in data["drills"]) if a]
     return sorted(scored, key=lambda a: (-a["score"], a["drill"]["title"]))
@@ -155,23 +162,39 @@ def build_block(phase: str, minutes: int, choice: dict | None, data: dict) -> di
             "variations": group_versions(drill, data["focus"], groups), "reasons": choice["reasons"]}
 
 
+def breakdown(data: dict) -> dict[str, int]:
+    """Minutes for each part the session has: the template's, or the default for its length."""
+    minutes = data.get("minutes") or TEMPLATES[data["length"]]
+    return {phase: minutes[phase] for phase in PHASES if minutes.get(phase)}
+
+
+def take_minutes(minutes_for: dict[str, int], givers: list[str], extra: int):
+    """Take `extra` minutes from the givers, as evenly as their spare time allows (the first gives the odd one)."""
+    while extra > 0 and any(minutes_for[p] > MIN_PRACTICE for p in givers):
+        for phase in givers:
+            if extra and minutes_for[phase] > MIN_PRACTICE:
+                minutes_for[phase] -= 1
+                extra -= 1
+
+
 def plan(data: dict) -> dict:
-    """Blocks for every phase. `kept_phases` (when re-planning) are the parts a coach chose; the warm-up only takes time
-    from the technical and opposed practices when the planner is choosing all three."""
+    """Blocks for every part of the session. `kept_phases` (when re-planning) are the parts a coach chose; the warm-up
+    only takes time from the technical and opposed practices when the planner is choosing them all."""
     used, blocks = set(), []
-    minutes_for = dict(TEMPLATES[data["length"]])
-    can_lengthen = not set(data.get("kept_phases", ())) & {"warm_up", "technical", "opposed"}
-    for phase in PHASES:
+    minutes_for = breakdown(data)
+    givers = [p for p in GIVERS if p in minutes_for]
+    can_lengthen = givers and not set(data.get("kept_phases", ())) & {"warm_up", *givers}
+    spare = min(MAX_LONGER_WARM_UP, sum(minutes_for[p] - MIN_PRACTICE for p in givers)) if can_lengthen else 0
+    data = {**data, "givers": givers}
+    for phase in list(minutes_for):
         minutes = minutes_for[phase]
-        longer = can_lengthen and phase == "warm_up"
+        longer = max(0, spare) if phase == "warm_up" else 0
         choice = next((c for c in ranked(phase, minutes, data, longer) if c["drill"]["slug"] not in used), None)
         if choice:
             used.add(choice["drill"]["slug"])
             extra = choice["minutes"] - minutes
             if extra > 0:
-                # Split the extra minutes between the technical and opposed practices, the technical giving the odd one.
-                minutes_for["technical"] -= extra - extra // 2
-                minutes_for["opposed"] -= extra // 2
+                take_minutes(minutes_for, givers, extra)
                 minutes = choice["minutes"]
         blocks.append(build_block(phase, minutes, choice, data))
     return {"planner": PLANNER, "blocks": blocks}

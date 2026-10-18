@@ -21,7 +21,7 @@ def data(drills, groups=((3, 3, 3, 3, 3, 3, 3, 3),), length=60, **extra):
 def test_the_template_fills_each_phase_with_a_fitting_drill_or_the_coachs_own_block():
     drills = [drill("rondo", "technical"), drill("game", "small_sided_game", players=(6, 8, 12)), drill("press", "opposed", tags={"pressing": 1.0})]
     result = sessions.plan(data(drills))
-    assert [b["phase"] for b in result["blocks"]] == list(sessions.PHASES)
+    assert [b["phase"] for b in result["blocks"]] == ["warm_up", "technical", "opposed", "small_sided_game", "cool_down"]
     assert sum(b["minutes"] for b in result["blocks"]) == 60
     by_phase = {b["phase"]: b for b in result["blocks"]}
     assert by_phase["technical"]["drill"] == "rondo" and by_phase["technical"]["reasons"][0] == "Trains passing short."
@@ -109,7 +109,7 @@ def test_coaches_plan_list_and_delete_team_sessions(monkeypatch):
     assert made.status_code == 201, made.text
     single = made.json()
     assert single["title"] == focus[0]["label"].capitalize() and single["versions"] == "single" and single["expected"] == 8
-    assert [b["phase"] for b in single["blocks"]] == list(sessions.PHASES)
+    assert [b["phase"] for b in single["blocks"]] == list(sessions.TEMPLATES[60])
     technical = next(b for b in single["blocks"] if b["phase"] == "technical")
     assert technical["drill"] and len(technical["versions"]) == 1 and technical["versions"][0]["title"]
 
@@ -120,7 +120,7 @@ def test_coaches_plan_list_and_delete_team_sessions(monkeypatch):
     assert in_groups and all(len(b["versions"]) == 2 for b in in_groups)
     assert all(b["together"] for b in grouped["blocks"] if b["phase"] in ("warm_up", "small_sided_game", "cool_down"))
 
-    for bad, words in (({**new, "length": 50}, "length"), ({**new, "player_ids": [999999]}, "active player"),
+    for bad, words in (({**new, "length": 50}, "length of 45"), ({**new, "length": None}, "Choose a template"), ({**new, "player_ids": [999999]}, "active player"),
                        ({**new, "focus_tags": ["not_a_tag"]}, "focus"), ({**new, "player_ids": ids[:1], "versions": "groups"}, "at least 2")):
         refused = owner.post(f"/teams/{team_id}/sessions", json=bad, headers=headers)
         assert refused.status_code == 422 and words in refused.text, refused.text
@@ -278,3 +278,88 @@ def test_a_set_programme_starts_everyone_at_its_first_version():
     assert "move up one version at a time" in slot["reasons"][1]
     block = sessions.plan({**data([programme]), "focus": ["coordination_balance"], "groups": [{"levels": [5, 5, 5, 5]}]})["blocks"][0]
     assert block["variations"] == ["programme-1"]
+
+
+def test_a_template_plans_only_its_parts_in_session_order():
+    drills = [drill("rondo", "technical"), drill("game", "small_sided_game", players=(6, 8, 12))]
+    minutes = {"cool_down": 5, "full_squad_game": 25, "warm_up": 10, "small_sided_game": 20}
+    result = sessions.plan(data(drills, length=60, minutes=minutes, groups=((1, 1, 1, 1), (4, 4, 4, 4))))
+    blocks = {b["phase"]: b for b in result["blocks"]}
+    assert list(blocks) == ["warm_up", "small_sided_game", "full_squad_game", "cool_down"]
+    assert [b["minutes"] for b in result["blocks"]] == [10, 20, 25, 5]
+    # No drill is a full squad game yet: the coach's own match, with everyone together even in groups mode.
+    squad_game = blocks["full_squad_game"]
+    assert squad_game["drill"] is None and squad_game["title"].startswith("Full squad game") and squad_game["together"]
+    assert "rondo" not in {b["drill"] for b in result["blocks"]}
+
+
+def test_a_long_warm_up_takes_its_time_from_the_practices_the_template_has():
+    programme = drill("injury-prevention", "warm_up", tags={"coordination_balance": 1.0}, duration=(20, 20))
+    plan = lambda minutes: {b["phase"]: b for b in sessions.plan(data([programme], length=sum(minutes.values()), minutes=minutes))["blocks"]}
+    # Only an opposed practice: it gives all the extra time.
+    blocks = plan({"warm_up": 10, "opposed": 25, "small_sided_game": 20, "cool_down": 5})
+    assert (blocks["warm_up"]["minutes"], blocks["opposed"]["minutes"]) == (20, 15)
+    assert "so the opposed practice is a little shorter" in blocks["warm_up"]["reasons"][-1]
+    # A practice keeps at least MIN_PRACTICE minutes: down to that, the programme gets its time; past it, it doesn't.
+    blocks = plan({"warm_up": 10, "technical": 10, "opposed": 10, "small_sided_game": 20})
+    assert (blocks["warm_up"]["minutes"], blocks["technical"]["minutes"], blocks["opposed"]["minutes"]) == (20, 5, 5)
+    blocks = plan({"warm_up": 10, "technical": 12, "small_sided_game": 20})
+    assert (blocks["warm_up"]["minutes"], blocks["technical"]["minutes"]) == (10, 12)
+    assert not any("shorter" in r for r in blocks["warm_up"]["reasons"])
+    # Without technical or opposed practices, the warm-up keeps its minutes.
+    blocks = plan({"warm_up": 15, "small_sided_game": 30, "cool_down": 5})
+    assert blocks["warm_up"]["minutes"] == 15
+    assert sum(b["minutes"] for b in plan({"warm_up": 10, "technical": 15, "opposed": 15, "cool_down": 5}).values()) == 45
+
+
+def test_coaches_share_session_templates(monkeypatch):
+    clean_database()
+    with SessionLocal() as db:
+        for name in sorted(p.name for p in DATA_DIR.glob("drills_v*.json")):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("templates-coach@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Template squad"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    ids = [owner.post(f"/teams/{team_id}/players", json={"name": n}, headers=headers).json()["id"] for n in ("Ana", "Bea", "Cat", "Dee", "Eve", "Fay")]
+    url = f"/teams/{team_id}/session-templates"
+    match_prep = {"name": "Match prep", "length": 60, "minutes": {"cool_down": 5, "warm_up": 10, "opposed": 20, "full_squad_game": 25}}
+
+    for bad, words in (({**match_prep, "length": 70}, "add up to 60 of 70"), ({**match_prep, "minutes": {"warm_up": 60, "juggling": 0}}, "Unknown part"),
+                       ({**match_prep, "minutes": {}}, "minutes"), ({**match_prep, "name": "  "}, "name")):
+        refused = owner.post(url, json=bad, headers=headers)
+        assert refused.status_code == 422 and words in refused.text, refused.text
+    made = owner.post(url, json=match_prep, headers=headers)
+    assert made.status_code == 201, made.text
+    template = made.json()
+    assert list(template["minutes"]) == ["warm_up", "opposed", "full_squad_game", "cool_down"]  # stored in session order
+    assert owner.post(url, json={**match_prep, "name": "match PREP"}, headers=headers).status_code == 409
+
+    new = {"period_id": period_id, "date": "2026-10-20", "focus_tags": ["passing_short"], "player_ids": ids, "template_id": template["id"],
+           "versions": "groups", "group_count": 2}
+    session = owner.post(f"/teams/{team_id}/sessions", json=new, headers=headers).json()
+    assert session["length"] == 60 and session["template"] == {"id": template["id"], "name": "Match prep"}
+    assert [b["phase"] for b in session["blocks"]] == ["warm_up", "opposed", "full_squad_game", "cool_down"]
+    assert sum(b["minutes"] for b in session["blocks"]) == 60
+    assert next(b for b in session["blocks"] if b["phase"] == "full_squad_game")["together"]
+    assert owner.get(url).json()[0]["used"] == 1
+
+    # Editing the template leaves the planned session's breakdown alone, also when it is planned again.
+    edited = owner.put(f"{url}/{template['id']}", json={**match_prep, "minutes": {"warm_up": 10, "small_sided_game": 50}}, headers=headers)
+    assert edited.status_code == 200 and edited.json()["used"] == 1
+    again = owner.post(f"/teams/{team_id}/sessions/{session['id']}/regenerate", headers=headers).json()
+    assert [b["phase"] for b in again["blocks"]] == ["warm_up", "opposed", "full_squad_game", "cool_down"]
+    # A coach can add a full squad game to any session.
+    added = owner.post(f"/teams/{team_id}/sessions/{session['id']}/blocks", json={"phase": "full_squad_game", "minutes": 10, "title": "7v7"}, headers=headers)
+    assert added.status_code == 201, added.text
+
+    other = owner.post("/teams", json={"name": "Other squad"}, headers=headers).json()["id"]
+    assert owner.post(f"/teams/{other}/sessions", json={**new, "period_id": period_id}, headers=headers).status_code in (404, 422)
+    assert owner.put(f"/teams/{other}/session-templates/{template['id']}", json=match_prep, headers=headers).status_code == 404
+
+    assert owner.delete(f"{url}/{template['id']}", headers=headers).json()["message"] == "Template deleted."
+    kept = owner.get(f"/teams/{team_id}/sessions/{session['id']}").json()
+    assert kept["template"] is None and len(kept["blocks"]) == 5
+    assert owner.post(f"/teams/{team_id}/sessions", json=new, headers=headers).status_code == 404
+    actions = [e["action"] for e in owner.get(f"/teams/{team_id}/audit").json()]
+    assert "session_template_created" in actions and "session_template_deleted" in actions

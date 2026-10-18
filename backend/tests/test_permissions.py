@@ -114,6 +114,10 @@ ACCESS = {
     ("POST", "/teams/{team_id}/sessions/{session_id}/regenerate"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/sessions/{session_id}/attendance"): (MEMBER, "attendance", None),
     ("DELETE", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
+    ("GET", "/teams/{team_id}/session-templates"): (MEMBER, None, None),
+    ("POST", "/teams/{team_id}/session-templates"): (MEMBER, "template", None),
+    ("PUT", "/teams/{team_id}/session-templates/{template_id}"): (MEMBER, "template", None),
+    ("DELETE", "/teams/{team_id}/session-templates/{template_id}"): (MEMBER, None, None),
 }
 
 
@@ -145,7 +149,9 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     assessment_id = owner.put(f"/teams/{team_id}/assessments/coach", json=assessment, headers=headers).json()["id"]
     session = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 60,
                          "focus_tags": ["passing_short"], "player_ids": [player_id]}, headers=headers).json()
-    ids = {"team_id": team_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
+    template = {"name": "Short", "length": 30, "minutes": {"warm_up": 10, "small_sided_game": 20}}
+    template_id = owner.post(f"/teams/{team_id}/session-templates", json=template, headers=headers).json()["id"]
+    ids = {"team_id": team_id, "template_id": template_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": "no-such-drill",
            "invite_id": 0, "suggestion_id": 0, "request_id": 0}
@@ -158,6 +164,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
                      else {"period_id": ids["period_id"], "skill_id": "passing_short", "slot": "club", "action": "reset"} if body == "slot"
                      else {"period_id": ids["period_id"], "date": "2026-10-20", "length": 60, "focus_tags": ["passing_short"], "player_ids": [ids["player_id"]]} if body == "session"
                      else {"players": [{"player_id": ids["player_id"], "attended": True}]} if body == "attendance"
+                     else template if body == "template"
                      else body)
         return client.request(method, url, json=json_body, params=params, headers={"x-csrf-token": csrf} if csrf else {})
 

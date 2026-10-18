@@ -421,6 +421,25 @@ class TrainingSession(Base):
     versions: Mapped[str] = mapped_column(String(6), default="single")
     groups: Mapped[list] = mapped_column(JSONB, default=list)  # [{"name", "player_ids"}], groups mode only
     notes: Mapped[str] = mapped_column(String(2000), default="")
+    # Planned from a team template: the breakdown is copied, so editing or deleting the template leaves the session as it was.
+    # Null minutes: the default breakdown for the session's length.
+    template_id: Mapped[int | None] = mapped_column(ForeignKey("session_templates.id", ondelete="SET NULL"))
+    phase_minutes: Mapped[dict | None] = mapped_column(JSONB)  # {phase: minutes}
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class SessionTemplate(Base):
+    """A team's own breakdown of a session: a length and the minutes for each part it includes."""
+    __tablename__ = "session_templates"
+    __table_args__ = (UniqueConstraint("team_id", "name", name="uq_session_templates_team_name"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    length_minutes: Mapped[int] = mapped_column(SmallInteger)
+    minutes: Mapped[dict] = mapped_column(JSONB, default=dict)  # {phase: minutes}, only the parts included
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

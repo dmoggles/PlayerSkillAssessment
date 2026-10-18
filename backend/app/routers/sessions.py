@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import date as date_type
 from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
 from ..audit import record
 from ..auth import current_user, require_member
@@ -11,8 +11,8 @@ from ..cycles import current_plan
 from ..database import get_db
 from ..insights import player_tags, team_insights
 from ..matrix import version_tags
-from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SkillTag,
-                      TrainingSession, User, utcnow)
+from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SessionTemplate,
+                      SkillTag, TrainingSession, User, utcnow)
 from ..sessions import LENGTHS, PHASES, block_groups, group_versions, plan as plan_session, ranked, split_groups
 from .drills import _library
 from .teams import scoped_period
@@ -26,19 +26,13 @@ class SessionIn(BaseModel):
     period_id: int
     date: date_type
     start_time: str | None = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
-    length: int
+    length: int | None = None  # 45, 60, 75 or 90: the default breakdown for that length; none with a template
+    template_id: int | None = None
     focus_tags: list[str] = Field(min_length=1, max_length=3)
     player_ids: list[int] = Field(min_length=1, max_length=60)
     versions: Literal["single", "groups"] = "single"
     group_count: int = Field(default=2, ge=2, le=3)
     title: str = Field(default="", max_length=120)
-
-    @field_validator("length")
-    @classmethod
-    def known_length(cls, value):
-        if value not in LENGTHS:
-            raise ValueError(f"length must be one of {', '.join(map(str, LENGTHS))} minutes")
-        return value
 
 
 class SessionPatch(BaseModel):
@@ -108,11 +102,11 @@ def _in_plans(db: DbSession, period_id: int, player_ids: list[int]) -> dict[str,
 
 
 def _planner_data(db: DbSession, team_id: int, period, focus: list[str], group_ids: list[list[int]], length: int, on: date_type,
-                  user: User, exclude: int | None = None) -> dict:
+                  user: User, exclude: int | None = None, minutes: dict | None = None) -> dict:
     """The planner's input for these players, split into these groups (one group in single mode)."""
     player_ids = [pid for ids in group_ids for pid in ids]
     levels = _levels(db, period, player_ids, focus[0])
-    return {"length": length, "focus": focus, "groups": [{"levels": [levels[pid] for pid in ids]} for ids in group_ids],
+    return {"length": length, "minutes": minutes, "focus": focus, "groups": [{"levels": [levels[pid] for pid in ids]} for ids in group_ids],
             "drills": _drills_for_planner(db, _age_group(db, period.id, player_ids), user),
             "recent": _recent(db, team_id, on, exclude), "in_plans": _in_plans(db, period.id, player_ids)}
 
@@ -124,7 +118,8 @@ def _expected_ids(db: DbSession, s: TrainingSession) -> list[int]:
 def _session_data(db: DbSession, s: TrainingSession, user: User) -> dict:
     """The planner's input for a saved session: its expected players, in its groups."""
     group_ids = [g["player_ids"] for g in s.groups] if s.versions == "groups" else [_expected_ids(db, s)]
-    return _planner_data(db, s.team_id, db.get(Period, s.period_id), s.focus_tags, group_ids, s.length_minutes, s.date, user, exclude=s.id)
+    return _planner_data(db, s.team_id, db.get(Period, s.period_id), s.focus_tags, group_ids, s.length_minutes, s.date, user,
+                         exclude=s.id, minutes=s.phase_minutes)
 
 
 def _set_versions(block: SessionBlock, s: TrainingSession, variations: list[int], together: bool):
@@ -160,8 +155,9 @@ def _touch(s: TrainingSession, user: User):
 
 def session_summary(db: DbSession, s: TrainingSession, labels: dict[str, str]) -> dict:
     rows = db.query(SessionAttendance).filter_by(session_id=s.id).all()
+    template = db.get(SessionTemplate, s.template_id) if s.template_id else None
     return {"id": s.id, "period_id": s.period_id, "date": s.date.isoformat(), "start_time": s.start_time, "length": s.length_minutes,
-            "title": s.title, "focus": [{"tag_id": t, "label": labels.get(t, t)} for t in s.focus_tags], "versions": s.versions,
+            "template": {"id": template.id, "name": template.name} if template else None, "title": s.title, "focus": [{"tag_id": t, "label": labels.get(t, t)} for t in s.focus_tags], "versions": s.versions,
             "expected": sum(r.expected for r in rows), "attended": sum(1 for r in rows if r.attended)}
 
 
@@ -228,17 +224,28 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
     if len(labels) != len(set(body.focus_tags)):
         raise HTTPException(422, "Unknown training focus")
     player_ids = sorted(players)
+    template = None
+    if body.template_id is not None:
+        template = db.query(SessionTemplate).filter_by(id=body.template_id, team_id=team_id).first()
+        if not template:
+            raise HTTPException(404, "Template not found")
+        length, minutes = template.length_minutes, dict(template.minutes)
+    elif body.length in LENGTHS:
+        length, minutes = body.length, None
+    else:
+        raise HTTPException(422, f"Choose a template, or a length of {', '.join(map(str, LENGTHS))} minutes")
     if body.versions == "groups" and len(player_ids) < body.group_count:
         raise HTTPException(422, f"Splitting into {body.group_count} groups needs at least {body.group_count} players")
 
     levels = _levels(db, period, player_ids, body.focus_tags[0])
     group_ids = split_groups([(pid, levels[pid]) for pid in player_ids], body.group_count) if body.versions == "groups" else [player_ids]
-    data = _planner_data(db, team_id, period, body.focus_tags, group_ids, body.length, body.date, user)
+    data = _planner_data(db, team_id, period, body.focus_tags, group_ids, length, body.date, user, minutes=minutes)
     result = plan_session(data)
 
     now = utcnow()
     title = body.title.strip() or " and ".join(labels[t] for t in body.focus_tags).capitalize()
-    session = TrainingSession(team_id=team_id, period_id=period.id, date=body.date, start_time=body.start_time, length_minutes=body.length,
+    session = TrainingSession(team_id=team_id, period_id=period.id, date=body.date, start_time=body.start_time, length_minutes=length,
+                              template_id=template.id if template else None, phase_minutes=minutes,
                               title=title[:120], focus_tags=body.focus_tags, versions=body.versions,
                               groups=[{"name": GROUP_NAMES[i], "player_ids": ids} for i, ids in enumerate(group_ids)] if body.versions == "groups" else [],
                               created_by=user.id, updated_by=user.id, created_at=now, updated_at=now)
@@ -292,7 +299,7 @@ def delete_session(team_id: int, session_id: int, db: DbSession = Depends(get_db
 
 
 class BlockIn(BaseModel):
-    phase: Literal["warm_up", "technical", "opposed", "small_sided_game", "cool_down"]
+    phase: Literal[PHASES]
     minutes: int = Field(ge=1, le=120)
     drill: str | None = None  # a drill's slug; none for the coach's own activity
     title: str = Field(default="", max_length=160)
