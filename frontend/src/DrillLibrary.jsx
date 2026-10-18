@@ -53,6 +53,14 @@ export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
   </>
 }
 
+function ladderHint(tags) {
+  if (!tags.length) return 'From easiest to hardest. This drill trains no particular skill, so choose the version that suits the group.'
+  const ladder = tags.filter(t => t.on_ladder)
+  if (!ladder.length) return 'A set programme: everyone starts at the first version, and moves up one version at a time once they do it well.'
+  const follows = ladder.length < tags.length ? ` Levels follow ${ladder.map(t => t.label).join(' and ')}.` : ''
+  return `From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.${follows}`
+}
+
 function VoteSummary({ votes }) {
   return <span className="drill-votes">
     <span aria-label={`${votes.likes} ${votes.likes === 1 ? 'like' : 'likes'}`}>👍 {votes.likes}</span>
@@ -134,7 +142,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
         <h4 id="ladder-title">Variations</h4>
-        <p className="muted hint">{drill.tags.length ? 'From easiest to hardest. Levels use the 1–5 skill scale; choose the one that matches the player.' : 'From easiest to hardest. This drill trains no particular skill, so choose the version that suits the group.'}{drill.tags.some(t => !t.on_ladder) ? ` Levels follow ${drill.tags.filter(t => t.on_ladder).map(t => t.label).join(' and ')}.` : ''}</p>
+        <p className="muted hint">{ladderHint(drill.tags)}</p>
         <ol>{drill.variations.map(v => <li key={v.id}><button type="button" className={selected?.id === v.id ? 'active' : ''} aria-pressed={selected?.id === v.id} onClick={() => setVariationId(v.id)}>
           <span className={`ladder-kind ladder-${v.kind}`}>{v.kind === 'base' ? 'Base' : v.kind === 'regression' ? 'Easier' : 'Harder'}</span>
           <strong>{v.title}</strong><span className="ladder-levels">Levels {v.levels[0]}–{v.levels[1]}</span>

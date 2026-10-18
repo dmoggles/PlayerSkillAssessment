@@ -1,0 +1,4283 @@
+{
+  "source_version": "drills_v6",
+  "drills": [
+    {
+      "slug": "small-games-as-players-arrive",
+      "title": "Small games as players arrive",
+      "summary": "Players start playing the moment they arrive: 2v2 games that grow to 4v4 as the rest of the squad turns up.",
+      "format": "team",
+      "players": [
+        4,
+        8,
+        16
+      ],
+      "ages": [
+        7,
+        14
+      ],
+      "duration": [
+        8,
+        12
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        15,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "mini_goals",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 6
+        },
+        {
+          "item": "bibs",
+          "quantity": 8
+        },
+        {
+          "item": "cones",
+          "quantity": 8
+        }
+      ],
+      "setup": "Before anyone arrives, mark out two pitches of 15 x 20 m side by side, each with a small goal at both ends. Keep bibs and spare balls by the pitches.",
+      "instructions": [
+        "The first four players to arrive play 2v2 on the first pitch.",
+        "Each new player joins the team with fewer players, so the game grows to 3v3 and then 4v4.",
+        "When a game reaches 4v4, the next players to arrive start a new game on the second pitch.",
+        "No throw-ins or goal kicks: when the ball goes out, the coach plays a new one in.",
+        "Keep playing until the session starts, then go straight into the next part."
+      ],
+      "coaching_points": [
+        "Let them play: stop the game as little as you can.",
+        "Welcome each player by name and get them on the pitch straight away.",
+        "Keep the teams even: swap a player over if one side is winning easily.",
+        "Praise effort and bravery on the ball more than goals."
+      ],
+      "tags": {},
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Bigger pitch",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "A bigger pitch gives players more time and space on the ball.",
+          "diagram": 0,
+          "space": [
+            20,
+            25
+          ],
+          "setup": "Before anyone arrives, mark out two pitches of 20 x 25 m side by side, each with a small goal at both ends. Keep bibs and spare balls by the pitches."
+        },
+        {
+          "kind": "base",
+          "title": "2v2 growing to 4v4",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Small goals at each end; each new player joins the team with fewer.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Pass before you score",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "A goal only counts if the team has made at least one pass in the attacking half first.",
+          "diagram": 0,
+          "instructions": [
+            "The first four players to arrive play 2v2 on the first pitch.",
+            "Each new player joins the team with fewer players, so the game grows to 3v3 and then 4v4.",
+            "A goal only counts if the scoring team has made at least one pass in the attacking half.",
+            "When a game reaches 4v4, the next players to arrive start a new game on the second pitch.",
+            "No throw-ins or goal kicks: when the ball goes out, the coach plays a new one in."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Dribble into the end zone",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "No goals: a team scores by dribbling the ball into the end zone and stopping it there.",
+          "diagram": 1,
+          "equipment": [
+            {
+              "item": "balls",
+              "quantity": 6
+            },
+            {
+              "item": "bibs",
+              "quantity": 8
+            },
+            {
+              "item": "cones",
+              "quantity": 16
+            }
+          ],
+          "setup": "Before anyone arrives, mark out two pitches of 15 x 20 m side by side, each with a 3 m end zone marked with cones at both ends. Keep bibs and spare balls by the pitches.",
+          "instructions": [
+            "The first four players to arrive play 2v2 on the first pitch.",
+            "Each new player joins the team with fewer players, so the game grows to 3v3 and then 4v4.",
+            "A team scores by dribbling into the end zone it attacks and stopping the ball there.",
+            "When a game reaches 4v4, the next players to arrive start a new game on the second pitch.",
+            "No throw-ins: when the ball goes out, the coach plays a new one in."
+          ],
+          "coaching_points": [
+            "Run behind the defenders to receive in or near the end zone.",
+            "Defenders: stay between the attacker and the end zone.",
+            "Let them play: stop the game as little as you can."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "2v2 as the first players arrive; each new player joins the team with fewer",
+          "diagram": {
+            "pitch": {
+              "width": 15,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "g_near",
+                  "at": [
+                    7.5,
+                    0
+                  ],
+                  "width": 2
+                },
+                {
+                  "id": "g_far",
+                  "at": [
+                    7.5,
+                    20
+                  ],
+                  "width": 2
+                }
+              ]
+            },
+            "objects": {
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  6
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  11,
+                  8
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  6,
+                  10
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  12
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14.5,
+                  1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 dribbles forward; A2 moves wide to give a passing line; B1 steps up, B2 tracks A2",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A1",
+                      "to": [
+                        5.5,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        13
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        6,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        11,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 passes to A2; B2 moves across to block the goal, B1 drops back",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        9.5,
+                        16
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        7,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        6,
+                        14
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 shoots at the far goal",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "A2",
+                      "to": "g_far"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A new player arrives and joins team A for 3v2; the next one will join team B",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        12,
+                        6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        11,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        5,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: score by dribbling into the end zone instead of shooting",
+          "diagram": {
+            "pitch": {
+              "width": 15,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  7
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  11,
+                  9
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  11
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  10,
+                  13
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              },
+              "z1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  17
+                ]
+              },
+              "z2": {
+                "type": "cone",
+                "at": [
+                  15,
+                  17
+                ]
+              },
+              "z3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  3
+                ]
+              },
+              "z4": {
+                "type": "cone",
+                "at": [
+                  15,
+                  3
+                ]
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 drives at B1; A2 makes a run behind B2",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A1",
+                      "to": [
+                        5,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        5.5,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        11,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 passes into A2's run; B1 and B2 turn to chase",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        7,
+                        13
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        12.5,
+                        16
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        8,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 dribbles over the end-zone line and stops the ball: a goal",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        18.5
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    },
+    {
+      "slug": "dribble-tag-in-a-square",
+      "title": "Dribble tag in a square",
+      "summary": "Everyone dribbles a ball in a square while two taggers try to touch them: close control with the head up.",
+      "format": "team",
+      "players": [
+        6,
+        12,
+        16
+      ],
+      "ages": [
+        7,
+        14
+      ],
+      "duration": [
+        8,
+        10
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 16
+        },
+        {
+          "item": "bibs",
+          "quantity": 2
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "A 20 x 20 m square marked with cones. Every player has a ball, except two taggers in bibs. Use a smaller square for fewer players.",
+      "instructions": [
+        "Dribblers keep the ball moving inside the square.",
+        "The taggers try to touch a dribbler on the back or the arm.",
+        "A tagged player does five sole rolls on the spot, then dribbles on.",
+        "Rounds of 60 seconds; choose two new taggers each round."
+      ],
+      "coaching_points": [
+        "Keep the ball close, with small touches.",
+        "Get your head up between touches to see the taggers and the space.",
+        "Use the sole and the outside of the foot to turn away quickly.",
+        "Speed up when you've found space."
+      ],
+      "tags": {
+        "dribbling": 1.0,
+        "scanning": 0.5
+      },
+      "ladder_tags": [
+        "dribbling"
+      ],
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Walking taggers, bigger square",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "The taggers walk and the square is bigger, so dribblers have more time.",
+          "diagram": 0,
+          "space": [
+            25,
+            25
+          ],
+          "setup": "A 25 x 25 m square marked with cones. Every player has a ball, except two taggers in bibs, who walk."
+        },
+        {
+          "kind": "base",
+          "title": "Dribble tag",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Two taggers; a tagged player does five sole rolls, then dribbles on.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Tagged players become taggers",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "When a tagger touches a dribbler, they swap: the dribbler leaves the ball, takes the bib and becomes a tagger.",
+          "diagram": 1,
+          "instructions": [
+            "Dribblers keep the ball moving inside the square.",
+            "The taggers try to touch a dribbler on the back or the arm.",
+            "A tagged player leaves the ball for the tagger, takes the bib and becomes a tagger.",
+            "Rounds of 60 seconds: who never became a tagger?"
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Taggers win the ball",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The taggers try to win a ball instead of tagging; a player who loses their ball becomes a tagger.",
+          "diagram": 2,
+          "instructions": [
+            "Dribblers keep the ball moving inside the square.",
+            "The taggers try to win a ball from a dribbler, fairly and from the side or the front.",
+            "A tagger who wins a ball keeps it and dribbles on; the player who lost it becomes a tagger.",
+            "Rounds of 60 seconds."
+          ],
+          "coaching_points": [
+            "Shield the ball: keep your body between the tagger and the ball.",
+            "Get your head up between touches to see who's coming.",
+            "Turn away from pressure with the sole or the outside of the foot.",
+            "Taggers: no sliding tackles in a crowded square."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Every player except the two taggers has a ball; the diagram follows one dribbler",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "D1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  10
+                ]
+              },
+              "D2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14,
+                  15
+                ]
+              },
+              "D3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  15
+                ]
+              },
+              "D4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  5
+                ]
+              },
+              "T1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  4,
+                  6
+                ],
+                "label": "T"
+              },
+              "T2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  12
+                ],
+                "label": "T"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "D1"
+              }
+            },
+            "steps": [
+              {
+                "label": "Dribblers move around the square with their heads up; the taggers chase",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "D1",
+                      "to": [
+                        11,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T1",
+                      "to": [
+                        8,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        15,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        17,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D3",
+                      "to": [
+                        3,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D4",
+                      "to": [
+                        12,
+                        3
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T1 closes in: D1 checks over the shoulder and turns away into space",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "D1",
+                      "to": [
+                        13,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T1",
+                      "to": [
+                        11,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D3",
+                      "to": [
+                        4,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "D1 speeds up away from T1 into the open space; T2 chases D2 instead",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "D1",
+                      "to": [
+                        16,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T1",
+                      "to": [
+                        13,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        17,
+                        16
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        18,
+                        18.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T2 tags D2, who does five sole rolls on the spot, then dribbles on",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        17.5,
+                        18
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D4",
+                      "to": [
+                        9,
+                        3
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: a tagged player swaps roles with the tagger",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "D1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  11
+                ]
+              },
+              "D2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  6
+                ]
+              },
+              "T1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  13
+                ],
+                "label": "T"
+              },
+              "T2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  15
+                ],
+                "label": "T"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "D1"
+              }
+            },
+            "steps": [
+              {
+                "label": "T1 chases D1; D1 tries to dribble away",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "D1",
+                      "to": [
+                        11,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T1",
+                      "to": [
+                        9,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        13,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        14,
+                        12
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T1 tags D1: D1 leaves the ball for T1 and takes the bib",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D1",
+                      "to": "T1"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T1 dribbles away with the ball; D1 becomes a tagger and chases",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "T1",
+                      "to": [
+                        6,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D1",
+                      "to": [
+                        8,
+                        15.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        13,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the taggers try to win the ball instead of tagging",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "D1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  9
+                ]
+              },
+              "D2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  15
+                ]
+              },
+              "T1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  4,
+                  4
+                ],
+                "label": "T"
+              },
+              "T2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  6
+                ],
+                "label": "T"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "D1"
+              }
+            },
+            "steps": [
+              {
+                "label": "T1 closes D1 down; D1 shields the ball with the body between T1 and the ball",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "D1",
+                      "to": [
+                        10,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T1",
+                      "to": [
+                        9,
+                        9.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        15,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D2",
+                      "to": [
+                        17,
+                        17
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T1 gets a foot in and wins the ball",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "D1",
+                      "to": "T1"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "T1 keeps the ball and dribbles away; D1 is now a tagger and tries to win one back",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "T1",
+                      "to": [
+                        6,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "D1",
+                      "to": [
+                        8,
+                        13
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "T2",
+                      "to": [
+                        15.5,
+                        13
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    },
+    {
+      "slug": "traffic-light-dribbling",
+      "title": "Traffic-light dribbling",
+      "summary": "Players dribble around a square and react to the coach's colour calls: fast, slow or stop the ball.",
+      "format": "team",
+      "players": [
+        4,
+        10,
+        16
+      ],
+      "ages": [
+        7,
+        11
+      ],
+      "duration": [
+        6,
+        10
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 16
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "A 20 x 20 m square marked with cones, with a ball for every player. The coach stands on one side where everyone can see and hear them.",
+      "instructions": [
+        "Players dribble anywhere in the square.",
+        "'Green!': dribble quickly. 'Amber!': slow down and roll the ball with the sole. 'Red!': stop the ball under the sole and stand still.",
+        "The last to react, or anyone who moves on red, does three toe taps on the ball before carrying on.",
+        "Mix up the calls and how long you leave between them; play for about a minute, rest, then go again."
+      ],
+      "coaching_points": [
+        "Small touches so the ball is always close enough to stop.",
+        "Head up: look for space, not at the ball.",
+        "Use the sole to stop the ball dead on red.",
+        "Keep away from other players and their balls."
+      ],
+      "tags": {
+        "dribbling": 1.0,
+        "concentration": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Walking, two colours",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Players walk with the ball, and there are only two calls: green to move, red to stop.",
+          "diagram": 0,
+          "instructions": [
+            "Players walk with the ball anywhere in the square.",
+            "'Green!': walk with the ball. 'Red!': stop the ball under the sole and stand still.",
+            "Mix up the calls; play for about a minute, rest, then go again."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Green, amber, red",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Three colour calls: fast, slow with the sole, and stop.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "More calls",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Add calls for a skill: 'Turn!' for a drag-back turn and 'Skill!' for a move such as a step-over.",
+          "diagram": 1,
+          "instructions": [
+            "Players dribble anywhere in the square.",
+            "'Green!': fast. 'Amber!': slow with the sole. 'Red!': stop the ball and stand still.",
+            "'Turn!': drag the ball back with the sole and go the other way. 'Skill!': a move, such as a step-over, then speed up.",
+            "Mix up the calls; play for about a minute, rest, then go again."
+          ],
+          "coaching_points": [
+            "Small touches so the ball is always close enough to stop or turn.",
+            "Head up: look for space, not at the ball.",
+            "Speed up out of the turn or the skill."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Coloured cones instead of calls",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The coach holds up a coloured cone instead of calling, so players have to keep their heads up to see it.",
+          "diagram": 1,
+          "equipment": [
+            {
+              "item": "balls",
+              "quantity": 16
+            },
+            {
+              "item": "cones",
+              "quantity": 8
+            }
+          ],
+          "setup": "A 20 x 20 m square marked with cones, with a ball for every player. The coach stands on one side holding a green, a yellow, a red and a white cone.",
+          "instructions": [
+            "Players dribble anywhere in the square.",
+            "The coach holds up a cone without saying anything: green, fast; yellow, slow with the sole; red, stop; white, drag-back turn.",
+            "The last to react does three toe taps on the ball before carrying on.",
+            "Mix up the colours; play for about a minute, rest, then go again."
+          ],
+          "coaching_points": [
+            "Look up at the coach between every couple of touches.",
+            "Small touches so the ball is always close enough to stop or turn.",
+            "Speed up out of the turn."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Every player has a ball; the diagram follows one as the coach calls the colours",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  5
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  14,
+                  7
+                ]
+              },
+              "P3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  14
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  19.5
+                ],
+                "label": "C"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P1"
+              }
+            },
+            "steps": [
+              {
+                "label": "'Green!': dribble quickly around the square",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        12,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        16,
+                        14
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        4,
+                        11
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Amber!': slow down and roll the ball with the sole",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        13,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        16.5,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        3.5,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Red!': stop the ball under the sole and stand still",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        13.2,
+                        12.4
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Green!' again: off you go",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        6,
+                        15
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        10,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        7,
+                        4
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Harder: more calls, such as 'Turn!' for a drag-back turn",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  6
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15,
+                  6
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  19.5
+                ],
+                "label": "C"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P1"
+              }
+            },
+            "steps": [
+              {
+                "label": "'Green!': dribble quickly",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        10,
+                        11
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        12,
+                        13
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Turn!': drag the ball back with the sole and go the other way",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        9,
+                        10
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Dribble away in the new direction",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        5,
+                        5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        9,
+                        16
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Red!': stop the ball dead",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "P1",
+                      "to": [
+                        4.6,
+                        4.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": [
+        {
+          "to": "dribble-tag-in-a-square",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "passing-through-gates-in-pairs",
+      "title": "Passing through gates in pairs",
+      "summary": "Pairs pass through small cone gates spread around an area, as many as they can in a minute.",
+      "format": "small_group",
+      "players": [
+        2,
+        10,
+        16
+      ],
+      "ages": [
+        8,
+        18
+      ],
+      "duration": [
+        8,
+        10
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        25,
+        25
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 16
+        },
+        {
+          "item": "balls",
+          "quantity": 8
+        }
+      ],
+      "setup": "Eight gates, each two cones 1.5 m apart, spread around a 25 x 25 m area. Players in pairs with one ball per pair.",
+      "instructions": [
+        "Pass to your partner through a gate: they receive on the other side.",
+        "Then move to another gate and pass through that one. Not the same gate twice in a row.",
+        "Count how many gates your pair passes through in a minute.",
+        "Four rounds of a minute, with a short rest: can you beat your score?"
+      ],
+      "coaching_points": [
+        "Receiver: get to the other side of the gate before the pass comes, and call for it.",
+        "Pass with the inside of the foot, firmly along the ground.",
+        "First touch away from the gate, towards the next one.",
+        "Look up for a free gate before you get to the one you're at."
+      ],
+      "tags": {
+        "passing_short": 1.0,
+        "movement_to_receive": 0.5,
+        "communication": 0.5
+      },
+      "ladder_tags": [
+        "passing_short"
+      ],
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Wide gates, two touches",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Gates 3 m wide, and the receiver stops the ball before passing on.",
+          "diagram": 0,
+          "setup": "Eight gates, each two cones 3 m apart, spread around a 25 x 25 m area. Players in pairs with one ball per pair."
+        },
+        {
+          "kind": "base",
+          "title": "Pass through the gates",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Pass through 1.5 m gates; count the gates in a minute.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Two touches only",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The receiver has two touches: one to control towards the next gate, one to pass.",
+          "diagram": 0,
+          "instructions": [
+            "Pass to your partner through a gate: they receive on the other side.",
+            "Two touches only: control towards a new gate, then pass through it once your partner is there.",
+            "Not the same gate twice in a row. Count your gates in a minute.",
+            "Four rounds of a minute, with a short rest: can you beat your score?"
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Gate guards",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Two guards each stand in a gate to block it and can move to another; pairs have to find a free gate.",
+          "diagram": 1,
+          "equipment": [
+            {
+              "item": "cones",
+              "quantity": 16
+            },
+            {
+              "item": "balls",
+              "quantity": 8
+            },
+            {
+              "item": "bibs",
+              "quantity": 2
+            }
+          ],
+          "instructions": [
+            "Pass to your partner through a gate: they receive on the other side.",
+            "Two guards in bibs stand in gates to block them, and can move to a different gate whenever they like.",
+            "Not the same gate twice in a row. Count your gates in a minute.",
+            "Change the guards every round."
+          ],
+          "coaching_points": [
+            "Receiver: look for a free gate and get to its far side early.",
+            "Passer: look up before you get to the gate: is it still free?",
+            "Call your partner's name and point to the gate you're going to."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Pairs pass through as many gates as they can; the diagram follows one pair",
+          "diagram": {
+            "pitch": {
+              "width": 25,
+              "length": 25,
+              "view": "area"
+            },
+            "objects": {
+              "g1a": {
+                "type": "cone",
+                "at": [
+                  5.25,
+                  6
+                ]
+              },
+              "g1b": {
+                "type": "cone",
+                "at": [
+                  6.75,
+                  6
+                ]
+              },
+              "g2a": {
+                "type": "cone",
+                "at": [
+                  13.25,
+                  5
+                ]
+              },
+              "g2b": {
+                "type": "cone",
+                "at": [
+                  14.75,
+                  5
+                ]
+              },
+              "g3a": {
+                "type": "cone",
+                "at": [
+                  18.25,
+                  12
+                ]
+              },
+              "g3b": {
+                "type": "cone",
+                "at": [
+                  19.75,
+                  12
+                ]
+              },
+              "g4a": {
+                "type": "cone",
+                "at": [
+                  11.25,
+                  13
+                ]
+              },
+              "g4b": {
+                "type": "cone",
+                "at": [
+                  12.75,
+                  13
+                ]
+              },
+              "g5a": {
+                "type": "cone",
+                "at": [
+                  4.25,
+                  15
+                ]
+              },
+              "g5b": {
+                "type": "cone",
+                "at": [
+                  5.75,
+                  15
+                ]
+              },
+              "g6a": {
+                "type": "cone",
+                "at": [
+                  9.25,
+                  20
+                ]
+              },
+              "g6b": {
+                "type": "cone",
+                "at": [
+                  10.75,
+                  20
+                ]
+              },
+              "g7a": {
+                "type": "cone",
+                "at": [
+                  18.25,
+                  20
+                ]
+              },
+              "g7b": {
+                "type": "cone",
+                "at": [
+                  19.75,
+                  20
+                ]
+              },
+              "g8a": {
+                "type": "cone",
+                "at": [
+                  2.25,
+                  22
+                ]
+              },
+              "g8b": {
+                "type": "cone",
+                "at": [
+                  3.75,
+                  22
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  3
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  6,
+                  9
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  12,
+                  16
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  16,
+                  18
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 passes through the first gate to A2, waiting on the other side",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        11,
+                        18
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        18,
+                        23
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 dribbles to the near side of the next gate; A1 runs round to its far side",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A2",
+                      "to": [
+                        12,
+                        10.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        12,
+                        15.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 passes through that gate to A1",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A2",
+                      "to": "A1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        10,
+                        23
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        18,
+                        17
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 dribbles to a third gate; A2 runs round to its far side",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A1",
+                      "to": [
+                        5,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        5,
+                        18
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 passes through to A2: three gates",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: two guards stand in a gate to block it; pairs look for a free one",
+          "diagram": {
+            "pitch": {
+              "width": 25,
+              "length": 25,
+              "view": "area"
+            },
+            "objects": {
+              "g1a": {
+                "type": "cone",
+                "at": [
+                  5.25,
+                  6
+                ]
+              },
+              "g1b": {
+                "type": "cone",
+                "at": [
+                  6.75,
+                  6
+                ]
+              },
+              "g2a": {
+                "type": "cone",
+                "at": [
+                  13.25,
+                  5
+                ]
+              },
+              "g2b": {
+                "type": "cone",
+                "at": [
+                  14.75,
+                  5
+                ]
+              },
+              "g3a": {
+                "type": "cone",
+                "at": [
+                  18.25,
+                  12
+                ]
+              },
+              "g3b": {
+                "type": "cone",
+                "at": [
+                  19.75,
+                  12
+                ]
+              },
+              "g4a": {
+                "type": "cone",
+                "at": [
+                  11.25,
+                  13
+                ]
+              },
+              "g4b": {
+                "type": "cone",
+                "at": [
+                  12.75,
+                  13
+                ]
+              },
+              "g5a": {
+                "type": "cone",
+                "at": [
+                  4.25,
+                  15
+                ]
+              },
+              "g5b": {
+                "type": "cone",
+                "at": [
+                  5.75,
+                  15
+                ]
+              },
+              "g6a": {
+                "type": "cone",
+                "at": [
+                  9.25,
+                  20
+                ]
+              },
+              "g6b": {
+                "type": "cone",
+                "at": [
+                  10.75,
+                  20
+                ]
+              },
+              "g7a": {
+                "type": "cone",
+                "at": [
+                  18.25,
+                  20
+                ]
+              },
+              "g7b": {
+                "type": "cone",
+                "at": [
+                  19.75,
+                  20
+                ]
+              },
+              "g8a": {
+                "type": "cone",
+                "at": [
+                  2.25,
+                  22
+                ]
+              },
+              "g8b": {
+                "type": "cone",
+                "at": [
+                  3.75,
+                  22
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  10
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  16
+                ]
+              },
+              "G1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  12,
+                  13
+                ],
+                "label": "G"
+              },
+              "G2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  6,
+                  6
+                ],
+                "label": "G"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "G1 is standing in the gate A1 wanted, so A2 moves to the far side of a free gate",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        19,
+                        15
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 dribbles towards that free gate; G1 runs across to block it",
+                "actions": [
+                  {
+                    "dribble": {
+                      "who": "A1",
+                      "to": [
+                        18,
+                        9.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "G1",
+                      "to": [
+                        19,
+                        12
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A2 moves again, to the far side of a gate G1 can't reach in time; A1 turns towards it",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        14,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "dribble": {
+                      "who": "A1",
+                      "to": [
+                        14,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 passes through the open gate to A2",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A2"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": [
+        {
+          "to": "rondo-4v1",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "jog-mobility-and-sprints-across-the-area",
+      "title": "Jog, mobility and sprints across the area",
+      "summary": "A general warm-up in lines: easy jogging, moving stretches and skips, then sprints that get faster.",
+      "format": "team",
+      "players": [
+        2,
+        12,
+        20
+      ],
+      "ages": [
+        11,
+        18
+      ],
+      "duration": [
+        8,
+        10
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        18,
+        24
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "Two lines of cones 20 m apart. Players spread out along the first line, in groups of four or five.",
+      "instructions": [
+        "One movement across to the far line each time, then jog back:",
+        "Easy jog; skips; side-steps, facing each way; heel flicks; knee lifts.",
+        "Walking lunges with a twist of the upper body over the front leg; then hip openers: lift a knee and circle it out to the side as you walk.",
+        "Finish with three sprints across, at about 70%, 80% and 90% of full speed. Walk back between sprints."
+      ],
+      "coaching_points": [
+        "Start gently: it should get harder as the warm-up goes on.",
+        "Tall posture and quick, light feet on the skips and side-steps.",
+        "Push off hard and drive the arms on the sprints.",
+        "Something hurts? Stop and tell the coach."
+      ],
+      "tags": {},
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Follow the coach",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Shorter lines, 15 m apart; the coach goes across in front and players copy each movement.",
+          "diagram": 0,
+          "space": [
+            18,
+            19
+          ],
+          "setup": "Two lines of cones 15 m apart. Players spread out along the first line; the coach stands in front of them.",
+          "instructions": [
+            "The coach goes across first with each movement; players copy, then everyone jogs back.",
+            "Easy jog; skips; side-steps; heel flicks; knee lifts; walking lunges.",
+            "Finish with two sprints across, at about 70% and then 90% of full speed."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Movements across, then sprints",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Jog, moving stretches and skips across 20 m, then three sprints getting faster.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Sprints from different starts",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The sprints start from different positions: side-on, facing backwards, or from a jog.",
+          "diagram": 0,
+          "instructions": [
+            "One movement across to the far line each time, then jog back:",
+            "Easy jog; skips; side-steps, facing each way; heel flicks; knee lifts; walking lunges with a twist; hip openers.",
+            "Finish with four sprints across: from standing side-on, facing backwards, from a jog, and a race between pairs.",
+            "Walk back between sprints."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Sprint where the coach points",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "For the sprints, players jog towards the coach, sprint to whichever side they point, then cut back to the far line.",
+          "diagram": 1,
+          "equipment": [
+            {
+              "item": "cones",
+              "quantity": 6
+            }
+          ],
+          "setup": "Two lines of cones 20 m apart, and a cone on each side halfway across. Players in groups of four or five on the first line; the coach stands in the middle.",
+          "instructions": [
+            "One movement across to the far line each time, then jog back:",
+            "Easy jog; skips; side-steps; heel flicks; knee lifts; walking lunges with a twist; hip openers.",
+            "Then the sprints: jog towards the coach, sprint to the side the coach points to, plant your foot and cut back to sprint to the far line.",
+            "Four goes; walk back between them."
+          ],
+          "coaching_points": [
+            "Watch the coach, not the ground.",
+            "Lower your hips and plant the outside foot to cut.",
+            "Push off hard and drive the arms out of the cut."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Lines of players go across and back, a different movement each time, then sprints at the end",
+          "diagram": {
+            "pitch": {
+              "width": 18,
+              "length": 24,
+              "view": "area"
+            },
+            "objects": {
+              "s1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "s2": {
+                "type": "cone",
+                "at": [
+                  16,
+                  2
+                ]
+              },
+              "f1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  22
+                ]
+              },
+              "f2": {
+                "type": "cone",
+                "at": [
+                  16,
+                  22
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  2
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  7,
+                  2
+                ]
+              },
+              "P3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  10,
+                  2
+                ]
+              },
+              "P4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13,
+                  2
+                ]
+              }
+            },
+            "steps": [
+              {
+                "label": "Easy jog across",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        7,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        10,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        13,
+                        22
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Jog back, then the next movement across: skips, side-steps, heel flicks, knee lifts, lunges with a twist",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        7,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        10,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        13,
+                        2
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Last of all, sprints: at about 70%, then 80%, then 90% of full speed",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        7,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        10,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        13,
+                        22
+                      ]
+                    }
+                  }
+                ],
+                "duration": 1.2
+              },
+              {
+                "label": "Walk back between sprints",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        7,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        10,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        13,
+                        2
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: sprint in the direction the coach points, then cut back",
+          "diagram": {
+            "pitch": {
+              "width": 18,
+              "length": 24,
+              "view": "area"
+            },
+            "objects": {
+              "s1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "s2": {
+                "type": "cone",
+                "at": [
+                  16,
+                  2
+                ]
+              },
+              "f1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  22
+                ]
+              },
+              "f2": {
+                "type": "cone",
+                "at": [
+                  16,
+                  22
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  4
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  4
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  9,
+                  14
+                ],
+                "label": "C"
+              },
+              "l1": {
+                "type": "cone",
+                "at": [
+                  1,
+                  12
+                ]
+              },
+              "r1": {
+                "type": "cone",
+                "at": [
+                  17,
+                  12
+                ]
+              }
+            },
+            "steps": [
+              {
+                "label": "Players jog towards the coach",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        5,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        12,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "The coach points to one side: both sprint to the cone on that side",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        1.5,
+                        12
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        2.5,
+                        11
+                      ]
+                    }
+                  }
+                ],
+                "duration": 1
+              },
+              {
+                "label": "Plant the outside foot, cut back and sprint to the far line",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        22
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        6,
+                        22
+                      ]
+                    }
+                  }
+                ],
+                "duration": 1.2
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    },
+    {
+      "slug": "fifa-11-plus-kids-injury-prevention-warm-up",
+      "title": "FIFA 11+ Kids injury-prevention warm-up",
+      "summary": "FIFA's warm-up for 7–13s: seven exercises for balance, jumping and landing, strength and how to fall. Teams that use it get far fewer injuries.",
+      "format": "team",
+      "players": [
+        2,
+        12,
+        20
+      ],
+      "ages": [
+        7,
+        13
+      ],
+      "duration": [
+        15,
+        20
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        20,
+        18
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 20
+        },
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "An area the size of the penalty area, or bigger for a large group. Players stand on a line about 2 m apart, each with a ball; the coach stands facing them about 15 m away, where everyone can see and hear. It replaces your usual warm-up: start straight away, no other warm-up first.",
+      "instructions": [
+        "Do the seven exercises in this order: 1 running game, 2 skating jumps, 3 single-leg stance, 4 press-ups, 5 single-leg jumps, 6 spiderman, 7 sideways roll.",
+        "1 Running game: run towards the coach; on 'left!' or 'right!', stop and stand on that leg for three seconds. Anyone who can't jogs back to the line. Three sets of five stops.",
+        "2 Skating jumps: jump forwards and sideways off one leg and land on the other, in a zigzag; hold each landing for three seconds. Two sets of ten jumps, five on each leg.",
+        "3 Single-leg stance, in pairs: standing on one leg 3–5 m apart, throw the ball to each other. Five throws each, on each leg.",
+        "4 Press-ups: everyone else gets in the press-up position side by side to make a tunnel; one player rolls a ball through it, then joins the front. Two goes each, in groups of up to eight.",
+        "5 Single-leg jumps: jump forwards on one leg as far as you can, landing on the same leg; hold for three seconds. Two sets of five on each leg.",
+        "6 Spiderman: on hands and feet, tummy up, with the ball in front of the feet: lift one foot and roll the ball forwards and back, then the other. Three sets of 15 seconds.",
+        "7 Sideways roll: from a squat, hands in front, chin on the chest, roll diagonally over the arm, shoulder and back, and back onto your feet. Five rolls each side, with at least five seconds between rolls.",
+        "Use it at the start of every session, at least twice a week: it takes about 10–12 weeks to work, and stops working when you stop."
+      ],
+      "coaching_points": [
+        "Knee over the foot, never falling inwards, with the hip, knee and foot in a line.",
+        "Land softly with a bent knee, and find your balance before the next jump.",
+        "Press-ups and spiderman: body straight from head to knees, stomach and back tight.",
+        "Rolls: chin on the chest, and the head never touches the ground.",
+        "Leave plenty of space between players for the jumps and rolls.",
+        "Correct mistakes as they happen: the exercises only protect players when they're done properly."
+      ],
+      "tags": {
+        "coordination_balance": 1.0,
+        "speed_agility": 0.5
+      },
+      "ladder_tags": [],
+      "variations": [
+        {
+          "kind": "base",
+          "title": "Level 1: learning the exercises",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Everyone starts here. Every exercise has five levels. A player moves up an exercise's level once they do it well, with few corrections, over several sessions; a player can be at a different level in each exercise. Never skip a level.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 2",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Players watch for the coach's stop signal instead of listening; ball in both hands for the skating jumps; jumps go forwards or backwards.",
+          "diagram": 0,
+          "instructions": [
+            "Do the seven exercises in this order: 1 running game, 2 skating jumps, 3 single-leg stance, 4 press-ups, 5 single-leg jumps, 6 spiderman, 7 sideways roll.",
+            "1 Running game: as level 1, but the coach points to the leg to stop on instead of calling it, so players watch. Three sets of five stops.",
+            "2 Skating jumps: as level 1, holding a ball in both hands. Two sets of ten jumps, five on each leg.",
+            "3 Single-leg stance, in pairs: as level 1, but after each throw move the ball around the raised leg. Five throws each, on each leg.",
+            "4 Press-ups: forearms on the ground and shins on a ball, body straight: slide forwards until the ball reaches the feet, then back until it's nearly at the knees. Three sets of 15 seconds.",
+            "5 Single-leg jumps: as level 1, but the coach shows whether to jump forwards or backwards. Two sets of five on each leg.",
+            "6 Spiderman: as level 1, but walk the hands back and the feet forward to stretch the body out, slowly. Three sets of 15 seconds.",
+            "7 Sideways roll: the same roll, starting from standing: squat down slowly, then roll. Five rolls each side, with at least five seconds between rolls."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 3",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "A ball in the hands for the running game; balancing the ball on one hand for the skating jumps; a passing game on one leg.",
+          "diagram": 0,
+          "instructions": [
+            "Do the seven exercises in this order: 1 running game, 2 skating jumps, 3 single-leg stance, 4 press-ups, 5 single-leg jumps, 6 spiderman, 7 sideways roll.",
+            "1 Running game: as level 1, holding a ball in both hands. Three sets of five stops.",
+            "2 Skating jumps: as level 1, balancing the ball on one outstretched hand: one set with each hand. Two sets of ten jumps, five on each leg.",
+            "3 Single-leg stance, in pairs: standing on one leg 2–5 m apart, pass the ball along the ground with the inside of the foot, stopping it before passing back. Five passes each, on each leg.",
+            "4 Press-ups: in the press-up position with a ball in front, lift one hand and roll the ball around the other, then swap, in a figure of eight. Three sets of 15 seconds.",
+            "5 Single-leg jumps: as level 2, but jumping sideways; the coach shows the direction. Two sets of five on each leg.",
+            "6 Spiderman: on hands and feet, tummy up, walk forwards feet first towards the coach. Three goes of 5–10 m.",
+            "7 Sideways roll: as level 2, but squat and roll more quickly. Five rolls each side, with at least five seconds between rolls."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 4",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Watching for the stop with a ball in the hands; dropping the ball on landing; volleyed passes back on one leg.",
+          "diagram": 0,
+          "instructions": [
+            "Do the seven exercises in this order: 1 running game, 2 skating jumps, 3 single-leg stance, 4 press-ups, 5 single-leg jumps, 6 spiderman, 7 sideways roll.",
+            "1 Running game: as level 2, watching for the signal, with a ball in both hands. Three sets of five stops.",
+            "2 Skating jumps: holding the ball in both hands; on each landing, lean forward on the standing leg, drop the ball gently to the ground, then stand tall again. Two sets of ten jumps, five on each leg.",
+            "3 Single-leg stance, in pairs: standing on one leg, one partner throws the ball and the other volleys it back with the foot for them to catch. Five throws each, on each leg.",
+            "4 Press-ups: in the press-up position, roll the ball with one hand under the body to the foot on that side, pass it with that foot to the other hand, then repeat on the other side. Three sets of 15 seconds.",
+            "5 Single-leg jumps: the coach shows forwards, backwards, left or right for each jump. Two sets of five on each leg.",
+            "6 Spiderman: as level 3, tummy up and feet first, dribbling a ball with the feet. Three goes of 5–10 m.",
+            "7 Sideways roll: the same roll from a slow walk. Five rolls each side, with at least five seconds between rolls."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 5",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Dribbling in the running game; a long stretch on each landing; balance contests in pairs; hands on the ball for the press-ups.",
+          "diagram": 0,
+          "instructions": [
+            "Do the seven exercises in this order: 1 running game, 2 skating jumps, 3 single-leg stance, 4 press-ups, 5 single-leg jumps, 6 spiderman, 7 sideways roll.",
+            "1 Running game: dribbling a ball: on the stop call, stop the ball with one foot and balance on the other without touching the ball with the raised foot. Three sets of five stops.",
+            "2 Skating jumps: as level 4, then stretch the free leg out behind and the arms forwards, so the ball, head, body and leg make a straight line, before the next jump. Two sets of ten jumps, five on each leg.",
+            "3 Single-leg stance, in pairs: within arm's reach on one leg, both partners hold a ball and push the balls together at chest height to try to put each other off balance. 20 seconds on each leg.",
+            "4 Press-ups: both hands on a ball in the press-up position: walk the feet back in small steps and then forward again. Three sets of 10 seconds; on wet grass, do level 4 instead.",
+            "5 Single-leg jumps: the coach shows the direction for each jump, and players hold a ball in both hands. Two sets of five on each leg.",
+            "6 Spiderman: tummy up with the feet on a ball, roll it under the feet and move slowly forwards. Three goes of 3–7 m.",
+            "7 Sideways roll: the same roll from a quick walk or a jog, once players can roll well both ways from a slow walk. Five rolls each side, with at least five seconds between rolls."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "The set-up for every exercise: players on a line, 2 m apart, facing the coach (here, the running game)",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 18,
+              "view": "area"
+            },
+            "objects": {
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  2
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  8,
+                  2
+                ]
+              },
+              "P3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  2
+                ]
+              },
+              "P4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  2
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  16
+                ],
+                "label": "C"
+              }
+            },
+            "steps": [
+              {
+                "label": "On the coach's command, everyone runs towards the coach",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        8,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        12,
+                        8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        16,
+                        8
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "'Left!': stop and balance on the left leg for three seconds",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        8,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        12,
+                        9
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        16,
+                        9
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "Run on; after five stops, jog back to the line",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        4,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        8,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        12,
+                        2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        16,
+                        2
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    },
+    {
+      "slug": "fifa-11-plus-injury-prevention-warm-up",
+      "title": "FIFA 11+ injury-prevention warm-up",
+      "summary": "FIFA's warm-up for players aged 14 and older: running, then strength, jumping and balance, then faster running. Teams that use it get far fewer injuries.",
+      "format": "team",
+      "players": [
+        2,
+        12,
+        20
+      ],
+      "ages": [
+        14,
+        18
+      ],
+      "duration": [
+        20,
+        20
+      ],
+      "session_phase": "warm_up",
+      "intensity": "medium",
+      "space": [
+        14,
+        34
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 12
+        },
+        {
+          "item": "balls",
+          "quantity": 10
+        }
+      ],
+      "setup": "A course of six pairs of cones: the pairs 5–6 m apart, each pair about 6 m across. Players in pairs at the first cones. Part 2 is done on the spot beside the course. It replaces your usual warm-up.",
+      "instructions": [
+        "Part 1, running (about 8 minutes): up the inside of the course doing each exercise, back down the outside. Two goes of each: straight ahead; hip out (stop at each cone, lift a knee and turn it out); hip in (lift a knee and turn it in); circling your partner (shuffle sideways to meet in the middle, circle each other, back to the cones); jumping with shoulder contact (side-step to the middle, jump together and touch shoulders, land on both feet); quick forward and backward sprints (sprint to the second cone, run backwards to the first, and so on up the course).",
+        "Part 2, strength, jumping and balance (about 10 minutes), at the level each player has reached:",
+        "The bench: lie face down on your forearms, lift the body so it's straight from head to feet, and hold. Three sets of 20–30 seconds.",
+        "Sideways bench: on one forearm with the lower knee bent on the ground, lift the hips so the upper body and top leg are in a straight line, and hold. Three sets of 20–30 seconds each side.",
+        "Hamstrings, in pairs (one kneels, the other holds their ankles): keeping the body straight from the knees up, lean forward slowly and as far as you can, then catch yourself on your hands. Three to five times.",
+        "Single-leg stance: stand on one leg holding a ball, knee slightly bent, for 30 seconds; move the ball around the waist or under the other knee. Two sets on each leg.",
+        "Squats: with feet hip-width apart, bend the hips and knees slowly until the knees are at 90 degrees, then straighten more quickly and rise onto the toes. Two sets of 30 seconds.",
+        "Jumping: with feet hip-width apart, squat until the knees are at about 90 degrees, then jump as high as you can and land softly on the balls of the feet. Two sets of 30 seconds.",
+        "Part 3, running (about 2 minutes), two goes of each: across the pitch at three-quarter pace; bounding with high knee lifts; plant and cut (jog 4–5 steps, plant the outside leg and cut the other way, then sprint 5–7 steps).",
+        "Use it at the start of every session, at least twice a week. Before a match, do only the running parts."
+      ],
+      "coaching_points": [
+        "Knee over the foot, never falling inwards, with the hip, knee and foot in a line.",
+        "Land softly on the balls of the feet with the knees bent.",
+        "On the bench exercises, keep the body in a straight line: don't let the hips sag or rise.",
+        "Correct mistakes as they happen: the exercises only protect players when they're done properly.",
+        "Move a player up a level only when they do every exercise well for the full time."
+      ],
+      "tags": {
+        "coordination_balance": 1.0,
+        "speed_agility": 0.5
+      },
+      "ladder_tags": [],
+      "variations": [
+        {
+          "kind": "base",
+          "title": "Level 1: beginner",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Everyone starts here. A player moves up a level in Part 2 once they do every exercise well for the full time; Parts 1 and 3 are the same at every level.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 2: intermediate",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "Harder strength and balance exercises in Part 2: alternate leg lifts, hip raises, throwing on one leg, walking lunges and side-to-side jumps.",
+          "diagram": 0,
+          "instructions": [
+            "Part 1, running (about 8 minutes): up the inside of the course doing each exercise, back down the outside. Two goes of each: straight ahead; hip out (stop at each cone, lift a knee and turn it out); hip in (lift a knee and turn it in); circling your partner (shuffle sideways to meet in the middle, circle each other, back to the cones); jumping with shoulder contact (side-step to the middle, jump together and touch shoulders, land on both feet); quick forward and backward sprints (sprint to the second cone, run backwards to the first, and so on up the course).",
+            "Part 2, strength, jumping and balance (about 10 minutes), at the level each player has reached:",
+            "The bench: as level 1, then lift one leg and then the other for two seconds each, in turn. Three sets of 40–60 seconds.",
+            "Sideways bench: on one forearm with the legs straight, lower the hip to the ground and raise it again. Three sets of 20–30 seconds each side.",
+            "Hamstrings, in pairs (one kneels, the other holds their ankles): as level 1. Seven to ten times.",
+            "Single-leg stance: in pairs 2–3 m apart, both on one leg, throw the ball to each other, keeping the weight on the ball of the foot. Two sets of 30 seconds on each leg.",
+            "Squats: walking lunges: lunge forward slowly, the knee never past the toes and never falling inwards. Ten lunges on each leg, twice.",
+            "Jumping: jump about 1 m sideways from one leg to the other, landing softly with the knee over the foot. Two sets of 30 seconds.",
+            "Part 3, running (about 2 minutes), two goes of each: across the pitch at three-quarter pace; bounding with high knee lifts; plant and cut (jog 4–5 steps, plant the outside leg and cut the other way, then sprint 5–7 steps).",
+            "Use it at the start of every session, at least twice a week. Before a match, do only the running parts."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Level 3: advanced",
+          "levels": [
+            1,
+            5
+          ],
+          "change": "The hardest Part 2: leg holds, leg lifts on the side, balance contests, one-leg squats and box jumps.",
+          "diagram": 0,
+          "instructions": [
+            "Part 1, running (about 8 minutes): up the inside of the course doing each exercise, back down the outside. Two goes of each: straight ahead; hip out (stop at each cone, lift a knee and turn it out); hip in (lift a knee and turn it in); circling your partner (shuffle sideways to meet in the middle, circle each other, back to the cones); jumping with shoulder contact (side-step to the middle, jump together and touch shoulders, land on both feet); quick forward and backward sprints (sprint to the second cone, run backwards to the first, and so on up the course).",
+            "Part 2, strength, jumping and balance (about 10 minutes), at the level each player has reached:",
+            "The bench: as level 1, then lift one leg about 10–15 cm and hold for 20–30 seconds, then the other. Three sets.",
+            "Sideways bench: on one forearm with the legs straight, lift the top leg up and lower it slowly. Three sets of 20–30 seconds each side.",
+            "Hamstrings, in pairs (one kneels, the other holds their ankles): as level 1. At least 12–15 times.",
+            "Single-leg stance: in pairs, on one leg at arm's length, try to put each other off balance by pushing, in turn, without touching the ground with the other foot. Two sets of 30 seconds on each leg.",
+            "Squats: one-leg squats: holding a partner's arm, slowly bend the standing knee as far as you can, the knee over the foot. Ten on each leg, twice.",
+            "Jumping: box jumps: jump forwards and backwards, side to side, and diagonally across an imagined cross, landing softly on both feet. Two sets of 30 seconds.",
+            "Part 3, running (about 2 minutes), two goes of each: across the pitch at three-quarter pace; bounding with high knee lifts; plant and cut (jog 4–5 steps, plant the outside leg and cut the other way, then sprint 5–7 steps).",
+            "Use it at the start of every session, at least twice a week. Before a match, do only the running parts."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "The running course: six pairs of cones 5–6 m apart; jog up the inside doing each exercise, run back down the outside",
+          "diagram": {
+            "pitch": {
+              "width": 14,
+              "length": 34,
+              "view": "area"
+            },
+            "objects": {
+              "l0": {
+                "type": "cone",
+                "at": [
+                  4,
+                  3.0
+                ]
+              },
+              "l1": {
+                "type": "cone",
+                "at": [
+                  4,
+                  8.5
+                ]
+              },
+              "l2": {
+                "type": "cone",
+                "at": [
+                  4,
+                  14.0
+                ]
+              },
+              "l3": {
+                "type": "cone",
+                "at": [
+                  4,
+                  19.5
+                ]
+              },
+              "l4": {
+                "type": "cone",
+                "at": [
+                  4,
+                  25.0
+                ]
+              },
+              "l5": {
+                "type": "cone",
+                "at": [
+                  4,
+                  30.5
+                ]
+              },
+              "r0": {
+                "type": "cone",
+                "at": [
+                  10,
+                  3.0
+                ]
+              },
+              "r1": {
+                "type": "cone",
+                "at": [
+                  10,
+                  8.5
+                ]
+              },
+              "r2": {
+                "type": "cone",
+                "at": [
+                  10,
+                  14.0
+                ]
+              },
+              "r3": {
+                "type": "cone",
+                "at": [
+                  10,
+                  19.5
+                ]
+              },
+              "r4": {
+                "type": "cone",
+                "at": [
+                  10,
+                  25.0
+                ]
+              },
+              "r5": {
+                "type": "cone",
+                "at": [
+                  10,
+                  30.5
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  1
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  1
+                ]
+              },
+              "B1": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  5,
+                  0.2
+                ]
+              },
+              "B2": {
+                "type": "player",
+                "team": "B",
+                "at": [
+                  9,
+                  0.2
+                ]
+              }
+            },
+            "steps": [
+              {
+                "label": "Two players start together and jog up the inside of the cones, doing the exercise as they go",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        5,
+                        31
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        9,
+                        31
+                      ]
+                    }
+                  }
+                ],
+                "duration": 2
+              },
+              {
+                "label": "The next pair sets off; the first pair runs back down the outside, a little faster as they warm up",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        1.5,
+                        1
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        12.5,
+                        1
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B1",
+                      "to": [
+                        5,
+                        20
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "B2",
+                      "to": [
+                        9,
+                        20
+                      ]
+                    }
+                  }
+                ],
+                "duration": 2
+              }
+            ]
+          }
+        }
+      ],
+      "links": [
+        {
+          "to": "fifa-11-plus-kids-injury-prevention-warm-up",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "easy-jog-and-stretch-circle",
+      "title": "Easy jog and stretch circle",
+      "summary": "A calm finish: an easy jog that slows to a walk, gentle stretches in a circle, and one question about the session.",
+      "format": "team",
+      "players": [
+        2,
+        12,
+        20
+      ],
+      "ages": [
+        7,
+        18
+      ],
+      "duration": [
+        5,
+        8
+      ],
+      "session_phase": "cool_down",
+      "intensity": "low",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        }
+      ],
+      "setup": "Any open space, such as the area you finished in. Players gather round the coach for the stretches.",
+      "instructions": [
+        "Two minutes of easy jogging around the area, slowing to a walk.",
+        "Make a circle with the coach.",
+        "Hold each stretch for 20–30 seconds on each side, breathing slowly: calf (step one foot back, heel down); back of the thigh (heel forward, toes up, lean forward from the hips); front of the thigh (hold your foot behind you, knees together); hip (a long lunge, back knee down); inside of the thigh (a wide side lunge).",
+        "Finish with one question for the group: 'What did we work on today?'"
+      ],
+      "coaching_points": [
+        "Stretch gently: no bouncing, and never push into pain.",
+        "Keep it calm and quiet, so heart rates come down.",
+        "This is for winding down together: it won't stop soreness the next day, and that's fine.",
+        "Use the question to remind players of the session's focus."
+      ],
+      "tags": {},
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Follow the coach, short holds",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "For younger players: the coach leads three stretches with short holds, and gives them fun names.",
+          "diagram": 0,
+          "instructions": [
+            "One minute of easy jogging, then walking, around the area.",
+            "Make a circle with the coach and copy three stretches, holding each for about ten seconds a side: calf, back of the thigh and front of the thigh.",
+            "Give them fun names: 'the rocket', 'the flamingo'.",
+            "Finish with one question: 'What was your favourite part today?'"
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Coach-led stretches",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "An easy jog, five stretches led by the coach, and one question.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Players lead a stretch each",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Different players take turns to lead each stretch, so everyone learns them.",
+          "diagram": 0,
+          "instructions": [
+            "Two minutes of easy jogging around the area, slowing to a walk.",
+            "Make a circle. A different player leads each stretch, and the group copies.",
+            "Hold each stretch for 20–30 seconds on each side, breathing slowly: calf (step one foot back, heel down); back of the thigh (heel forward, toes up, lean forward from the hips); front of the thigh (hold your foot behind you, knees together); hip (a long lunge, back knee down); inside of the thigh (a wide side lunge).",
+            "Finish with one question for the group: 'What did we work on today?'"
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Players lead the stretches and the review",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "One player leads the whole cool-down, including asking the group about the session; each player names one thing to practise at home.",
+          "diagram": 0,
+          "instructions": [
+            "Two minutes of easy jogging around the area, slowing to a walk.",
+            "Make a circle. One player leads all the stretches; the coach only steps in to correct.",
+            "Hold each stretch for 20–30 seconds on each side, breathing slowly: calf (step one foot back, heel down); back of the thigh (heel forward, toes up, lean forward from the hips); front of the thigh (hold your foot behind you, knees together); hip (a long lunge, back knee down); inside of the thigh (a wide side lunge).",
+            "The same player asks the group what the session worked on; each player names one thing to practise before the next session."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "An easy jog around the area that slows to a walk, then into a circle with the coach",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area"
+            },
+            "objects": {
+              "c1": {
+                "type": "cone",
+                "at": [
+                  0,
+                  0
+                ]
+              },
+              "c2": {
+                "type": "cone",
+                "at": [
+                  20,
+                  0
+                ]
+              },
+              "c3": {
+                "type": "cone",
+                "at": [
+                  0,
+                  20
+                ]
+              },
+              "c4": {
+                "type": "cone",
+                "at": [
+                  20,
+                  20
+                ]
+              },
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  3,
+                  3
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  17,
+                  4
+                ]
+              },
+              "P3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  16,
+                  17
+                ]
+              },
+              "P4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  4,
+                  16
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  10,
+                  10
+                ],
+                "label": "C"
+              }
+            },
+            "steps": [
+              {
+                "label": "Easy jog around the outside of the area",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        17,
+                        3
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        17,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        3,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        3,
+                        3
+                      ]
+                    }
+                  }
+                ],
+                "duration": 2
+              },
+              {
+                "label": "Slow to a walk",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        17,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        10,
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        3,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        10,
+                        3
+                      ]
+                    }
+                  }
+                ],
+                "duration": 2
+              },
+              {
+                "label": "Walk in to make a circle around the coach for the stretches",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        13,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        10,
+                        13
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P3",
+                      "to": [
+                        7,
+                        10
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P4",
+                      "to": [
+                        10,
+                        7
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    },
+    {
+      "slug": "keep-ups-then-talk-it-through",
+      "title": "Keep-ups, then talk it through",
+      "summary": "A few calm minutes of keep-ups for a personal best, then a sit-down chat about what the session worked on.",
+      "format": "team",
+      "players": [
+        1,
+        12,
+        20
+      ],
+      "ages": [
+        8,
+        18
+      ],
+      "duration": [
+        5,
+        8
+      ],
+      "session_phase": "cool_down",
+      "intensity": "low",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "balls",
+          "quantity": 20
+        }
+      ],
+      "setup": "Any open space, with a ball for every player and room for each to work on their own.",
+      "instructions": [
+        "Three minutes of keep-ups, at an easy pace: each player tries to beat their best score. Any part of the body except the arms and hands.",
+        "Sit in a circle. The coach asks one or two questions about the session's focus, for example 'When did you get your head up today?' Each player names one thing that went well and one to practise."
+      ],
+      "coaching_points": [
+        "Keep it calm: this is to wind down, not a competition between players.",
+        "Soft touches, with the ankle locked and the toes up.",
+        "In the chat, let players speak first before you add anything.",
+        "Keep the chat short: two or three minutes."
+      ],
+      "tags": {},
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Drop, kick, catch",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Drop the ball onto the foot, kick it up and catch it; the ball may bounce once between touches.",
+          "instructions": [
+            "Three minutes: drop the ball onto your foot, kick it gently up and catch it. Then try two kicks before the catch, letting it bounce once if you need to.",
+            "Sit in a circle. The coach asks one or two questions about the session's focus, for example 'When did you get your head up today?' Each player names one thing that went well and one to practise."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Keep-ups for a best score",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Keep-ups for a personal best, then the chat."
+        },
+        {
+          "kind": "escalator",
+          "title": "Feet and thighs in turn",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "Keep-ups in a pattern: right foot, left foot, right thigh, left thigh.",
+          "instructions": [
+            "Three minutes of keep-ups in a pattern: right foot, left foot, right thigh, left thigh, and round again. How many rounds in a row?",
+            "Sit in a circle. The coach asks one or two questions about the session's focus, for example 'When did you get your head up today?' Each player names one thing that went well and one to practise."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "Keep-ups in pairs; players lead the chat",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "Pairs keep the ball up between them, two touches each; then a player asks the group about the session.",
+          "players": [
+            2,
+            12,
+            20
+          ],
+          "equipment": [
+            {
+              "item": "balls",
+              "quantity": 10
+            }
+          ],
+          "instructions": [
+            "Three minutes in pairs: keep the ball up between you, two touches each before passing it to your partner in the air.",
+            "Sit in a circle. One player asks the group what the session worked on; each player names one thing that went well and one to practise."
+          ]
+        }
+      ],
+      "media": [],
+      "links": [
+        {
+          "to": "home-keep-ups",
+          "relation": "pairs_with"
+        }
+      ]
+    },
+    {
+      "slug": "crossbar-challenge-to-finish",
+      "title": "Crossbar challenge to finish",
+      "summary": "One shot each at the crossbar from the edge of the box, walking back between turns: a low-key, fun end to the session.",
+      "format": "team",
+      "players": [
+        4,
+        10,
+        20
+      ],
+      "ages": [
+        9,
+        18
+      ],
+      "duration": [
+        5,
+        8
+      ],
+      "session_phase": "cool_down",
+      "intensity": "low",
+      "space": [
+        20,
+        20
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "goals",
+          "quantity": 1
+        },
+        {
+          "item": "balls",
+          "quantity": 10
+        }
+      ],
+      "setup": "A goal of the size your age group plays with. Players line up with a ball each on the edge of the penalty area (closer for younger players). Nobody stands behind the goal or near it while others shoot.",
+      "instructions": [
+        "One shot each in turn, aiming to hit the crossbar.",
+        "Crossbar: three points. Post: one point.",
+        "After your shot, collect your ball and walk back to the end of the line.",
+        "Three rounds, or first to five points."
+      ],
+      "coaching_points": [
+        "Strike through the bottom half of the ball to lift it.",
+        "Keep it relaxed: it's a fun, calm end to the session.",
+        "Collect balls only when the coach says, never while someone is shooting."
+      ],
+      "tags": {},
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "Closer, posts count too",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "Shoot from the penalty spot, and hitting the bar or either post scores.",
+          "diagram": 0,
+          "instructions": [
+            "One shot each in turn from the penalty spot.",
+            "Hitting the crossbar or either post scores a point.",
+            "After your shot, collect your ball and walk back to the end of the line.",
+            "Three rounds."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "From the edge of the box",
+          "levels": [
+            2,
+            3
+          ],
+          "change": "Crossbar three points, post one point, from the edge of the penalty area.",
+          "diagram": 0
+        },
+        {
+          "kind": "escalator",
+          "title": "Weaker foot only",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "The same challenge, using only your weaker foot.",
+          "diagram": 0,
+          "instructions": [
+            "One shot each in turn with your weaker foot, aiming to hit the crossbar.",
+            "Crossbar: three points. Post: one point.",
+            "After your shot, collect your ball and walk back to the end of the line.",
+            "Three rounds, or first to five points."
+          ]
+        },
+        {
+          "kind": "escalator",
+          "title": "First time from a rolled ball",
+          "levels": [
+            4,
+            5
+          ],
+          "change": "The coach rolls the ball across from the side and the shooter strikes it first time.",
+          "diagram": 1,
+          "setup": "A goal of the size your age group plays with. Players line up on the edge of the penalty area; the coach stands to one side with the balls. Nobody stands behind the goal or near it while others shoot.",
+          "instructions": [
+            "The coach rolls a ball across the edge of the box; the shooter strikes it first time at the crossbar.",
+            "Crossbar: three points. Post: one point.",
+            "Walk back to the end of the line after your shot; collect the balls together at the end.",
+            "Three rounds, from each side."
+          ],
+          "coaching_points": [
+            "Get your body in line with the ball early.",
+            "Strike through the bottom half of the ball to lift it.",
+            "Keep it relaxed: it's a fun, calm end to the session."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "One shot each from the edge of the box at the crossbar; walk back to the line between turns",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 7
+                }
+              ]
+            },
+            "objects": {
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  17
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  11,
+                  18.5
+                ]
+              },
+              "P3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13,
+                  18.5
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "P1"
+              }
+            },
+            "steps": [
+              {
+                "label": "P1 strikes from the edge of the box, aiming for the crossbar",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "P1",
+                      "to": [
+                        10,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "P1 collects the ball and walks back to the end of the line; P2 steps up",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        15,
+                        18.5
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        9,
+                        17
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Hardest: the coach rolls the ball across and the shooter strikes it first time",
+          "diagram": {
+            "pitch": {
+              "width": 20,
+              "length": 20,
+              "view": "area",
+              "goals": [
+                {
+                  "id": "goal",
+                  "at": [
+                    10,
+                    0
+                  ],
+                  "width": 7
+                }
+              ]
+            },
+            "objects": {
+              "P1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  9,
+                  18
+                ]
+              },
+              "P2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  12,
+                  19
+                ]
+              },
+              "C": {
+                "type": "player",
+                "team": "N",
+                "at": [
+                  17,
+                  15
+                ],
+                "label": "C"
+              },
+              "ball": {
+                "type": "ball",
+                "with": "C"
+              }
+            },
+            "steps": [
+              {
+                "label": "The coach rolls the ball across; P1 steps onto it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "C",
+                      "to": "P1"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        9.5,
+                        16.5
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "P1 strikes it first time at the crossbar",
+                "actions": [
+                  {
+                    "shot": {
+                      "who": "P1",
+                      "to": [
+                        10,
+                        0
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "P1 walks back to the line; P2 steps up",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "P1",
+                      "to": [
+                        14,
+                        19
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P2",
+                      "to": [
+                        9,
+                        18
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": []
+    }
+  ]
+}

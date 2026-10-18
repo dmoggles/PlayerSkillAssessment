@@ -10,7 +10,9 @@ Search by name or skill, or filter by area, skill, format (individual, small gro
 
 ## Inside a drill
 
-- **Variations:** each drill has a base version, an easier one and harder ones, each with the levels (1 to 5) it suits. Choose one, and the setup, instructions and coaching points change to match; changed sections are marked.
+- **Variations:** each drill has a base version, an easier one and harder ones, each with the levels (1 to 5) it suits. Choose one, and the setup, instructions and coaching points change to match; changed sections are marked. Some drills work differently:
+  - drills marked **Any focus** train no particular skill, such as a general warm-up, so choose the version that suits the group;
+  - set programmes, like the FIFA 11+ warm-ups, start everyone at the first version, and players move up one at a time.
 - **Diagram:** press **Play** to watch the drill move step by step, or use the arrows to step through it.
 - **Videos:** some drills have a short video. Nothing loads until you press **Play video**.
 - **Like** or **Dislike** a drill. Disliked drills move to the end of your list and aren't suggested to you; votes are anonymous.

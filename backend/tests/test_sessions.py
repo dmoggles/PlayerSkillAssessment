@@ -250,3 +250,31 @@ def test_warm_ups_and_cool_downs_may_train_no_particular_skill():
     block = sessions.plan(data([general]))["blocks"][0]
     assert block["drill"] == "jog-and-mobility" and block["reasons"] == ["A general warm-up, for any focus."]
     assert sessions.plan(data([general, drill("passing-warm-up", "warm_up")]))["blocks"][0]["drill"] == "passing-warm-up"
+
+
+def test_a_long_warm_up_programme_takes_its_time_from_the_practices():
+    programme = drill("injury-prevention", "warm_up", tags={"coordination_balance": 1.0}, duration=(15, 20))
+    blocks = {b["phase"]: b for b in sessions.plan(data([programme], length=60))["blocks"]}
+    assert blocks["warm_up"]["drill"] == "injury-prevention" and blocks["warm_up"]["minutes"] == 15
+    assert (blocks["technical"]["minutes"], blocks["opposed"]["minutes"]) == (12, 13)  # 15 and 15, less 5 between them
+    assert "technical and opposed practices are a little shorter" in blocks["warm_up"]["reasons"][-1]
+    assert sum(b["minutes"] for b in blocks.values()) == 60
+    # In 45 minutes the practices keep at least 8 minutes each.
+    short = {b["phase"]: b["minutes"] for b in sessions.plan(data([programme], length=45))["blocks"]}
+    assert short["warm_up"] == 15 and (short["technical"], short["opposed"]) == (8, 9) and sum(short.values()) == 45
+    # A warm-up that fits needs no extra time, and re-planning around a coach's own practice doesn't lengthen it.
+    general = drill("jog", "warm_up", tags={}, ladder=[], duration=(8, 10))
+    assert sessions.plan(data([general]))["blocks"][0]["minutes"] == 10
+    kept = sessions.plan({**data([programme]), "kept_phases": ["technical"]})["blocks"][0]
+    assert kept["minutes"] == 10
+
+
+def test_a_set_programme_starts_everyone_at_its_first_version():
+    from app.plans import build_slot
+    programme = drill("programme", "warm_up", tags={"coordination_balance": 1.0}, ladder=[])
+    priority = {"rank": 1, "skill_id": "balance", "label": "Balance", "level": 5, "tags": {"coordination_balance": 1.0}}
+    slot = build_slot(priority, "club", programme, weeks=4)
+    assert {v["id"] for v in slot["weeks"]} == {"programme-1"}  # the base, even for a player rated 5
+    assert "move up one version at a time" in slot["reasons"][1]
+    block = sessions.plan({**data([programme]), "focus": ["coordination_balance"], "groups": [{"levels": [5, 5, 5, 5]}]})["blocks"][0]
+    assert block["variations"] == ["programme-1"]

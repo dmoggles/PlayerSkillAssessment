@@ -117,6 +117,8 @@ def build_slot(priority: dict, slot: str, drill: dict, weeks: int, start: int | 
     reasons = [f"{'Trains' if s >= 1 else 'Partly trains' if s else 'Chosen for'} {label} (priority {rank})."]
     if start is not None:
         reasons.append(f"Starts at “{variations[first]['title']}”.")
+    elif not drill["ladder_tags"]:
+        reasons.append("Starts at the first version: move up one version at a time, once it's done well.")
     elif not on_ladder:
         ladder = ", ".join(drill["tag_labels"].get(t, t) for t in drill["ladder_tags"])
         reasons.append(f"Base version throughout: this drill's versions follow {ladder}, not {label}.")

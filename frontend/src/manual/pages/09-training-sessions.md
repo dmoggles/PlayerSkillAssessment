@@ -25,6 +25,8 @@ Press **Plan the session**. The session is split into a warm-up, a technical pra
 
 Each block says why its drill was chosen. Where no drill in the library fits, the block is left for your own activity, such as a cool-down jog and stretches.
 
+Warm-ups and cool-downs don't have to train the focus: a general warm-up fits any session, though one that trains the focus is preferred. The FIFA 11+ injury-prevention warm-ups take 15–20 minutes to do properly. When one is chosen, the technical and opposed practices are a few minutes shorter to make room, so the session still ends on time.
+
 ## Changing it
 
 - **Edit** a block to change its minutes, choose another drill (suggestions for that part of the session first, or any drill), change a group's version, or replace the drill with your own activity.

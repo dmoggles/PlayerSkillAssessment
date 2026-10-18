@@ -441,6 +441,7 @@ def regenerate_session(team_id: int, session_id: int, db: DbSession = Depends(ge
     kept = [b for b in blocks if b.chosen_by == "coach"]
     kept_phases = {b.phase for b in kept}
     data["drills"] = [d for d in data["drills"] if d["slug"] not in {db.get(Drill, b.drill_id).slug for b in kept if b.drill_id}]
+    data["kept_phases"] = sorted(kept_phases)
     for b in blocks:
         if b.chosen_by != "coach":
             db.delete(b)

@@ -1211,7 +1211,7 @@ def test_drill_library_loads_checks_and_serves_drills(monkeypatch, tmp_path):
             assert "unknown or retired tag 'not_a_tag'" in str(error) and "without a gap" in str(error)
             assert "players must be [min, ideal, max]" in str(error) and "unknown equipment 'trampoline'" in str(error)
             assert "video must point at one of this drill's videos" in str(error)
-            assert "ladder_tags must be a non-empty list of this drill's tags" in str(error)
+            assert "ladder_tags must be a list of this drill's tags" in str(error)
             assert "indoors must be text, and only on a home-friendly drill" in str(error)
             assert "needs_better_video must be true or false" in str(error)
     data = json.loads((DATA_DIR / "drills_v1.json").read_text())

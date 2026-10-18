@@ -158,10 +158,11 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
             p.append(f"unknown or retired tag {tag!r}")
         if weight not in (1.0, 0.5):
             p.append(f"tag {tag} weight must be 1.0 or 0.5")
-    # Optional: the tags whose progress the variation ladder describes (default: all of them).
+    # Optional: the tags whose progress the variation ladder describes (default: all of them). An empty list means the
+    # versions follow no rating: everyone starts at the base and the coach moves players up (a set programme's levels).
     ladder = raw.get("ladder_tags")
-    if ladder is not None and not (isinstance(ladder, list) and ladder and set(ladder) <= set(tags)):
-        p.append("ladder_tags must be a non-empty list of this drill's tags")
+    if ladder is not None and not (isinstance(ladder, list) and set(ladder) <= set(tags)):
+        p.append("ladder_tags must be a list of this drill's tags")
     variations = raw.get("variations") or []
     kinds = [v.get("kind") for v in variations]
     if kinds.count("base") != 1:
@@ -264,7 +265,7 @@ def load_file(db: DbSession, path: Path) -> dict:
         db.flush()
         db.query(DrillTag).filter_by(drill_id=drill.id).delete()
         db.query(DrillLink).filter_by(from_drill_id=drill.id).delete()
-        ladder = set(r.get("ladder_tags") or r["tags"])
+        ladder = set(r["tags"] if r.get("ladder_tags") is None else r["ladder_tags"])
         db.add_all(DrillTag(drill_id=drill.id, tag_id=tag, weight=weight, on_ladder=tag in ladder) for tag, weight in r["tags"].items())
         # Media and variations are updated in place by position, so their ids stay the same from one load to the
         # next: saved plans point at variation ids. Extra rows at the end are removed.
