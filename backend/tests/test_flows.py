@@ -564,6 +564,34 @@ def test_dev_seed_varies_players_and_demos_priority_follow_up(capsys):
     assert "dev-owner@example.com" in capsys.readouterr().out
 
 
+def test_demo_seed_gives_an_account_a_full_squad(monkeypatch, capsys):
+    from app import admin as cli, seed_demo
+    clean_database()
+    assert seed_demo.main(["coach@example.com"]) == 1  # the account must exist first
+    assert cli.main(["create-user", "coach@example.com"]) == 0
+    password = capsys.readouterr().out.strip().splitlines()[-1]
+
+    def counts():
+        with engine.begin() as conn:
+            return conn.execute(text(
+                "SELECT (SELECT count(*) FROM teams), (SELECT count(*) FROM players), (SELECT count(*) FROM player_plans), "
+                "(SELECT count(*) FROM training_sessions), (SELECT count(*) FROM session_attendance WHERE attended)")).one()
+
+    assert seed_demo.main(["coach@example.com"]) == 0
+    first = counts()
+    teams, players, plans, sessions, attended = first
+    assert (teams, players, sessions) == (1, 16, 10) and plans > 30 and attended > 80
+    assert seed_demo.main(["coach@example.com"]) == 0
+    assert counts() == first, "a rerun replaces the demo team rather than adding another"
+
+    client = TestClient(app)
+    client.post("/auth/login", json={"email": "coach@example.com", "password": password})
+    team = client.get("/teams").json()[0]
+    assert team["name"] == seed_demo.DEFAULT_TEAM
+    listed = client.get(f"/teams/{team['id']}/sessions").json()
+    assert any(s["attended"] for s in listed) and any(not s["attended"] for s in listed)
+
+
 def test_database_allows_only_one_active_period_per_team(monkeypatch):
     """The API switches the old period off first; a direct write that would leave two active is refused."""
     import pytest
@@ -1524,6 +1552,14 @@ def test_admin_command_line(monkeypatch, capsys):
     assert client.post("/auth/reset-password", json={"token": reset, "password": "fresh-password-123"}).status_code == 200
     assert client.post("/auth/login", json={"email": "unverified@example.com", "password": "fresh-password-123"}).status_code == 200
     assert cli.main(["reset-password", "nobody@example.com"]) == 1
+
+    # create-user makes a verified account straight away, with a generated password.
+    capsys.readouterr()
+    assert cli.main(["create-user", "Demo@example.com"]) == 0
+    password = capsys.readouterr().out.strip().splitlines()[-1]
+    assert client.post("/auth/login", json={"email": "demo@example.com", "password": password}).status_code == 200
+    assert cli.main(["create-user", "demo@example.com"]) == 1
+    assert cli.main(["create-user", "not-an-email"]) == 1
 
 
 def test_invitations_survive_failed_email(monkeypatch):

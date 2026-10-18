@@ -104,10 +104,14 @@ def add_assessment(db, player, period, assessor, position, user, ratings, notes=
     return assessment
 
 
-def seed():
+def require_dev_site():
     host = (urlparse(settings.public_base_url).hostname or "").lower()
     if not any(part in host for part in ("dev", "staging", "test", "localhost")):
         raise SystemExit("Refusing to seed: PUBLIC_BASE_URL does not look like a development site")
+
+
+def seed():
+    require_dev_site()
 
     passwords = [secrets.token_urlsafe(20) for _ in USERS]
     with SessionLocal.begin() as db:
