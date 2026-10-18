@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
-import { addSessionBlock, createSession, createSessionTemplate, deleteSession, deleteSessionBlock, deleteSessionTemplate, errorMessage, getBlockAlternatives, getSession,
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { addSessionBlock, createSession, createSessionTemplate, deleteSession, deleteSessionBlock, deleteSessionTemplate, errorMessage, getBlockAlternatives, getDrill, getSession,
   getSessionFocus, getSessions, getSessionTemplates, getSkillTags, regenerateSession, setSessionAttendance, setSessionGroups, updateSession, updateSessionBlock,
   updateSessionTemplate } from '../api'
 import { DrillDialog } from '../DrillLibrary'
+import SessionReport from '../SessionReport'
 import { AREA_LABELS } from '../drillModel'
 import { DEFAULT_BREAKDOWNS, PHASE_NAMES, SESSION_LENGTHS, blockTimes, breakdownText, focusChip, sessionDate, splitSessions, templateProblems, templateTotal,
   versionLabel } from '../sessionModel'
@@ -16,7 +17,7 @@ export default function SessionsArea({ team, period, players, onMessage }) {
   if (view.kind === 'new') return <NewSession team={team} period={period} players={players} onMessage={onMessage}
     onCancel={() => setView({ kind: 'list' })} onCreated={session => setView({ kind: 'session', id: session.id })} />
   if (view.kind === 'templates') return <TemplatesView team={team} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
-  if (view.kind === 'session') return <SessionView key={view.id} teamId={team.id} sessionId={view.id} players={players} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
+  if (view.kind === 'session') return <SessionView key={view.id} teamId={team.id} teamName={team.name} sessionId={view.id} players={players} onMessage={onMessage} onBack={() => setView({ kind: 'list' })} />
   return <SessionList team={team} period={period} onMessage={onMessage} onNew={() => setView({ kind: 'new' })} onOpen={id => setView({ kind: 'session', id })}
     onTemplates={() => setView({ kind: 'templates' })} />
 }
@@ -135,15 +136,24 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
   </Section>
 }
 
-function SessionView({ teamId, sessionId, players, onBack, onMessage }) {
+function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
   const [editing, setEditing] = useState(null)  // a block id, 'groups' or 'add'
+  const [drills, setDrills] = useState({})  // each block's drill in full, by slug, for the printed report
   useEffect(() => {
     let live = true
     getSession(teamId, sessionId).then(value => { if (live) setSession(value) }).catch(e => onMessage(errorMessage(e, 'Could not load the session.')))
     return () => { live = false }
   }, [teamId, sessionId, onMessage])
+  const slugs = (session?.blocks ?? []).map(b => b.drill?.slug).filter(Boolean).sort().join(' ')
+  const requested = useRef(new Set())
+  useEffect(() => {
+    const missing = slugs.split(' ').filter(slug => slug && !requested.current.has(slug))
+    missing.forEach(slug => requested.current.add(slug))
+    Promise.all(missing.map(slug => getDrill(slug).then(drill => [slug, drill]).catch(() => null)))
+      .then(loaded => { if (loaded.some(Boolean)) setDrills(previous => ({ ...previous, ...Object.fromEntries(loaded.filter(Boolean)) })) })
+  }, [slugs])
   if (!session) return <p className="muted" role="status">Loading session…</p>
 
   const times = blockTimes(session.blocks, session.start_time)
@@ -199,6 +209,7 @@ function SessionView({ teamId, sessionId, players, onBack, onMessage }) {
     <Attendance session={session} players={players} onSave={rows => change(() => setSessionAttendance(teamId, session.id, rows), () => onMessage('Attendance saved.'))} />
     <SessionNotes notes={session.notes} onSave={notes => change(() => updateSession(teamId, session.id, { notes }), () => onMessage('Notes saved.'))} />
     {openDrill && <DrillDialog drill={openDrill} onMessage={onMessage} onClose={() => setOpenDrill(null)} />}
+    <SessionReport session={session} teamName={teamName} drills={drills} />
   </Section>
 }
 

@@ -1,4 +1,6 @@
 // Team training sessions: labels and the list's upcoming and past halves.
+import { effectiveDrill, variationDiagram } from './drillModel'
+
 export const SESSION_LENGTHS = [45, 60, 75, 90]
 export const PHASE_NAMES = { warm_up: 'Warm-up', technical: 'Technical', opposed: 'Opposed', small_sided_game: 'Small-sided game', full_squad_game: 'Full squad game', cool_down: 'Cool-down' }
 // The planner's default breakdown for each length (TEMPLATES in backend/app/sessions.py).
@@ -58,3 +60,31 @@ export const versionLabel = version => version ? `${version.kind === 'base' ? 'B
 
 // A focus suggestion's chip text: "Short passing · 5 players".
 export const focusChip = focus => `${focus.label}${focus.players ? ` · ${focus.players} ${focus.players === 1 ? 'player' : 'players'}` : ''}`
+
+// What the paper report prints for a block: its title, the version each group (or everyone) runs with what that version
+// changes, and the drill's content and diagram for that version. When groups run different versions, the content and
+// diagram are the drill's own, and each group's line says what its version changes.
+export function reportBlock(block, drill, groups) {
+  const title = block.drill ? block.drill.title : block.title
+  if (!block.drill) return { block, title, together: false, versions: [], drill: null }
+  const together = Boolean(groups) && block.together
+  const variationOf = version => drill?.variations.find(v => v.id === version?.variation_id) ?? null
+  const changeOf = version => { const v = variationOf(version); return v && v.kind !== 'base' ? v.change : '' }
+  const perGroup = groups && !together
+  const versions = perGroup
+    ? groups.map((g, i) => ({ label: `${g.name}: ${versionLabel(block.versions[i])}.`, change: changeOf(block.versions[i]) }))
+    : [{ label: `${versionLabel(block.versions[0])}.`, change: changeOf(block.versions[0]) }]
+  if (!drill) return { block, title, together, versions, drill: null }
+  const ids = new Set(block.versions.map(v => v?.variation_id))
+  const variation = ids.size === 1 ? variationOf(block.versions[0]) : drill.variations.find(v => v.kind === 'base') ?? null
+  return { block, title, together, versions, drill, content: effectiveDrill(drill, variation), diagram: variationDiagram(drill, variation) }
+}
+
+// Everything the session needs, for the "Bring" checklist: each item once, at the most any one block needs.
+export function sessionEquipment(blocks) {
+  const most = new Map()
+  for (const b of blocks) {
+    for (const e of b.content?.equipment ?? []) most.set(e.item, Math.max(most.get(e.item) ?? 0, e.quantity ?? 0))
+  }
+  return [...most].map(([item, quantity]) => ({ item, quantity }))
+}

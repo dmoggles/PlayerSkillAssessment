@@ -51,7 +51,15 @@ Every coach in the team can see and change the team's sessions.
 
 ## Printing
 
-**Print** gives you a sheet with the times, drills and each group's version, to take to training. Open a drill to see its diagram, setup and coaching points.
+**Print** gives you a report made for paper, to take to training:
+
+- **The plan at a glance:** the date, focus and template, a timeline of every part, and a **Bring** checklist of the equipment the session needs.
+- **Level groups**, with who is in each.
+- **Each block:** its times, the version each group runs and what that version changes, the players and space it needs, the set-up, the steps and the coaching points. The drill's diagram is printed step by step, each step showing where everyone moves. Under each block are lines for notes.
+- **A register** of the players expected, with a box to tick for who came and spare rows for anyone extra.
+- **How did it go?**, with space to write.
+
+It prints in black on white; notes you've already saved print in place of the blank lines.
 
 ## Afterwards
 

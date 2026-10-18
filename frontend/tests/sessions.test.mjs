@@ -52,3 +52,36 @@ test('the templates view lists the team templates, and the editor counts the min
   const empty = renderToStaticMarkup(React.createElement(TemplatesView, { team: { id: 1, name: 'Falcons' }, initial: [], onBack: () => {}, onMessage: () => {} }))
   assert.match(empty, /No templates yet/)
 })
+
+test('the paper report prints each block for the version used, with what it brings and a register', async () => {
+  const { reportBlock, sessionEquipment } = await loadJsx('src/sessionModel.js')
+  const drill = { title: 'Rondo', setup: 'A square', equipment: [{ item: 'balls', quantity: 4 }, { item: 'cones', quantity: 4 }], instructions: ['Pass'],
+    coaching_points: ['Move'], players: [5, 5, 10], space: [10, 10],
+    media: [{ id: 1, kind: 'diagram', diagram: {} }, { id: 2, kind: 'diagram', diagram: {} }],
+    variations: [{ id: 10, kind: 'base', title: 'Rondo', change: 'The base' }, { id: 11, kind: 'escalator', title: 'Two touch', change: 'Two touches at most.',
+      diagram_media_id: 2, equipment: [{ item: 'balls', quantity: 8 }] }] }
+  const block = { drill: { slug: 'rondo', title: 'Rondo' }, together: false, versions: [{ variation_id: 11, kind: 'escalator', title: 'Two touch' }] }
+  const single = reportBlock(block, drill, null)
+  assert.deepEqual(single.versions, [{ label: 'Harder: Two touch.', change: 'Two touches at most.' }])
+  assert.equal(single.diagram.id, 2, "the version's own diagram")
+  assert.deepEqual(single.content.equipment, [{ item: 'balls', quantity: 8 }])
+  const groups = [{ name: 'Group A' }, { name: 'Group B' }]
+  const split = reportBlock({ ...block, versions: [block.versions[0], { variation_id: 10, kind: 'base', title: 'Rondo' }] }, drill, groups)
+  assert.deepEqual(split.versions.map(v => v.label), ['Group A: Harder: Two touch.', 'Group B: Base: Rondo.'])
+  assert.equal(split.diagram.id, 1, "groups on different versions: the drill's own diagram")
+  assert.deepEqual(reportBlock({ drill: null, title: 'Match', versions: [] }, undefined, groups).versions, [])
+  assert.deepEqual(sessionEquipment([single, split, { content: null }]), [{ item: 'balls', quantity: 8 }, { item: 'cones', quantity: 4 }])
+
+  const { default: SessionReport } = await loadJsx('src/SessionReport.jsx')
+  const session = { title: 'Passing', date: '2026-10-20', start_time: '18:30', length: 20, template: null, expected: 1, versions: 'single', groups: [], notes: '',
+    focus: [{ tag_id: 'p', label: 'Short passing' }], attendance: [{ player_id: 1, name: 'Ana', expected: true, attended: null }],
+    blocks: [{ id: 1, phase: 'technical', minutes: 15, ...block, notes: '' }, { id: 2, phase: 'cool_down', minutes: 5, drill: null, title: 'Stretches', versions: [], notes: 'Good' }] }
+  const html = renderToStaticMarkup(React.createElement(SessionReport, { session, teamName: 'Falcons', drills: { rondo: { ...drill, media: [] } } }))
+  assert.match(html, /Falcons · Training session/)
+  assert.match(html, /18:30–18:45/)
+  assert.match(html, /8 balls/)
+  assert.match(html, /Harder: Two touch\./)
+  assert.match(html, /Register/)
+  assert.match(html, /Ana/)
+  assert.match(html, /<strong>Note:<\/strong> Good/)
+})
