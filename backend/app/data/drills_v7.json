@@ -1,0 +1,590 @@
+{
+  "source_version": "drills_v7",
+  "drills": [
+    {
+      "slug": "four-corner-pass-and-follow",
+      "title": "Four-corner pass and follow",
+      "summary": "Pass round a square and follow your pass, so everyone keeps moving.",
+      "format": "small_group",
+      "players": [
+        5,
+        8,
+        12
+      ],
+      "ages": [
+        8,
+        14
+      ],
+      "duration": [
+        10,
+        15
+      ],
+      "session_phase": "technical",
+      "intensity": "medium",
+      "space": [
+        12,
+        12
+      ],
+      "home_friendly": false,
+      "equipment": [
+        {
+          "item": "cones",
+          "quantity": 4
+        },
+        {
+          "item": "balls",
+          "quantity": 2
+        }
+      ],
+      "setup": "A 12 x 12 m square with a cone at each corner: 10 m for U8–U9, up to 15 m for U13–U14. Two players at each corner, more if you have them. The first players at two opposite corners have a ball each.",
+      "instructions": [
+        "The first player at each corner with a ball passes to the next corner, clockwise.",
+        "Pass, then jog after your pass to join the back of that corner's line.",
+        "Both balls go round at once, so look before you pass.",
+        "After two minutes, change direction."
+      ],
+      "coaching_points": [
+        "Step out to meet the ball; don't wait on the cone.",
+        "Receive across your body, on the back foot.",
+        "Pass to the receiver's back foot, the one further from you, so they can play on in one movement.",
+        "Call the receiver's name before you pass."
+      ],
+      "tags": {
+        "passing_short": 1.0,
+        "first_touch": 0.5
+      },
+      "variations": [
+        {
+          "kind": "regression",
+          "title": "One ball",
+          "levels": [
+            1,
+            2
+          ],
+          "change": "One ball only, and two touches allowed, so there's time to look up.",
+          "equipment": [
+            {
+              "item": "cones",
+              "quantity": 4
+            },
+            {
+              "item": "balls",
+              "quantity": 1
+            }
+          ],
+          "setup": "A 12 x 12 m square with a cone at each corner: 10 m for U8–U9, up to 15 m for U13–U14. Two players at each corner, more if you have them. The first player at one corner has the ball.",
+          "instructions": [
+            "The player with the ball passes to the next corner, clockwise.",
+            "Pass, then jog after your pass to join the back of that corner's line.",
+            "Take two touches: one to control, one to pass.",
+            "After two minutes, change direction."
+          ]
+        },
+        {
+          "kind": "base",
+          "title": "Four-corner pass and follow",
+          "levels": [
+            2,
+            3
+          ],
+          "diagram": 0,
+          "change": "Two balls go round at once, from opposite corners, with as many touches as you need."
+        },
+        {
+          "kind": "escalator",
+          "title": "One touch, two balls",
+          "levels": [
+            3,
+            4
+          ],
+          "change": "One touch at every corner, with both balls going."
+        },
+        {
+          "kind": "escalator",
+          "title": "Give-and-go at each corner",
+          "levels": [
+            4,
+            5
+          ],
+          "diagram": 1,
+          "change": "The receiver sets it back first time, turns towards the next corner and gets it back in their path, then passes on.",
+          "instructions": [
+            "The first player at each corner with a ball passes to the next corner, clockwise.",
+            "The passer steps in; the receiver sets it back first time.",
+            "The receiver turns towards the next corner; the passer plays it into their path, then follows to the back of that line.",
+            "The receiver passes on to the next corner, and the give-and-go starts again there.",
+            "After two minutes, change direction."
+          ],
+          "coaching_points": [
+            "Set it back firmly, to the passer's front foot.",
+            "Turn as the ball leaves you, so you're already moving onto the return.",
+            "Play the return into space ahead of the runner, not to their feet.",
+            "Call the receiver's name before you pass."
+          ]
+        }
+      ],
+      "media": [
+        {
+          "kind": "diagram",
+          "caption": "Pass and follow round the square; the diagram follows one of the two balls",
+          "diagram": {
+            "pitch": {
+              "width": 16,
+              "length": 16,
+              "view": "area"
+            },
+            "objects": {
+              "k1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "k2": {
+                "type": "cone",
+                "at": [
+                  14,
+                  2
+                ]
+              },
+              "k3": {
+                "type": "cone",
+                "at": [
+                  14,
+                  14
+                ]
+              },
+              "k4": {
+                "type": "cone",
+                "at": [
+                  2,
+                  14
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2.6,
+                  2.6
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.9,
+                  0.9
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13.4,
+                  2.6
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15.1,
+                  0.9
+                ]
+              },
+              "A5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13.4,
+                  13.4
+                ]
+              },
+              "A6": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15.1,
+                  15.1
+                ]
+              },
+              "A7": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2.6,
+                  13.4
+                ]
+              },
+              "A8": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.9,
+                  15.1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 passes to A3, who steps out to meet it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        12.4,
+                        2.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 opens up and passes on to A5, who steps out to meet it. A1 follows the pass to the back of the top-right line; A2 steps up to the cone",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A3",
+                      "to": "A5"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A5",
+                      "to": [
+                        13.4,
+                        12.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        15.8,
+                        0.2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        2.6,
+                        2.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A5 passes to A7. A3 follows to the back of the bottom-right line; A4 steps up",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A5",
+                      "to": "A7"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A7",
+                      "to": [
+                        3.6,
+                        13.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        15.8,
+                        15.8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A4",
+                      "to": [
+                        13.4,
+                        2.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A7 passes to A2, now at the top-left cone. A5 follows to the bottom-left line; A6 steps up",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A7",
+                      "to": "A2"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        2.6,
+                        3.6
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A5",
+                      "to": [
+                        0.2,
+                        15.8
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A6",
+                      "to": [
+                        13.4,
+                        13.4
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "diagram",
+          "caption": "Give-and-go at the top-right corner, then on to the next",
+          "diagram": {
+            "pitch": {
+              "width": 16,
+              "length": 16,
+              "view": "area"
+            },
+            "objects": {
+              "k1": {
+                "type": "cone",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              "k2": {
+                "type": "cone",
+                "at": [
+                  14,
+                  2
+                ]
+              },
+              "k3": {
+                "type": "cone",
+                "at": [
+                  14,
+                  14
+                ]
+              },
+              "k4": {
+                "type": "cone",
+                "at": [
+                  2,
+                  14
+                ]
+              },
+              "A1": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2.6,
+                  2.6
+                ]
+              },
+              "A2": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.9,
+                  0.9
+                ]
+              },
+              "A3": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13.4,
+                  2.6
+                ]
+              },
+              "A4": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15.1,
+                  0.9
+                ]
+              },
+              "A5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  13.4,
+                  13.4
+                ]
+              },
+              "A6": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  15.1,
+                  15.1
+                ]
+              },
+              "A7": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  2.6,
+                  13.4
+                ]
+              },
+              "A8": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  0.9,
+                  15.1
+                ]
+              },
+              "ball": {
+                "type": "ball",
+                "with": "A1"
+              }
+            },
+            "steps": [
+              {
+                "label": "A1 passes to A3, who steps out to meet it",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A3"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        12,
+                        2.6
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A1 steps in; A3 sets it back to A1 first time",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        6,
+                        2.6
+                      ]
+                    }
+                  },
+                  {
+                    "pass": {
+                      "from": "A3",
+                      "to": "A1"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 turns and runs towards the next corner; A1 plays it into A3's path",
+                "actions": [
+                  {
+                    "run": {
+                      "who": "A3",
+                      "to": [
+                        13.4,
+                        6.5
+                      ]
+                    }
+                  },
+                  {
+                    "pass": {
+                      "from": "A1",
+                      "to": "A3"
+                    }
+                  }
+                ]
+              },
+              {
+                "label": "A3 passes on to A5, who steps out to meet it. A1 follows to the back of the top-right line; A2 steps up",
+                "actions": [
+                  {
+                    "pass": {
+                      "from": "A3",
+                      "to": "A5"
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A5",
+                      "to": [
+                        13.4,
+                        12.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A1",
+                      "to": [
+                        15.8,
+                        0.2
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "A2",
+                      "to": [
+                        2.6,
+                        2.6
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "links": [
+        {
+          "to": "pass-set-and-play-out",
+          "relation": "harder"
+        }
+      ]
+    }
+  ]
+}
