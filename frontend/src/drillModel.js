@@ -75,7 +75,7 @@ export const DISLIKE_REASONS = { too_advanced: 'Too advanced', too_easy: 'Too ea
 export const equipmentLabel = item => item.replace('_', ' ')
 
 // Empty values mean "any". Numbers are kept as strings, as the inputs give them.
-export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', phase: '', players: '', age: '', level: '', duration: '', intensity: '', equipment: [], home: false, liked: false }
+export const EMPTY_FILTERS = { text: '', area: '', tag: '', format: '', phase: '', players: '', age: '', level: '', duration: '', intensity: '', equipment: [], home: false, liked: false, mine: false }
 
 export const activeFilterCount = filters => Object.entries(filters)
   .filter(([key, value]) => key !== 'text' && (Array.isArray(value) ? value.length : value)).length
@@ -114,6 +114,7 @@ export function matchesFilters(drill, filters) {
   if (filters.equipment.length && !specialEquipment(drill).every(item => filters.equipment.includes(item))) return false
   if (filters.home && !drill.home_friendly) return false
   if (filters.liked && drill.votes.mine !== 1) return false
+  if (filters.mine && !drill.team_id) return false
   return true
 }
 

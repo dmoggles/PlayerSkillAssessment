@@ -1098,6 +1098,28 @@ a.public-brand { text-decoration: none; }
 @media (max-width: 640px) { .template-parts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .template-editor { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
 .session-card .danger-link { color: var(--error); }
+/* A team's own drills: the editor and the drill page's controls. */
+.drill-library-actions { margin-bottom: 12px; }
+.team-drill-form { max-width: 820px; }
+.team-drill-form h3 { margin: 0; }
+.team-drill-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.team-drill-numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px; }
+.team-drill-numbers .field { font-size: .82rem; }
+.team-drill-list, .team-drill-tags, .team-drill-version-group { display: grid; gap: 8px; }
+.team-drill-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.team-drill-tags .team-drill-item { grid-template-columns: minmax(0, 1fr) auto auto; }
+.team-drill-item textarea { width: 100%; }
+.team-drill-version { display: grid; gap: 8px; }
+.team-drill-actions { display: grid; gap: 8px; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: .88rem; }
+.team-drill-actions p { margin: 0; }
+.team-drill-actions .status-pill { margin: 0 6px 0 0; }
+.team-drill-actions button:not(.link-btn):not(.danger-btn):not(.primary-btn) { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.team-drill-offer { display: grid; gap: 8px; }
+.team-drill-submission { font-weight: 600; }
+.team-drill-form textarea, .team-drill-offer textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+.team-drill-form fieldset > .link-btn { justify-self: start; }
+.team-drill-equipment .field { text-transform: capitalize; }
+.team-drill-problems { padding-left: 18px; }
 .focus-chips button { padding: 7px 12px; border: 1px solid var(--border); border-radius: 20px; background: #fff; font-size: .88rem; }
 .focus-chips button.active { border-color: var(--primary); background: var(--accent-tint-strong); color: var(--accent-ink); font-weight: 700; }
 .session-focus-order { margin: 0; font-size: .85rem; color: var(--muted); }

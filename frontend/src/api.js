@@ -54,7 +54,12 @@ export const sendSiteInvite = email => data(api.post('/admin/invites', { email }
 export const cancelSiteInvite = id => data(api.delete(`/admin/invites/${id}`))
 
 export const getServerVersion = () => data(api.get('/health')).then(value => value.version)
-export const getDrills = () => data(api.get('/drills'))
+// With a team, the library plus that team's own drills.
+export const getDrills = teamId => data(api.get('/drills', { params: teamId ? { team_id: teamId } : {} }))
+export const createTeamDrill = (id, drill) => data(api.post(`${team(id)}/drills`, drill))
+export const updateTeamDrill = (id, slug, drill) => data(api.put(`${team(id)}/drills/${encodeURIComponent(slug)}`, drill))
+export const deleteTeamDrill = (id, slug) => data(api.delete(`${team(id)}/drills/${encodeURIComponent(slug)}`))
+export const submitTeamDrill = (id, slug, note) => data(api.post(`${team(id)}/drills/${encodeURIComponent(slug)}/submit`, { note, confirm_own: true }))
 export const voteOnDrill = (slug, vote, reason = null) => data(api.put(`/drills/${encodeURIComponent(slug)}/vote`, { vote, reason }))
 export const getDrillSuggestions = (id, playerId, periodId, skills) => data(api.get(`${team(id)}/players/${playerId}/drill-suggestions`, { params: { period_id: periodId, skills }, paramsSerializer: { indexes: null } }))
 export const getSavedPlan = (id, playerId, periodId) => data(api.get(`${team(id)}/players/${playerId}/plan`, { params: { period_id: periodId } }))

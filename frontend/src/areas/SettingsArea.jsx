@@ -41,7 +41,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
   if (drillLibraryOpen) {
     return <Section title="Drill library" description="Drills tagged to skills, each with easier and harder variations">
       <button type="button" className="link-btn back-link" onClick={() => setDrillLibraryOpen(false)}>← Back to settings</button>
-      <DrillLibrary key={`${team?.id}-${period?.id}-${squad.single}`} ageGroup={squad.single} ageSpan={squad.span} onMessage={onMessage} />
+      <DrillLibrary key={`${team?.id}-${period?.id}-${squad.single}`} teamId={team?.id} ageGroup={squad.single} ageSpan={squad.span} onMessage={onMessage} />
     </Section>
   }
   return <div className="settings-grid">

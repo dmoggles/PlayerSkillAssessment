@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { errorMessage, getDrill, getDrills, voteOnDrill } from './api'
+import { deleteTeamDrill, errorMessage, getDrill, getDrills, submitTeamDrill, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
+import TeamDrillForm from './TeamDrillForm'
 import { SuggestVideo } from './VideoSuggestions'
 import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, hasVideo, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
 
@@ -19,25 +20,33 @@ export function DrillLibrarySummary({ onOpen }) {
 }
 
 // The shared drill library: a filterable list of drills and a detail view with the variation ladder and diagrams.
+// With a team, the team's own drills are listed too, and its coaches can add, edit, delete and submit them.
 // Filters live here, so they survive opening a drill and coming back.
 // The age filter starts at the squad's playing group when everyone shares one; a mixed squad starts unfiltered.
-export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
+export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage, teamId = null }) {
   const [drills, setDrills] = useState(null)
   const [open, setOpen] = useState(null)
+  const [editing, setEditing] = useState(null)  // 'new', or the team drill being edited
   const [filters, setFilters] = useState(() => ({ ...EMPTY_FILTERS, age: ageGroup ? String(ageGroup) : '' }))
   useEffect(() => {
     let live = true
-    getDrills().then(value => { if (live) setDrills(value) }).catch(e => onMessage(errorMessage(e)))
+    getDrills(teamId).then(value => { if (live) setDrills(value) }).catch(e => onMessage(errorMessage(e)))
     return () => { live = false }
-  }, [onMessage])
+  }, [onMessage, teamId])
+  const reload = useCallback(() => getDrills(teamId).then(setDrills).catch(e => onMessage(errorMessage(e))), [teamId, onMessage])
   const onVoted = useCallback((slug, votes) => setDrills(previous => previous?.map(d => d.slug === slug ? { ...d, votes } : d)), [])
   const options = useMemo(() => filterOptions(drills ?? []), [drills])
-  if (open) return <DrillDetail slug={open} onBack={() => setOpen(null)} onOpen={setOpen} onVoted={onVoted} onMessage={onMessage} />
+  if (editing) return <TeamDrillForm teamId={teamId} drill={editing === 'new' ? null : editing} onMessage={onMessage}
+    onCancel={() => setEditing(null)} onSaved={saved => { setEditing(null); setOpen(saved.slug); reload(); onMessage('Drill saved.') }} />
+  if (open) return <DrillDetail key={open} slug={open} onBack={() => setOpen(null)} onOpen={setOpen} onVoted={onVoted} onMessage={onMessage}
+    onEdit={teamId ? setEditing : null} onDeleted={() => { setOpen(null); reload() }} />
   if (!drills) return <p className="muted" role="status">Loading drills…</p>
-  if (!drills.length) return <p className="muted">The drill library is empty.</p>
   const shown = sortDrills(drills.filter(d => matchesFilters(d, filters)))
   return <>
-    <DrillFilters filters={filters} options={options} onChange={setFilters} />
+    {teamId && <div className="inline-row drill-library-actions"><button type="button" className="primary-btn" onClick={() => setEditing('new')}>Add a drill</button>
+      <span className="muted">Write up a drill you already run; only your team's coaches see it.</span></div>}
+    {!drills.length && <p className="muted">The drill library is empty.</p>}
+    <DrillFilters filters={filters} options={options} onChange={setFilters} team={Boolean(teamId)} />
     {ageSpan && !filters.age && <p className="muted hint">Your squad spans U{ageSpan[0]}–U{ageSpan[1]}, so drills are not filtered by age. Set an age group under Filters to narrow them.</p>}
     <p className="muted drill-count" role="status">{shown.length === drills.length ? `${drills.length} drills` : `${shown.length} of ${drills.length} drills`}</p>
     {shown.length === 0 && <p className="muted">No drills match these filters.</p>}
@@ -46,7 +55,7 @@ export default function DrillLibrary({ ageGroup, ageSpan = null, onMessage }) {
         <strong>{d.title}</strong>
         <span className="drill-card-summary">{d.summary}</span>
         <span className="drill-facts">{FORMAT_LABELS[d.format]} · {playersText(d.players)} · {d.duration[1]} min · {levelRange(d.levels)}</span>
-        <span className="drill-tags">{GENERAL_PHASES.includes(d.session_phase) && <span className="status-pill">{PHASE_LABELS[d.session_phase]}</span>}{d.tags.length ? d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>) : <span className="status-pill muted-pill">Any focus</span>}</span>
+        <span className="drill-tags">{d.team_id && <span className="status-pill warn-pill">Your team</span>}{GENERAL_PHASES.includes(d.session_phase) && <span className="status-pill">{PHASE_LABELS[d.session_phase]}</span>}{d.tags.length ? d.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}</span>) : <span className="status-pill muted-pill">Any focus</span>}</span>
         <VoteSummary votes={d.votes} />
       </button>
     </li>)}</ul>
@@ -73,7 +82,7 @@ function VoteSummary({ votes }) {
   </span>
 }
 
-function DrillFilters({ filters, options, onChange }) {
+function DrillFilters({ filters, options, onChange, team = false }) {
   const set = (key, value) => onChange({ ...filters, [key]: value })
   const select = (key, label, choices) => <label className="field">{label}<select value={filters[key]} onChange={e => set(key, e.target.value)}>
     <option value="">Any</option>{choices.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
@@ -106,13 +115,15 @@ function DrillFilters({ filters, options, onChange }) {
       <div className="drill-equipment">
         <label className="checkbox"><input type="checkbox" checked={filters.home} onChange={e => set('home', e.target.checked)} /> Can be done at home</label>
         <label className="checkbox"><input type="checkbox" checked={filters.liked} onChange={e => set('liked', e.target.checked)} /> Only drills I like</label>
+        {team && <label className="checkbox"><input type="checkbox" checked={filters.mine} onChange={e => set('mine', e.target.checked)} /> Only my team's drills</label>}
       </div>
     </details>
   </div>
 }
 
 // loadDrill fetches the drill; a shared plan's page passes one that goes through the plan's link.
-function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill }) {
+// onEdit (the library's) lets the team's coaches edit, delete and submit their own drills; dialogs only show them.
+function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill, onEdit = null, onDeleted = () => {} }) {
   const [drill, setDrill] = useState(null)
   const [variationId, setVariationId] = useState(initialVariationId)
   useEffect(() => {
@@ -142,6 +153,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
       <p className="drill-tags">{drill.tags.length ? drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>) : <span className="status-pill muted-pill">Any focus</span>}</p>
       {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
+      {drill.team_id && <TeamDrillActions drill={drill} onEdit={onEdit} onDeleted={onDeleted} onSubmitted={setDrill} onOpen={onOpen} onMessage={onMessage} />}
     </header>
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
@@ -156,7 +168,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       {shown && <DiagramPlayer key={shown.id} diagram={shown.diagram} caption={shown.caption} />}
     </div>
     {videos.map(v => <VideoLink key={v.id} video={v} />)}
-    {drill.votes && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!hasVideo(drill)} />}
+    {drill.votes && !drill.team_id && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!hasVideo(drill)} />}
     <p className="muted variation-note" aria-live="polite">Showing: <strong>{selected?.title}</strong>{view.changed.size ? '. Sections marked below differ from the base version.' : ''}</p>
     {view.setup && <section><h4>Setup {changedTag('setup')}</h4><p>{view.setup}</p></section>}
     {view.equipment.length > 0 && <section><h4>Equipment {changedTag('equipment')}</h4><p>{view.equipment.map(e => `${e.quantity} ${equipmentLabel(e.item)}`).join(', ')}</p></section>}
@@ -166,6 +178,42 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     {links.length > 0 && <section><h4>Links</h4><ul>{links.map(l => <li key={l.id}><a href={l.url} target="_blank" rel="noreferrer">{l.caption || l.url}</a></li>)}</ul></section>}
     {drill.links.length > 0 && <section><h4>Related drills</h4><ul>{drill.links.map(l => <li key={l.slug}><button type="button" className="link-btn" onClick={() => onOpen(l.slug)}>{l.title}</button> <span className="muted">({l.relation.replace('_', ' ')})</span></li>)}</ul></section>}
   </article>
+}
+
+// A team drill's own controls, and where its offer to the shared library stands.
+function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen, onMessage }) {
+  const [offering, setOffering] = useState(false)
+  const [note, setNote] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
+  const s = drill.submission
+  const remove = async () => {
+    if (!window.confirm(`Delete ${drill.title}? Sessions and plans that already use it keep it.`)) return
+    try { onMessage((await deleteTeamDrill(drill.team_id, drill.slug)).message); onDeleted() } catch (e) { onMessage(errorMessage(e)) }
+  }
+  const submit = async event => {
+    event.preventDefault()
+    try { onSubmitted(await submitTeamDrill(drill.team_id, drill.slug, note.trim())); setOffering(false); onMessage('Drill submitted to the shared library.') }
+    catch (e) { onMessage(errorMessage(e)) }
+  }
+  const canOffer = !s || s.status === 'declined'
+  return <div className="team-drill-actions">
+    <p><span className="status-pill warn-pill">Your team's drill</span> Only your team's coaches see it.</p>
+    {s && <p className="team-drill-submission" role="status">{s.status === 'pending' ? 'Submitted to the shared library: waiting for review.'
+      : s.status === 'accepted' ? 'Accepted for the shared library: it is being written up with diagrams.'
+      : s.status === 'declined' ? `Not added to the shared library${s.reason ? `: ${s.reason}` : '.'}`
+      : <>Now in the shared library{s.library ? <> as <button type="button" className="link-btn" onClick={() => onOpen(s.library.slug)}>{s.library.title}</button></> : ''}.</>}</p>}
+    {onEdit && <div className="inline-row">
+      <button type="button" onClick={() => onEdit(drill)}>Edit</button>
+      {canOffer && !offering && <button type="button" onClick={() => setOffering(true)}>Submit to the shared library</button>}
+      <button type="button" className="danger-btn" onClick={remove}>Delete</button>
+    </div>}
+    {offering && <form className="team-drill-offer" onSubmit={submit}>
+      <p className="muted hint">An admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, and we don't name you or your team.</p>
+      <label className="field"><span>Note for the reviewer <span className="muted">(optional)</span></span><textarea rows={2} maxLength={1000} value={note} onChange={e => setNote(e.target.value)} placeholder="Where it came from, the ages it works for" /></label>
+      <label className="checkbox"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> This drill is mine, or my club's, to share</label>
+      <div className="inline-row"><button type="submit" className="primary-btn" disabled={!confirmed}>Submit</button><button type="button" className="link-btn" onClick={() => setOffering(false)}>Cancel</button></div>
+    </form>}
+  </div>
 }
 
 // Pressing the active button again clears the vote. A dislike may say why; the reason is optional.

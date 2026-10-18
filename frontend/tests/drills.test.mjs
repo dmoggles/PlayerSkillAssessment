@@ -194,3 +194,41 @@ test('a suggestion can only be approved once the checklist is ticked, and an app
   assert.doesNotMatch(approved, />Approve</)
   assert.match(approved, />Take down</)
 })
+
+test("a team drill's form turns into the drill's fields, and back", async () => {
+  const { emptyForm, formBody, formFromDrill, formProblems } = await loadJsx('src/teamDrillModel.js')
+  const form = { ...emptyForm(), title: ' Four corners ', setup: 'A square.', instructions: ['Pass.', ' '], tags: { passing_short: 1 },
+    equipment: { cones: '4', balls: '', goals: '0' }, space: ['15', ''], easier: { title: 'Two corners', change: 'Across a line.' }, harder: { title: '', change: '' } }
+  assert.deepEqual(formProblems(form), [])
+  const body = formBody(form)
+  assert.equal(body.title, 'Four corners')
+  assert.deepEqual(body.instructions, ['Pass.'])
+  assert.deepEqual(body.equipment, [{ item: 'cones', quantity: 4 }], 'empty and zero quantities are left out')
+  assert.equal(body.space, null, 'space needs both sides')
+  assert.deepEqual(body.players, [4, 8, 12])
+  assert.deepEqual(body.easier, { title: 'Two corners', change: 'Across a line.' })
+  assert.equal(body.harder, null, 'an empty version is left out')
+  assert.deepEqual(formProblems({ ...form, tags: {} }), ['Choose at least one skill this drill mainly trains.'])
+  assert.deepEqual(formProblems({ ...form, tags: {}, session_phase: 'warm_up' }), [], 'warm-ups needn\'t train a skill')
+  assert.deepEqual(formProblems({ ...form, players: ['8', '4', '12'], easier: { title: 'X', change: '' } }),
+    ['Players: the smallest number, the best number and the most, in that order.', 'The easier version needs a name and what changes.'])
+  const drill = { title: 'Four corners', summary: '', session_phase: 'technical', format: 'small_group', players: [4, 8, 12], ages: [8, 14],
+    duration: [10, 15], intensity: 'medium', space: null, equipment: [{ item: 'cones', quantity: 4 }], setup: 'A square.', instructions: ['Pass.'],
+    coaching_points: [], tags: [{ id: 'passing_short', weight: 1 }], home_friendly: false, indoors: null,
+    variations: [{ kind: 'regression', title: 'Two corners', change: 'Across a line.' }, { kind: 'base', title: 'Four corners', change: '' }],
+    media: [{ kind: 'video', url: 'https://youtu.be/x' }] }
+  const back = formBody(formFromDrill(drill))
+  assert.deepEqual([back.easier, back.harder, back.video_url, back.coaching_points], [{ title: 'Two corners', change: 'Across a line.' }, null, 'https://youtu.be/x', []])
+})
+
+test('the drill editor and the team filter', async () => {
+  const { default: TeamDrillForm } = await loadJsx('src/TeamDrillForm.jsx')
+  const tags = [{ id: 'passing_short', label: 'Short passing', area: 'technical', active: true }]
+  const html = renderToStaticMarkup(React.createElement(TeamDrillForm, { teamId: 1, initialTags: tags, onSaved: () => {}, onCancel: () => {}, onMessage: () => {} }))
+  for (const text of ['Add a drill', 'Only your team&#x27;s coaches see this drill', 'Part of the session', 'Skills it trains', 'Short passing', 'Set-up', 'Steps',
+    '+ Add easier version', '+ Add harder version', 'Can be done at home', 'Video', 'Give the drill a name.']) assert.ok(html.includes(text), text)
+  const { EMPTY_FILTERS, matchesFilters } = await loadJsx('src/drillModel.js')
+  const base = { title: 'A', summary: '', tags: [], format: 'team', players: [1, 1, 1], ages: [5, 20], levels: [1, 5], duration: [1, 1], votes: { mine: 0 } }
+  assert.equal(matchesFilters({ ...base, team_id: null }, { ...EMPTY_FILTERS, mine: true }), false)
+  assert.equal(matchesFilters({ ...base, team_id: 3 }, { ...EMPTY_FILTERS, mine: true }), true)
+})

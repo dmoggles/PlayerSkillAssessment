@@ -19,6 +19,21 @@ Search by name or skill, or filter by area, skill, part of the session (warm-up,
 
 ![A drill with its variations and animated diagram](/landing/drill.jpg)
 
+## Your team's drills
+
+Press **Add a drill** to write up a drill you already run. Only your team's coaches see it, marked *Your team*, and the planner can choose it for sessions and players' plans like any library drill. **Only my team's drills** under Filters shows just these.
+
+- **What it needs:** a name, the part of the session, how many players, the age groups, the minutes, the set-up and the steps. Coaching points and equipment are optional.
+- **Skills it trains:** choose at least one it mainly trains (Main), plus any it helps a little (Partial). Warm-ups and cool-downs needn't train a skill.
+- **Easier and harder versions** are optional. Level groups and players' plans use them: the easier version for players rated 1–2, the harder for 4–5.
+- **No diagram:** your own drills don't have animated diagrams. Describe the set-up clearly, and add a YouTube or Vimeo link if you have a video of it.
+
+**Edit** changes it everywhere, including sessions and plans that use it. **Delete** takes it out of the library; sessions and plans that already use it keep it.
+
+### Sharing it with everyone
+
+**Submit to the shared library** offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share.
+
 ## Suggesting a video
 
 Know a good video for a drill? Press **Suggest a video** on the drill, paste a YouTube or Vimeo link, and say why it's a good fit. A site admin checks every suggestion before anyone else sees it, and you can follow yours in **Settings → Account**.
