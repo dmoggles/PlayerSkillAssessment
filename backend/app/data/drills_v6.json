@@ -3638,7 +3638,7 @@
       "media": [
         {
           "kind": "diagram",
-          "caption": "An easy jog around the area that slows to a walk, then into a circle with the coach",
+          "caption": "Players jog easily around the area, slow to a walk, then make a circle with the coach",
           "diagram": {
             "pitch": {
               "width": 20,
@@ -3678,32 +3678,40 @@
                 "type": "player",
                 "team": "A",
                 "at": [
-                  3,
-                  3
+                  15,
+                  2
                 ]
               },
               "P2": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  17,
-                  4
+                  16,
+                  3
                 ]
               },
               "P3": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  16,
-                  17
+                  8,
+                  19
                 ]
               },
               "P4": {
                 "type": "player",
                 "team": "A",
                 "at": [
-                  4,
-                  16
+                  1,
+                  12
+                ]
+              },
+              "P5": {
+                "type": "player",
+                "team": "A",
+                "at": [
+                  5,
+                  2
                 ]
               },
               "C": {
@@ -3718,14 +3726,14 @@
             },
             "steps": [
               {
-                "label": "Easy jog around the outside of the area",
+                "label": "Easy jog around the area",
                 "actions": [
                   {
                     "run": {
                       "who": "P1",
                       "to": [
-                        17,
-                        3
+                        11,
+                        2
                       ]
                     }
                   },
@@ -3733,8 +3741,8 @@
                     "run": {
                       "who": "P2",
                       "to": [
-                        17,
-                        17
+                        18,
+                        6
                       ]
                     }
                   },
@@ -3742,8 +3750,8 @@
                     "run": {
                       "who": "P3",
                       "to": [
-                        3,
-                        17
+                        13,
+                        18
                       ]
                     }
                   },
@@ -3752,7 +3760,16 @@
                       "who": "P4",
                       "to": [
                         3,
-                        3
+                        17
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P5",
+                      "to": [
+                        2,
+                        5
                       ]
                     }
                   }
@@ -3766,8 +3783,8 @@
                     "run": {
                       "who": "P1",
                       "to": [
-                        17,
-                        10
+                        9,
+                        3
                       ]
                     }
                   },
@@ -3775,8 +3792,8 @@
                     "run": {
                       "who": "P2",
                       "to": [
-                        10,
-                        17
+                        17,
+                        8
                       ]
                     }
                   },
@@ -3784,8 +3801,8 @@
                     "run": {
                       "who": "P3",
                       "to": [
-                        3,
-                        10
+                        14,
+                        16
                       ]
                     }
                   },
@@ -3793,8 +3810,17 @@
                     "run": {
                       "who": "P4",
                       "to": [
-                        10,
-                        3
+                        6,
+                        16
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P5",
+                      "to": [
+                        3,
+                        8
                       ]
                     }
                   }
@@ -3808,8 +3834,8 @@
                     "run": {
                       "who": "P1",
                       "to": [
-                        13,
-                        10
+                        10,
+                        7
                       ]
                     }
                   },
@@ -3817,8 +3843,8 @@
                     "run": {
                       "who": "P2",
                       "to": [
-                        10,
-                        13
+                        12.9,
+                        9.1
                       ]
                     }
                   },
@@ -3826,8 +3852,8 @@
                     "run": {
                       "who": "P3",
                       "to": [
-                        7,
-                        10
+                        11.8,
+                        12.4
                       ]
                     }
                   },
@@ -3835,8 +3861,17 @@
                     "run": {
                       "who": "P4",
                       "to": [
-                        10,
-                        7
+                        8.2,
+                        12.4
+                      ]
+                    }
+                  },
+                  {
+                    "run": {
+                      "who": "P5",
+                      "to": [
+                        7.1,
+                        9.1
                       ]
                     }
                   }
