@@ -345,6 +345,9 @@ class Drill(Base):
     indoors: Mapped[str | None] = mapped_column(Text)
     source_version: Mapped[str | None] = mapped_column(String(40))
     team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id", ondelete="CASCADE"), index=True)
+    # A team drill that is the team's version of a library drill: for that team it replaces the library drill in the
+    # library and the planners. Its content is its own; nothing is borrowed from the library drill.
+    shadows_drill_id: Mapped[int | None] = mapped_column(ForeignKey("drills.id", ondelete="SET NULL"))
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

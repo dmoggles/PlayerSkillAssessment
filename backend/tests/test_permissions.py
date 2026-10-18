@@ -118,6 +118,7 @@ ACCESS = {
     ("POST", "/teams/{team_id}/drills"): (MEMBER, "team_drill", None),
     ("PUT", "/teams/{team_id}/drills/{slug}"): (MEMBER, "team_drill", None),
     ("POST", "/teams/{team_id}/drills/{slug}/submit"): (MEMBER, {"confirm_own": True}, None),
+    ("POST", "/teams/{team_id}/drills/{slug}/unlink"): (MEMBER, None, None),
     ("DELETE", "/teams/{team_id}/drills/{slug}"): (MEMBER, None, None),
     ("GET", "/admin/drill-submissions"): (ADMIN, None, None),
     ("POST", "/admin/drill-submissions/{submission_id}/accept"): (ADMIN, {}, None),

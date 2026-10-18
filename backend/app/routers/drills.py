@@ -13,9 +13,19 @@ from .video_suggestions import approved_videos
 router = APIRouter(tags=["drills"])
 
 
-def visible_drills(db: DbSession, team_id: int | None = None):
-    """Published drills: the shared library, plus this team's own when a team is given (the caller checks membership)."""
-    return db.query(Drill).filter(Drill.status == "published", or_(Drill.team_id.is_(None), Drill.team_id == team_id) if team_id else Drill.team_id.is_(None))
+def shadowed_ids(db: DbSession, team_id: int):
+    """The library drills this team has its own version of (a query of ids)."""
+    return db.query(Drill.shadows_drill_id).filter(Drill.team_id == team_id, Drill.status == "published", Drill.shadows_drill_id.isnot(None))
+
+
+def visible_drills(db: DbSession, team_id: int | None = None, hide_shadowed: bool = True):
+    """Published drills: the shared library, plus this team's own when a team is given (the caller checks membership).
+    A library drill the team has its own version of is left out, unless hide_shadowed is off (for drills already
+    chosen in a saved plan)."""
+    if not team_id:
+        return db.query(Drill).filter(Drill.status == "published", Drill.team_id.is_(None))
+    query = db.query(Drill).filter(Drill.status == "published", or_(Drill.team_id.is_(None), Drill.team_id == team_id))
+    return query.filter(Drill.id.notin_(shadowed_ids(db, team_id))) if hide_shadowed else query
 
 
 def drill_for(db: DbSession, slug: str, user: User) -> Drill:
@@ -96,7 +106,21 @@ def drill_out(db: DbSession, drill: Drill, user: User | None) -> dict:
                        "diagram": m.diagram} for m in media],
             "suggested_videos": approved_videos(db, drill.id),
             "links": [{"slug": d.slug, "title": d.title, "relation": link.relation} for link, d in links] if user else [],
-            "team_id": drill.team_id, "submission": submission_out(db, drill) if user and drill.team_id else None}
+            "team_id": drill.team_id, "submission": submission_out(db, drill) if user and drill.team_id else None,
+            "shadows": shadows_out(db, drill), "team_versions": team_versions(db, drill, user) if user and not drill.team_id else []}
+
+
+def shadows_out(db: DbSession, drill: Drill) -> dict | None:
+    """The library drill a team drill is the team's version of."""
+    library = db.get(Drill, drill.shadows_drill_id) if drill.shadows_drill_id else None
+    return {"slug": library.slug, "title": library.title} if library and library.status == "published" else None
+
+
+def team_versions(db: DbSession, drill: Drill, user: User) -> list[dict]:
+    """The user's teams' own versions of a library drill."""
+    teams = db.query(Membership.team_id).filter_by(user_id=user.id)
+    return [{"team_id": d.team_id, "slug": d.slug, "title": d.title} for d in db.query(Drill).filter(
+        Drill.shadows_drill_id == drill.id, Drill.status == "published", Drill.team_id.in_(teams))]
 
 
 def submission_out(db: DbSession, drill: Drill) -> dict | None:
@@ -142,10 +166,11 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
 SUGGESTIONS_PER_SKILL = 3
 
 
-def _library(db: DbSession, age_group: int | None, user: User, team_id: int | None = None):
+def _library(db: DbSession, age_group: int | None, user: User, team_id: int | None = None, hide_shadowed: bool = True):
     """Published drills for an age group (all of them when it is not known), with their tags, ladder tags,
-    variations, votes and tag labels. With a team, its own drills are included."""
-    drills = visible_drills(db, team_id).all()
+    variations, votes and tag labels. With a team, its own drills are included, in place of the library drills
+    they are versions of."""
+    drills = visible_drills(db, team_id, hide_shadowed).all()
     if age_group:
         drills = [d for d in drills if d.age_min <= age_group <= d.age_max]
     ids = [d.id for d in drills]

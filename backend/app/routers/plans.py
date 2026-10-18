@@ -75,7 +75,8 @@ def planner_input(db: DbSession, team_id: int, player_id: int, period_id: int, s
     age_group, period, skill_tags, levels = _player_context(db, team_id, player_id, period_id, user)
     labels = {s["id"]: s["label"] for section in document(db, period.matrix_version_id)["sections"] for s in section["skills"]}
     drills = _drill_data(*_library(db, age_group, user, team_id))
-    catalog = {d["slug"]: d for d in _drill_data(*_library(db, None, user, team_id))}  # any drill a coach may choose
+    # Any drill a coach may choose, and the ones already chosen, even a library drill the team now has its own version of.
+    catalog = {d["slug"]: d for d in _drill_data(*_library(db, None, user, team_id, hide_shadowed=False))}
     cycle = current_cycle(db, player_id, period_id)
     saved = db.query(PlayerPlan).filter_by(cycle_id=cycle.id).first() if cycle else None
     return {

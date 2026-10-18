@@ -156,3 +156,54 @@ def test_an_admin_accepts_a_drill_for_the_library_and_a_data_file_publishes_it(m
     mine = owner.get(f"/drills/{first}").json()["submission"]
     assert mine["status"] == "published" and mine["library"] == {"slug": "four-corner-passing", "title": "Four-corner passing"}
     assert "four-corner-passing" in {d["slug"] for d in admin.get("/drills").json()}
+    # The team's drill is now its version of the library drill, so the team doesn't see both.
+    assert owner.get(f"/drills/{first}").json()["shadows"] == {"slug": "four-corner-passing", "title": "Four-corner passing"}
+    team_list = {d["slug"] for d in owner.get("/drills", params={"team_id": team_id}).json()}
+    assert first in team_list and "four-corner-passing" not in team_list
+
+
+def test_a_teams_own_version_replaces_the_library_drill_for_that_team_only(monkeypatch):
+    from app import sessions
+    from app.routers.sessions import _drills_for_planner
+    from app.models import User
+    clean_database()
+    with SessionLocal() as db:
+        for name in sorted(p.name for p in DATA_DIR.glob("drills_v*.json")):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("own-version@example.com", monkeypatch)
+    other, other_csrf = signed_in("no-version@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = team(owner, csrf, "Versioners")
+    other_team = team(other, other_csrf, "Library users")
+    library = "rondo-4v1"
+    ours = {**DRILL, "title": "Our 4v1 rondo", "session_phase": "opposed", "shadows": library}
+
+    assert owner.post(f"/teams/{team_id}/drills", json={**ours, "shadows": "no-such-drill"}, headers=headers).status_code == 422
+    made = owner.post(f"/teams/{team_id}/drills", json=ours, headers=headers)
+    assert made.status_code == 201, made.text
+    mine = made.json()
+    assert mine["shadows"]["slug"] == library and mine["media"] == [m for m in mine["media"] if m["kind"] == "video"], "nothing borrowed"
+    again = owner.post(f"/teams/{team_id}/drills", json={**ours, "title": "Another"}, headers=headers)
+    assert again.status_code == 409 and "already has its own version" in again.text
+    assert owner.post(f"/teams/{team_id}/drills", json={**ours, "shadows": mine["slug"]}, headers=headers).status_code == 422, "only library drills"
+
+    # For this team, the library drill leaves the library and the planner; the team's version is there instead.
+    listed = {d["slug"] for d in owner.get("/drills", params={"team_id": team_id}).json()}
+    assert mine["slug"] in listed and library not in listed
+    assert library in {d["slug"] for d in other.get("/drills", params={"team_id": other_team}).json()}, "other teams still see it"
+    page = owner.get(f"/drills/{library}").json()
+    assert page["team_versions"] == [{"team_id": team_id, "slug": mine["slug"], "title": "Our 4v1 rondo"}]
+    assert other.get(f"/drills/{library}").json()["team_versions"] == []
+    with SessionLocal() as db:
+        user = db.query(User).filter_by(email="own-version@example.com").first()
+        slugs = {d["slug"] for d in _drills_for_planner(db, None, user, team_id)}
+    assert mine["slug"] in slugs and library not in slugs
+
+    # Unlinking shows both again; deleting the team's version brings the library drill back too.
+    unlinked = owner.post(f"/teams/{team_id}/drills/{mine['slug']}/unlink", headers=headers).json()
+    assert unlinked["shadows"] is None
+    assert library in {d["slug"] for d in owner.get("/drills", params={"team_id": team_id}).json()}
+    second = owner.post(f"/teams/{team_id}/drills", json={**ours, "title": "Our rondo, take two"}, headers=headers).json()
+    assert library not in {d["slug"] for d in owner.get("/drills", params={"team_id": team_id}).json()}
+    owner.delete(f"/teams/{team_id}/drills/{second['slug']}", headers=headers)
+    assert library in {d["slug"] for d in owner.get("/drills", params={"team_id": team_id}).json()}

@@ -49,6 +49,8 @@ class TeamDrillIn(BaseModel):
     easier: Version | None = None
     harder: Version | None = None
     video_url: str | None = Field(default=None, max_length=300)
+    # On a new drill: the library drill this is the team's version of. It replaces that drill for the team.
+    shadows: str | None = Field(default=None, max_length=80)
 
 
 def levels_for(easier: bool, harder: bool) -> dict[str, list[int]]:
@@ -110,6 +112,17 @@ def _slug_for(db: DbSession, team_id: int, title: str) -> str:
     return slug
 
 
+def _library_to_shadow(db: DbSession, team_id: int, slug: str) -> Drill:
+    """A library drill the team can make its own version of: published, and not already versioned by the team."""
+    library = db.query(Drill).filter_by(slug=slug, status="published", team_id=None).first()
+    if not library:
+        raise HTTPException(422, "That isn't a drill in the shared library")
+    existing = db.query(Drill).filter_by(team_id=team_id, shadows_drill_id=library.id, status="published").first()
+    if existing:
+        raise HTTPException(409, f"Your team already has its own version of {library.title}: {existing.title}")
+    return library
+
+
 def _team_drill(db: DbSession, team_id: int, slug: str) -> Drill:
     drill = db.query(Drill).filter_by(slug=slug, team_id=team_id, status="published").first()
     if not drill:
@@ -140,12 +153,13 @@ def team_drills(team_id: int, db: DbSession = Depends(get_db), user: User = Depe
 @router.post("/teams/{team_id}/drills", status_code=201)
 def create_team_drill(team_id: int, body: TeamDrillIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
+    library = _library_to_shadow(db, team_id, body.shadows) if body.shadows else None
     slug = _slug_for(db, team_id, body.title)
     row = _checked_row(db, body, slug)
-    drill = Drill(slug=slug, team_id=team_id, created_by=user.id, created_at=utcnow())
+    drill = Drill(slug=slug, team_id=team_id, shadows_drill_id=library.id if library else None, created_by=user.id, created_at=utcnow())
     db.add(drill)
     _save(db, drill, row, user)
-    record(db, team_id, user, "team_drill_added", title=drill.title)
+    record(db, team_id, user, "team_drill_added", title=drill.title, **({"version_of": library.title} if library else {}))
     db.commit()
     return drill_out(db, drill, user)
 
@@ -171,6 +185,18 @@ def delete_team_drill(team_id: int, slug: str, db: DbSession = Depends(get_db), 
     record(db, team_id, user, "team_drill_deleted", title=drill.title)
     db.commit()
     return {"message": "Drill deleted."}
+
+
+@router.post("/teams/{team_id}/drills/{slug}/unlink")
+def unlink_team_drill(team_id: int, slug: str, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Stop the drill being the team's version of a library drill: both show, as separate drills."""
+    require_member(team_id, db, user)
+    drill = _team_drill(db, team_id, slug)
+    if not drill.shadows_drill_id:
+        raise HTTPException(409, "This drill isn't linked to a library drill")
+    drill.shadows_drill_id, drill.updated_by, drill.updated_at = None, user.id, utcnow()
+    db.commit()
+    return drill_out(db, drill, user)
 
 
 class SubmitIn(BaseModel):

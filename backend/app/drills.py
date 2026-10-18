@@ -326,8 +326,14 @@ def load_file(db: DbSession, path: Path) -> dict:
         drill.status = "retired"
         counts["retired"] += 1
     # A team's drill accepted for the library is published once a data file has its reserved slug.
+    # The team's drill becomes its version of the library drill, so the team doesn't see both.
     for submission in db.query(DrillSubmission).filter(DrillSubmission.status == "accepted", DrillSubmission.library_slug.in_(slugs)):
-        submission.status, submission.library_drill_id = "published", by_slug[submission.library_slug][0].id
+        library = by_slug[submission.library_slug][0]
+        submission.status, submission.library_drill_id = "published", library.id
+        own = db.get(Drill, submission.drill_id)
+        taken = db.query(Drill.id).filter_by(team_id=submission.team_id, shadows_drill_id=library.id, status="published").first()
+        if own and own.status == "published" and not own.shadows_drill_id and not taken:
+            own.shadows_drill_id = library.id
     db.commit()
     return counts
 
