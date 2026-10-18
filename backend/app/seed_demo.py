@@ -2,8 +2,9 @@
 
 The account owns the team. It gets 16 synthetic players (U12, two goalkeepers, one who has left and one who has just
 joined), three periods of coach and self assessments, confirmed priorities and development plans (some players on
-their second cycle, with a check-in), a few liked drills, two session templates, and training sessions (some planned
-from the templates): past ones with attendance and notes, and upcoming ones, one with a player already marked as not coming.
+their second cycle, with a check-in), a few liked drills, two of the team's own drills (one submitted to the shared
+library, waiting for review), two session templates, and training sessions (some planned from the templates): past ones
+with attendance and notes, and upcoming ones, one with a player already marked as not coming.
 
 Rerunning replaces the team (and everything in it) with the same data again. The account itself is left alone, so
 create it first with `python -m app.admin create-user EMAIL`.
@@ -20,6 +21,7 @@ from .models import (CycleCheckin, DevelopmentCycle, Drill, DrillVote, Membershi
 from .routers.plans import save_generated
 from .routers.sessions import (AttendanceIn, AttendanceRow, BlockPatch, SessionIn, SessionPatch, change_block, create_session,
                                set_attendance, suggested_focus, update_session)
+from .routers.team_drills import SubmitIn, TeamDrillIn, create_team_drill, submit_team_drill
 from .routers.teams import TeamDelete, delete_team
 from .seed_dev import (PRIORITY_NOTES, RATING_NOTES, add_assessment, clamp, coach_scores_by_period, require_dev_site, self_scores,
                        weakest)
@@ -170,6 +172,32 @@ def add_sessions(db, user: User, team: Team, period: Period, players: list[Playe
             set_attendance(team.id, session["id"], AttendanceIn(players=[AttendanceRow(player_id=squad[0], expected=False)]), db, user)
 
 
+TEAM_DRILLS = (
+    {"title": "Four-corner pass and follow", "summary": "Pass round a square and follow your pass, so everyone keeps moving.",
+     "session_phase": "technical", "format": "small_group", "players": [4, 8, 12], "ages": [8, 14], "duration": [10, 15],
+     "intensity": "medium", "space": [15, 15], "equipment": [{"item": "cones", "quantity": 4}, {"item": "balls", "quantity": 2}],
+     "setup": "A 15 x 15 m square with a cone at each corner. Two players at each corner; the first two corners have a ball each.",
+     "instructions": ["Pass to the next corner, then jog after your pass to join that line.", "Both balls go round at once, so look before you pass.",
+                      "After two minutes, change direction."],
+     "coaching_points": ["Receive across your body, on the back foot.", "Pass to the receiver's far foot.", "Call the receiver's name before you pass."],
+     "tags": {"passing_short": 1.0, "first_touch": 0.5},
+     "easier": {"title": "One ball", "change": "One ball only, and two touches allowed, so there's time to look up."},
+     "harder": {"title": "One touch, two balls", "change": "One touch at every corner, with both balls going."}},
+    {"title": "Shadow jog and stretch", "summary": "Pairs jog together, one copying the other, then stretch.",
+     "session_phase": "cool_down", "format": "team", "players": [4, 12, 20], "ages": [7, 16], "duration": [5, 8], "intensity": "low",
+     "setup": "Any open space. Players in pairs.", "instructions": ["One player jogs anywhere slowly; the partner copies every move.",
+                                                                 "Swap after a minute.", "Finish with the coach's stretches."],
+     "tags": {}},
+)
+
+
+def add_team_drills(db, user: User, team: Team):
+    """The team's own drills; the first is offered to the shared library, waiting for an admin."""
+    made = [create_team_drill(team.id, TeamDrillIn(**drill), db, user) for drill in TEAM_DRILLS]
+    submit_team_drill(team.id, made[0]["slug"], SubmitIn(note="We run this every week with our U12s; it works well as a warm-up too.",
+                                                         confirm_own=True), db, user)
+
+
 def like_drills(db, user: User):
     for drill in db.query(Drill).filter(Drill.slug.in_(["rondo-4v1", "races-to-the-ball-on-the-coachs-call", "three-v-three-games-in-four-minute-blocks"])).all():
         if not db.get(DrillVote, (user.id, drill.id)):
@@ -198,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
         team, period, players = build_squad(db, user, name, today)
         like_drills(db, user)
         db.commit()
+        add_team_drills(db, user, team)
         add_sessions(db, user, team, period, players, today)
     print(f"{email} now owns {name!r}: {len(ROSTER)} players, three periods, plans and training sessions.")
     return 0
