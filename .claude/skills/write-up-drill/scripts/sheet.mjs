@@ -39,6 +39,18 @@ function frame(diagram, timeline, index) {
   return svg + '</svg>'
 }
 
+// The diagram a version shows: its own, else the nearest towards the base (as variationDiagram in the app does).
+function shownDiagram(d, index, first) {
+  while (index >= 0 && index < d.variations.length) {
+    const v = d.variations[index]
+    if (v.diagram !== undefined) return v.diagram
+    if (v.kind === 'escalator') index -= 1
+    else if (v.kind === 'regression') index += 1
+    else break
+  }
+  return first
+}
+
 let html = '<!doctype html><meta charset="utf-8"><body style="font:12px sans-serif;background:#fff;margin:12px">'
 for (const d of data.drills) {
   if (only.length && !only.includes(d.slug)) continue
@@ -46,8 +58,7 @@ for (const d of data.drills) {
   const diagrams = d.media.map((m, i) => [m, i]).filter(([m]) => m.kind === 'diagram')
   if (!diagrams.length) html += '<p style="color:#a33">No diagram.</p>'
   for (const [m, i] of diagrams) {
-    // A version without its own diagram shows the nearest one towards the base (as the app does).
-    const users = d.variations.filter(v => v.diagram === i || (v.diagram === undefined && v.kind === 'base' && i === diagrams[0][1])).map(v => `${KIND[v.kind]}: ${v.title}`)
+    const users = d.variations.filter((v, j) => shownDiagram(d, j, diagrams[0][1]) === i).map(v => `${KIND[v.kind]}: ${v.title}`)
     const timeline = buildTimeline(m.diagram)
     html += `<h3 style="margin:10px 0 4px">${esc(m.caption)} <small style="color:#666">(used by ${esc(users.join('; ') || 'versions inheriting it')})</small></h3><div style="display:flex;flex-wrap:wrap;gap:8px">`
     timeline.steps.forEach((s, j) => { html += `<div style="width:220px">${frame(m.diagram, timeline, j)}<div>${j + 1}. ${esc(s.label)}</div></div>` })

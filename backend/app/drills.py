@@ -18,6 +18,7 @@ GENERAL_PHASES = {"warm_up", "cool_down"}  # may have no skill tags
 INTENSITIES = {"low", "medium", "high"}
 EQUIPMENT = {"cones", "balls", "bibs", "goals", "mini_goals", "mannequins", "hurdles", "ladders", "poles", "other"}
 KIND_ORDER = {"regression": 0, "base": 1, "escalator": 2}
+RELATIONS = {"harder", "easier", "pairs_with"}  # ck_drill_links_relation
 VIDEO_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "vimeo.com", "www.vimeo.com", "player.vimeo.com"}
 OBJECT_TYPES = {"player", "cone", "ball", "mannequin", "wall"}
 ACTIONS = {"pass", "run", "dribble", "shot", "move"}
@@ -163,6 +164,9 @@ def drill_problems(raw: dict, active_tags: set[str]) -> list[str]:
     ladder = raw.get("ladder_tags")
     if ladder is not None and not (isinstance(ladder, list) and set(ladder) <= set(tags)):
         p.append("ladder_tags must be a list of this drill's tags")
+    for link in raw.get("links", []):
+        if link.get("relation") not in RELATIONS:
+            p.append(f"link to {link.get('to')}: relation must be one of {sorted(RELATIONS)}")
     variations = raw.get("variations") or []
     kinds = [v.get("kind") for v in variations]
     if kinds.count("base") != 1:
