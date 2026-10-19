@@ -2,7 +2,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session as DbSession
-from .. import invites
+from .. import invites, notify
 from ..account_deletion import erase_account, teams_needing_another_owner
 from ..audit import record
 from ..auth import COOKIE_NAME, consume_auth_token, current_user, digest, fresh_token, get_session, hasher, issue_auth_token, send_email, verify_password
@@ -97,6 +97,8 @@ def register(body: Registration, request: Request, db: DbSession = Depends(get_d
                 db.add(Membership(team_id=team_id, user_id=user.id, role="coach"))
                 record(db, team_id, user, "invite_accepted")
         db.commit()
+        if invite.purpose == "signup":
+            notify.signed_up(db, user)
         return {"message": "Account created.", "verified": True}
     token = issue_auth_token(db, email, "verify", user.id)
     try:
@@ -131,8 +133,11 @@ def verify(body: TokenOnly, db: DbSession = Depends(get_db)):
     user = db.get(User, token.user_id)
     if not user:
         raise HTTPException(400, "Invalid link")
+    first = user.verified_at is None
     user.verified_at = utcnow()
     db.commit()
+    if first and not notify.joined_by_team_invite(db, user):
+        notify.signed_up(db, user)
     return {"message": "Account verified"}
 
 

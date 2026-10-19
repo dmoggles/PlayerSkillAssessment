@@ -1,11 +1,10 @@
 """Requests for access from the public site. Anyone may ask; site admins invite the club's coach or decline."""
-import logging
 from datetime import datetime
 from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session as DbSession
-from ..auth import send_email
+from .. import notify
 from ..config import settings
 from ..database import get_db
 from ..models import AccessRequest, User, utcnow
@@ -13,7 +12,6 @@ from .accounts import throttle
 from .admin import issue_site_invite, require_admin
 
 router = APIRouter(tags=["access requests"])
-log = logging.getLogger(__name__)
 
 THANKS = "Thanks: we've got your request and will reply by email."
 
@@ -41,17 +39,6 @@ class AccessRequestOut(BaseModel):
     handled_at: datetime | None
 
 
-def notify_admins(db: DbSession, request: AccessRequest):
-    """Tell site admins there's a request waiting; the request is saved either way."""
-    for admin in db.query(User).filter_by(is_admin=True):
-        try:
-            send_email(admin.email, f"Access request from {request.club}",
-                       f"{request.name} ({request.email}) asked for access to {settings.app_name} for {request.club}.\n\n"
-                       f"Review it in Settings, under Site admin:\n{settings.public_base_url}/app/settings")
-        except Exception:
-            log.exception("Couldn't email %s about an access request", admin.email)
-
-
 @router.post("/access-requests", status_code=201)
 def request_access(body: AccessRequestIn, request: Request, db: DbSession = Depends(get_db)):
     """Always gives the same answer, so the form doesn't reveal who already has an account or has asked before."""
@@ -69,7 +56,7 @@ def request_access(body: AccessRequestIn, request: Request, db: DbSession = Depe
                         message=body.message.strip(), status="pending", created_at=utcnow())
     db.add(row)
     db.commit()
-    notify_admins(db, row)
+    notify.access_requested(db, row)
     return {"message": THANKS}
 
 
