@@ -98,7 +98,7 @@ test('the full squad game shows two balanced teams, which the coach can change',
   const { MatchTeams } = await loadJsx('src/areas/SessionsArea.jsx')
   const match = { by: 'planner', teams: [team, { ...team, name: 'Team 2', players: team.players.map(p => ({ ...p, id: p.id + 10 })) }] }
   const html = renderToStaticMarkup(React.createElement(MatchTeams, { match, editing: false }))
-  assert.match(html, /Suggested teams, balanced on positions, age group and level/)
+  assert.match(html, />Suggested teams</)
   assert.match(html, /Team 2/)
   assert.match(html, /Ana<span class="muted"> · Goalkeeper/)
   assert.match(html, /Change teams/)

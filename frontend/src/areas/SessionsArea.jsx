@@ -332,7 +332,7 @@ export function MatchTeams({ match, editing, onEdit, onSave, onSuggest, onCancel
   if (!match) return <p className="muted hint">Two teams are suggested here once at least two players are expected.</p>
   const suggest = () => { if (match.by !== 'coach' || window.confirm('Balance the teams again? Your changes to them are replaced.')) onSuggest() }
   return <div className="match-teams">
-    <p className="session-block-phase">{match.by === 'coach' ? 'Your teams' : 'Suggested teams, balanced on positions, age group and level'}</p>
+    <p className="session-block-phase">{match.by === 'coach' ? 'Your teams' : 'Suggested teams'}</p>
     {editing
       ? <TeamsEditor teams={match.teams} onSave={onSave} onCancel={onCancel} />
       : <div className="session-groups">{match.teams.map(t => <div key={t.name} className="session-group">
