@@ -127,6 +127,7 @@ def test_coaches_plan_list_and_delete_team_sessions(monkeypatch):
 
     listed = owner.get(f"/teams/{team_id}/sessions").json()
     assert [s["date"] for s in listed] == ["2026-10-22", "2026-10-20"]
+    assert owner.patch(f"/teams/{team_id}/sessions/{single['id']}", json={"title": "   "}, headers=headers).status_code == 422
     patched = owner.patch(f"/teams/{team_id}/sessions/{single['id']}", json={"title": "Tuesday passing", "start_time": ""}, headers=headers).json()
     assert (patched["title"], patched["start_time"]) == ("Tuesday passing", None)
 
@@ -419,6 +420,8 @@ def test_a_full_squad_game_suggests_two_teams(monkeypatch):
 
     session = owner.post(f"/teams/{team_id}/sessions", headers=headers, json={"period_id": period_id, "date": "2026-10-21", "template_id": template["id"],
                                                                              "focus_tags": ["passing_short"], "player_ids": ids}).json()
+    assert session["title"] == "Training match"  # the game is 30 of 45 minutes
+    assert plain["title"] != "Training match"
     match = session["match_teams"]
     assert match["by"] == "planner" and [t["name"] for t in match["teams"]] == ["Team 1", "Team 2"]
     for team in match["teams"]:
@@ -462,3 +465,11 @@ def test_a_full_squad_game_suggests_two_teams(monkeypatch):
     # Removing the full squad game removes the teams.
     block = next(b for b in session["blocks"] if b["phase"] == "full_squad_game")
     assert owner.delete(f"{url}/blocks/{block['id']}", headers=headers).json()["match_teams"] is None
+
+
+def test_a_session_that_is_mostly_a_match_is_called_a_training_match():
+    from app.routers.sessions import default_title
+    game = lambda minutes: [{"phase": "warm_up", "minutes": 10}, {"phase": "full_squad_game", "minutes": minutes}]
+    assert default_title(game(31), 60, ["Short passing"]) == "Training match"
+    assert default_title(game(30), 60, ["Short passing", "1v1 attacking"]) == "Short passing and 1v1 attacking"  # half isn't more than half
+    assert default_title(game(20) + [{"phase": "full_squad_game", "minutes": 15}], 60, ["Short passing"]) == "Training match"

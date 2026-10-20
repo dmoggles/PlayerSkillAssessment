@@ -45,6 +45,7 @@ Choose a template under **Plan** when you plan a session. Everything else works 
 - **Edit** a block to change its minutes, choose another drill (suggestions for that part of the session first, or any drill), change a group's version, or replace the drill with your own activity.
 - **+ Add a block** for your own activity in any part of the session.
 - **Change groups** to move players between level groups. Each group's version restarts at its level.
+- **Rename** to change the session's name. It's named after its focus to start with, or *Training match* when the full squad game is more than half the session.
 - **Re-plan** plans the session again. Blocks you changed or added are kept, marked *Your choice*.
 
 Every coach in the team can see and change the team's sessions.

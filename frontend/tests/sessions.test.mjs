@@ -107,3 +107,10 @@ test('the full squad game shows two balanced teams, which the coach can change',
   assert.match(editing, /Team 1: 4 · Team 2: 4. Changing who.*s expected balances the teams again/)
   assert.match(renderToStaticMarkup(React.createElement(MatchTeams, { match: null })), /once at least two players are expected/)
 })
+
+test('a coach can rename a session', async () => {
+  const { SessionName } = await loadJsx('src/areas/SessionsArea.jsx')
+  const html = renderToStaticMarkup(React.createElement(SessionName, { title: 'Training match' }))
+  assert.match(html, /Session name<input required="" maxLength="120" value="Training match"/)
+  assert.match(html, /Save name/)
+})

@@ -139,7 +139,7 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
 function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
-  const [editing, setEditing] = useState(null)  // a block id, 'groups', 'teams' or 'add'
+  const [editing, setEditing] = useState(null)  // a block id, 'title', 'groups', 'teams' or 'add'
   const [drills, setDrills] = useState({})  // each block's drill in full, by slug, for the printed report
   useEffect(() => {
     let live = true
@@ -173,10 +173,13 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
   return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes${session.template ? ` (${session.template.name})` : ''} · ${session.expected} players expected`}>
     <div className="session-actions no-print">
       <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
+      <button className="secondary-btn" type="button" onClick={() => setEditing('title')}>Rename</button>
       <button className="secondary-btn" type="button" onClick={replan}>Re-plan</button>
       <button className="secondary-btn" type="button" onClick={() => window.print()}>Print</button>
       <button type="button" className="danger-btn" onClick={remove}>Delete</button>
     </div>
+    {editing === 'title' && <SessionName title={session.title} onCancel={() => setEditing(null)}
+      onSave={title => change(() => updateSession(teamId, session.id, { title }), () => { setEditing(null); onMessage('Session renamed.') })} />}
     <p className="session-focus-pills">{session.focus.map(f => <span key={f.tag_id} className="status-pill info-pill">{f.label}</span>)}
       {total !== session.length && <span className="status-pill warn-pill">{total} of {session.length} minutes planned</span>}</p>
 
@@ -218,6 +221,15 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
 }
 
 // A note on one block, for afterwards: how it went.
+// The session's name: planned as its focus, or "Training match" when the full squad game is most of it.
+export function SessionName({ title, onSave, onCancel }) {
+  const [name, setName] = useState(title)
+  return <form className="block-editor no-print" onSubmit={event => { event.preventDefault(); if (name.trim()) onSave(name.trim()) }}>
+    <label className="field">Session name<input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label>
+    <div className="inline-row"><button type="submit" className="primary-btn" disabled={!name.trim()}>Save name</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>
+}
+
 function BlockNote({ note, onSave }) {
   const [open, setOpen] = useState(false)
   const [text, setText] = useState(note)

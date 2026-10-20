@@ -274,6 +274,14 @@ def suggested_focus(team_id: int, period_id: int, db: DbSession = Depends(get_db
             for t in (insights["period"] or {}).get("priority_tags", [])[:5]]
 
 
+def default_title(blocks: list[dict], length: int, focus_labels: list[str]) -> str:
+    """"Training match" when the full squad game is more than half the session; otherwise the focus, as "Passing and
+    1v1 attacking"."""
+    if sum(b["minutes"] for b in blocks if b["phase"] == "full_squad_game") * 2 > length:
+        return "Training match"
+    return " and ".join(focus_labels).capitalize()
+
+
 @router.post("/teams/{team_id}/sessions", status_code=201)
 def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     """Plan a session for the expected players and save it."""
@@ -305,7 +313,7 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
     result = plan_session(data)
 
     now = utcnow()
-    title = body.title.strip() or " and ".join(labels[t] for t in body.focus_tags).capitalize()
+    title = body.title.strip() or default_title(result["blocks"], length, [labels[t] for t in body.focus_tags])
     session = TrainingSession(team_id=team_id, period_id=period.id, date=body.date, start_time=body.start_time, length_minutes=length,
                               template_id=template.id if template else None, phase_minutes=minutes,
                               title=title[:120], focus_tags=body.focus_tags, versions=body.versions,
@@ -347,6 +355,8 @@ def update_session(team_id: int, session_id: int, body: SessionPatch, db: DbSess
     changes = body.model_dump(exclude_unset=True)
     if "date" in changes and changes["date"] is None:
         raise HTTPException(422, "A session needs a date")
+    if "title" in changes and not (changes["title"] or "").strip():
+        raise HTTPException(422, "A session needs a name")
     for key, value in changes.items():
         if key == "start_time":
             value = value or None
