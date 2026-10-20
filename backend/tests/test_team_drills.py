@@ -114,7 +114,7 @@ def test_submitting_a_drill_to_the_library(monkeypatch):
     assert owner.post(f"/teams/{team_id}/drills/{slug}/submit", json={"confirm_own": True}, headers=headers).status_code == 409
 
 
-def test_an_admin_accepts_a_drill_for_the_library_and_a_data_file_publishes_it(monkeypatch):
+def test_an_admin_accepts_a_drill_for_the_library_and_a_data_file_publishes_it(monkeypatch, admin_emails):
     from app.drills import drill_problems
     from app.models import SkillTag, User
     clean_database()
@@ -129,6 +129,9 @@ def test_an_admin_accepts_a_drill_for_the_library_and_a_data_file_publishes_it(m
     second = owner.post(f"/teams/{team_id}/drills", json={**DRILL, "title": "Gate dribbling"}, headers=headers).json()["slug"]
     for slug in (first, second):
         owner.post(f"/teams/{team_id}/drills/{slug}/submit", json={"confirm_own": True, "note": "Try it"}, headers=headers)
+    assert [(to, subject) for to, subject, _ in admin_emails[-2:]] == [("drill-admin@example.com", "Drill to review: Four-corner passing"),
+                                                                       ("drill-admin@example.com", "Drill to review: Gate dribbling")]
+    assert admin_emails[-1][2].startswith("offer-drill@example.com from Offering submitted their drill Gate dribbling") and "Try it" in admin_emails[-1][2]
 
     assert owner.get("/admin/drill-submissions").status_code == 403
     queue = admin.get("/admin/drill-submissions").json()

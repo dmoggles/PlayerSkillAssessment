@@ -26,7 +26,7 @@ def library():
         load_file(db, DATA_DIR / "drills_v1.json")
 
 
-def test_coaches_suggest_videos_for_review(monkeypatch, library):
+def test_coaches_suggest_videos_for_review(monkeypatch, library, admin_emails):
     looked_up = []
     def lookup(link):
         looked_up.append(link.url)
@@ -42,6 +42,7 @@ def test_coaches_suggest_videos_for_review(monkeypatch, library):
 
     made = coach.post(SUGGEST, json={"url": "https://youtu.be/abcdefghijk?t=20", "variation_id": variation["id"], "note": "  Shows the rotation well "}, headers=headers)
     assert made.status_code == 201, made.text
+    assert admin_emails == []  # no site admins here
     assert made.json() | {"id": 0, "created_at": None} == {
         "id": 0, "drill_slug": "rondo-4v1", "drill_title": "4v1 rondo", "variation_title": variation["title"],
         "url": "https://www.youtube.com/watch?v=abcdefghijk", "title": "4v1 rondo for beginners", "channel": "A coaching channel",
@@ -83,7 +84,7 @@ def test_coaches_suggest_videos_for_review(monkeypatch, library):
         assert len(rows) == 10 and all(r.suggested_by is None for r in rows)
 
 
-def test_admins_approve_or_turn_down_suggestions(monkeypatch, library):
+def test_admins_approve_or_turn_down_suggestions(monkeypatch, library, admin_emails):
     from app.models import Drill, User
     from app.routers.drills import drill_out
     monkeypatch.setattr(video_links, "lookup", lambda link: video_links.VideoDetails(f"Video {link.video_id}", "Channel", 95))
@@ -96,6 +97,10 @@ def test_admins_approve_or_turn_down_suggestions(monkeypatch, library):
     variations = coach.get("/drills/rondo-4v1").json()["variations"]
     first = coach.post(SUGGEST, json={"url": "https://youtu.be/aaaaaaaaaaa", "note": "Clear setup"}, headers=headers).json()
     second = coach.post(SUGGEST, json={"url": "https://youtu.be/bbbbbbbbbbb", "variation_id": variations[0]["id"]}, headers=headers).json()
+    to, subject, text = admin_emails[-2]
+    assert (to, subject) == ("video-admin@example.com", "Video to review for 4v1 rondo")
+    assert text.startswith("video-suggester@example.com suggested a video for 4v1 rondo: Video aaaaaaaaaaa")
+    assert "https://www.youtube.com/watch?v=aaaaaaaaaaa" in text and "Clear setup" in text and "/app/settings" in text
 
     queue = admin.get("/admin/video-suggestions").json()
     assert [q["id"] for q in queue] == [first["id"], second["id"]]  # oldest first

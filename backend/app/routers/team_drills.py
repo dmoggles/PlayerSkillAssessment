@@ -6,6 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
+from .. import notify
 from ..audit import record
 from ..auth import current_user, require_member
 from ..database import get_db
@@ -214,9 +215,11 @@ def submit_team_drill(team_id: int, slug: str, body: SubmitIn, db: DbSession = D
         raise HTTPException(422, "Confirm the drill is yours to share")
     if db.query(DrillSubmission).filter(DrillSubmission.drill_id == drill.id, DrillSubmission.status.in_(("pending", "accepted"))).first():
         raise HTTPException(409, "This drill has already been submitted")
-    db.add(DrillSubmission(drill_id=drill.id, team_id=team_id, submitted_by=user.id, note=body.note.strip(), created_at=utcnow()))
+    submission = DrillSubmission(drill_id=drill.id, team_id=team_id, submitted_by=user.id, note=body.note.strip(), created_at=utcnow())
+    db.add(submission)
     record(db, team_id, user, "team_drill_submitted", title=drill.title)
     db.commit()
+    notify.drill_submitted(db, submission, drill, db.get(Team, team_id), user)
     return drill_out(db, drill, user)
 
 

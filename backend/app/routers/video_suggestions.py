@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session as DbSession
-from .. import video_links
+from .. import notify, video_links
 from ..auth import current_user
 from ..database import get_db
 from ..models import Drill, DrillMedia, DrillVariation, DrillVideoSuggestion, User, utcnow
@@ -84,6 +84,7 @@ def suggest_video(slug: str, body: SuggestionIn, db: DbSession = Depends(get_db)
         suggested_by=user.id, status="pending", created_at=now, updated_at=now)
     db.add(suggestion)
     db.commit()
+    notify.video_suggested(db, suggestion, drill, user)
     return mine_out(suggestion, drill, variation)
 
 

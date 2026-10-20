@@ -40,3 +40,17 @@ def signed_up(db: DbSession, user: User):
     who = f"{request.name} ({user.email}) from {request.club}" if request else user.email
     notify_admins(db, f"New {settings.app_name} account: {user.email}",
                   f"{who} has created their {settings.app_name} account. They can now set up their team.")
+
+
+def video_suggested(db: DbSession, suggestion, drill, user: User):
+    lines = [f"{user.email} suggested a video for {drill.title}: {suggestion.title or suggestion.url}", suggestion.url]
+    if suggestion.note:
+        lines.append(f"Their note:\n{suggestion.note}")
+    notify_admins(db, f"Video to review for {drill.title}", "\n\n".join(lines))
+
+
+def drill_submitted(db: DbSession, submission, drill, team, user: User):
+    lines = [f"{user.email} from {team.name} submitted their drill {drill.title} to the shared library."]
+    if submission.note:
+        lines.append(f"Their note:\n{submission.note}")
+    notify_admins(db, f"Drill to review: {drill.title}", "\n\n".join(lines))
