@@ -451,6 +451,9 @@ class TrainingSession(Base):
     # Null minutes: the default breakdown for the session's length.
     template_id: Mapped[int | None] = mapped_column(ForeignKey("session_templates.id", ondelete="SET NULL"))
     phase_minutes: Mapped[dict | None] = mapped_column(JSONB)  # {phase: minutes}
+    # The two teams for its full squad game: {"by": "planner" | "coach", "player_ids": [[...], [...]]}. The planner's
+    # teams are balanced again whenever the expected players change; a coach's keep their players.
+    match_teams: Mapped[dict | None] = mapped_column(JSONB)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -112,6 +112,8 @@ ACCESS = {
     ("DELETE", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/sessions/{session_id}/groups"): (MEMBER, {"groups": [[1], [2]]}, None),
     ("POST", "/teams/{team_id}/sessions/{session_id}/regenerate"): (MEMBER, None, None),
+    ("PUT", "/teams/{team_id}/sessions/{session_id}/match-teams"): (MEMBER, {"teams": [[1], [2]]}, None),
+    ("POST", "/teams/{team_id}/sessions/{session_id}/match-teams/suggest"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/sessions/{session_id}/attendance"): (MEMBER, "attendance", None),
     ("DELETE", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, None, None),
     ("GET", "/teams/{team_id}/drills"): (MEMBER, None, None),

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { addSessionBlock, createSession, createSessionTemplate, deleteSession, deleteSessionBlock, deleteSessionTemplate, errorMessage, getBlockAlternatives, getDrill, getSession,
-  getSessionFocus, getSessions, getSessionTemplates, getSkillTags, regenerateSession, setSessionAttendance, setSessionGroups, updateSession, updateSessionBlock,
-  updateSessionTemplate } from '../api'
+  getSessionFocus, getSessions, getSessionTemplates, getSkillTags, regenerateSession, setMatchTeams, setSessionAttendance, setSessionGroups, suggestMatchTeams, updateSession,
+  updateSessionBlock, updateSessionTemplate } from '../api'
 import { DrillDialog } from '../DrillLibrary'
 import SessionReport from '../SessionReport'
 import { AREA_LABELS } from '../drillModel'
-import { DEFAULT_BREAKDOWNS, PHASE_NAMES, SESSION_LENGTHS, blockTimes, breakdownText, focusChip, sessionDate, splitSessions, templateProblems, templateTotal,
-  versionLabel } from '../sessionModel'
+import { DEFAULT_BREAKDOWNS, PHASE_NAMES, SESSION_LENGTHS, blockTimes, breakdownText, focusChip, sessionDate, splitSessions, teamSummary, templateProblems,
+  templateTotal, versionLabel } from '../sessionModel'
 import { Section } from './DashboardParts'
 
 const tomorrow = () => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10) }
@@ -139,7 +139,7 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
 function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
-  const [editing, setEditing] = useState(null)  // a block id, 'groups' or 'add'
+  const [editing, setEditing] = useState(null)  // a block id, 'groups', 'teams' or 'add'
   const [drills, setDrills] = useState({})  // each block's drill in full, by slug, for the printed report
   useEffect(() => {
     let live = true
@@ -159,6 +159,7 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
   const times = blockTimes(session.blocks, session.start_time)
   const groups = session.versions === 'groups' ? session.groups : null
   const total = session.blocks.reduce((sum, b) => sum + b.minutes, 0)
+  const matchBlock = session.blocks.find(b => b.phase === 'full_squad_game')?.id
   // Every change returns the whole session, which replaces the one shown.
   const change = async (call, done = () => setEditing(null)) => {
     try { setSession(await call()); done() } catch (e) { onMessage(errorMessage(e, 'Could not save the change.')) }
@@ -195,6 +196,9 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
           ? <ul className="session-block-versions">{groups.map((g, j) => <li key={g.name}><strong>{g.name}:</strong> {versionLabel(block.versions[j])}</li>)}</ul>
           : <p className="session-block-version">{versionLabel(block.versions[0])}</p>)}
         {block.reasons.length > 0 && <p className="muted session-block-reasons">{block.reasons.join(' ')}</p>}
+        {block.id === matchBlock && <MatchTeams match={session.match_teams} editing={editing === 'teams'} onEdit={() => setEditing('teams')} onCancel={() => setEditing(null)}
+          onSave={teams => change(() => setMatchTeams(teamId, session.id, teams))}
+          onSuggest={() => change(() => suggestMatchTeams(teamId, session.id), () => { setEditing(null); onMessage('Teams balanced again.') })} />}
         <BlockNote note={block.notes} onSave={notes => change(() => updateSessionBlock(teamId, session.id, block.id, { notes }), () => {})} />
         {editing === block.id
           ? <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={groups} onCancel={() => setEditing(null)}
@@ -319,6 +323,40 @@ function AddBlock({ onAdd, onCancel }) {
     </div>
     <label className="field">What you'll do<input required maxLength={160} placeholder="For example: shooting practice from crosses" value={title} onChange={e => setTitle(e.target.value)} /></label>
     <div className="inline-row"><button type="submit" className="primary-btn">Add block</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>
+}
+
+// The two suggested teams for the full squad game, balanced on positions, age group and level. The coach can move
+// players; teams they've changed keep their players when attendance changes, and newcomers join the smaller team.
+export function MatchTeams({ match, editing, onEdit, onSave, onSuggest, onCancel }) {
+  if (!match) return <p className="muted hint">Two teams are suggested here once at least two players are expected.</p>
+  const suggest = () => { if (match.by !== 'coach' || window.confirm('Balance the teams again? Your changes to them are replaced.')) onSuggest() }
+  return <div className="match-teams">
+    <p className="session-block-phase">{match.by === 'coach' ? 'Your teams' : 'Suggested teams, balanced on positions, age group and level'}</p>
+    {editing
+      ? <TeamsEditor teams={match.teams} onSave={onSave} onCancel={onCancel} />
+      : <div className="session-groups">{match.teams.map(t => <div key={t.name} className="session-group">
+        <strong>{t.name}</strong>
+        <span className="muted">{teamSummary(t)}</span>
+        <ul className="match-team-players">{t.players.map(p => <li key={p.id}>{p.name}{p.position_label && <span className="muted"> · {p.position_label}</span>}</li>)}</ul>
+      </div>)}</div>}
+    {!editing && <div className="inline-row no-print">
+      <button type="button" className="link-btn" onClick={onEdit}>Change teams</button>
+      <button type="button" className="link-btn" onClick={suggest}>Balance again</button>
+    </div>}
+  </div>
+}
+
+function TeamsEditor({ teams, onSave, onCancel }) {
+  const players = teams.flatMap((t, i) => t.players.map(p => ({ ...p, team: i })))
+  const [choice, setChoice] = useState(() => Object.fromEntries(players.map(p => [p.id, p.team])))
+  const save = event => { event.preventDefault(); onSave(teams.map((_, i) => players.filter(p => choice[p.id] === i).map(p => p.id))) }
+  const sizes = teams.map((_, i) => players.filter(p => choice[p.id] === i).length)
+  return <form className="block-editor no-print" onSubmit={save}>
+    <div className="session-player-grid">{players.map(p => <label key={p.id} className="field">{p.name}{p.position_label ? ` (${p.position_label})` : ''}
+      <select value={choice[p.id]} onChange={e => setChoice(c => ({ ...c, [p.id]: Number(e.target.value) }))}>{teams.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}</select></label>)}</div>
+    <p className="muted hint">{teams.map((t, i) => `${t.name}: ${sizes[i]}`).join(' · ')}. Your teams stay as you set them; players who are expected later join the smaller team.</p>
+    <div className="inline-row"><button type="submit" className="primary-btn">Save teams</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
   </form>
 }
 

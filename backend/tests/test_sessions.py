@@ -363,3 +363,97 @@ def test_coaches_share_session_templates(monkeypatch):
     assert owner.post(f"/teams/{team_id}/sessions", json=new, headers=headers).status_code == 404
     actions = [e["action"] for e in owner.get(f"/teams/{team_id}/audit").json()]
     assert "session_template_created" in actions and "session_template_deleted" in actions
+
+
+ORDER = ["goalkeeper", "defender", "midfielder", "winger", "striker"]
+
+
+def test_match_teams_balance_positions_then_ages_then_levels():
+    def player(pid, position, age=10, level=3.0):
+        return {"id": pid, "position": position, "age": age, "level": level}
+    squad = [player(1, "goalkeeper", level=4.0), player(2, "goalkeeper", level=2.0),
+             player(3, "defender", level=4.0), player(4, "defender", level=3.5), player(5, "defender", level=2.0), player(6, "defender", level=1.5),
+             player(7, "midfielder", 9, 4.0), player(8, "midfielder", 9, 3.0), player(9, "midfielder", 11, 2.0), player(10, "midfielder", 11, 1.0),
+             player(11, "striker", level=3.0), player(12, None, level=None), player(13, "striker", level=2.5)]
+    a, b = sessions.balance_teams(squad, ORDER)
+    by_id = {p["id"]: p for p in squad}
+    teams = [[by_id[pid] for pid in a], [by_id[pid] for pid in b]]
+    assert sorted(len(t) for t in teams) == [6, 7]
+    for position in ("goalkeeper", "defender", "midfielder", "striker"):
+        assert [sum(p["position"] == position for p in t) for t in teams] == [2 if position in ("defender", "midfielder") else 1] * 2
+    ages = [sum(p["age"] for p in t) / len(t) for t in teams]
+    assert abs(ages[0] - ages[1]) < 0.2
+    levels = [[p["level"] for p in t if p["level"] is not None] for t in teams]
+    assert abs(sum(levels[0]) / len(levels[0]) - sum(levels[1]) / len(levels[1])) <= 0.1
+    assert sessions.teams_cost(teams) < 1
+
+    # Newcomers to a coach's teams fill the smaller team, then go where they balance best.
+    joined = sessions.add_to_teams([[by_id[1], by_id[3]], [by_id[2]]], [player(20, "defender"), player(21, "goalkeeper")])
+    assert joined == [[1, 3, 21], [2, 20]]
+    assert sessions.balance_teams([player(1, "defender")], ORDER) == [[1], []]
+
+
+def test_a_full_squad_game_suggests_two_teams(monkeypatch):
+    clean_database()
+    with SessionLocal() as db:
+        for name in sorted(p.name for p in DATA_DIR.glob("drills_v*.json")):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("match-coach@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Match squad"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skills = starter_skills()
+    keeper_skills = starter_skills("goalkeeper")
+    positions = ["goalkeeper", "goalkeeper", "defender", "defender", "midfielder", "midfielder", "striker", "striker"]
+    ids = []
+    for i, (name, position) in enumerate(zip(("Ana", "Bea", "Cat", "Dee", "Eve", "Fay", "Gia", "Hal"), positions)):
+        pid = owner.post(f"/teams/{team_id}/players", json={"name": name}, headers=headers).json()["id"]
+        ids.append(pid)
+        owner.put(f"/teams/{team_id}/players/{pid}/group", params={"period_id": period_id}, json={"age_group": 10 + i % 2}, headers=headers)
+        body = {"player_id": pid, "period_id": period_id, "version": 0, "primary_position": position,
+                "ratings": [{"skill_id": s, "score": 1 + i % 4} for s in (keeper_skills if position == "goalkeeper" else skills)]}
+        assert owner.put(f"/teams/{team_id}/assessments/coach", json=body, headers=headers).status_code == 200
+    late = owner.post(f"/teams/{team_id}/players", json={"name": "Ivy"}, headers=headers).json()["id"]
+    template = owner.post(f"/teams/{team_id}/session-templates", headers=headers,
+                          json={"name": "Match", "length": 45, "minutes": {"warm_up": 10, "full_squad_game": 30, "cool_down": 5}}).json()
+    plain = owner.post(f"/teams/{team_id}/sessions", headers=headers, json={"period_id": period_id, "date": "2026-10-20", "length": 60,
+                                                                           "focus_tags": ["passing_short"], "player_ids": ids}).json()
+    assert plain["match_teams"] is None  # no full squad game
+
+    session = owner.post(f"/teams/{team_id}/sessions", headers=headers, json={"period_id": period_id, "date": "2026-10-21", "template_id": template["id"],
+                                                                             "focus_tags": ["passing_short"], "player_ids": ids}).json()
+    match = session["match_teams"]
+    assert match["by"] == "planner" and [t["name"] for t in match["teams"]] == ["Team 1", "Team 2"]
+    for team in match["teams"]:
+        assert [(p["label"], p["count"]) for p in team["positions"]] == [("Goalkeeper", 1), ("Defender", 1), ("Midfielder", 1), ("Striker", 1)]
+        assert team["players"][0]["position_label"] == "Goalkeeper" and team["unrated"] == 0
+    assert abs(match["teams"][0]["average_age_group"] - match["teams"][1]["average_age_group"]) <= 0.5
+    assert abs(match["teams"][0]["average_level"] - match["teams"][1]["average_level"]) <= 0.5
+    url = f"/teams/{team_id}/sessions/{session['id']}"
+
+    # The coach moves players; their teams keep them, and a newcomer without an assessment joins the smaller team.
+    first, second = [[p["id"] for p in t["players"]] for t in match["teams"]]
+    mine = [first + second[:1], second[1:]]
+    assert owner.put(f"{url}/match-teams", json={"teams": [first, second[1:]]}, headers=headers).status_code == 422
+    moved = owner.put(f"{url}/match-teams", json={"teams": mine}, headers=headers).json()["match_teams"]
+    assert moved["by"] == "coach" and [len(t["players"]) for t in moved["teams"]] == [5, 3]
+    joined = owner.put(f"{url}/attendance", json={"players": [{"player_id": late, "expected": True}, {"player_id": first[0], "expected": False}]},
+                       headers=headers).json()["match_teams"]
+    assert [sorted(p["id"] for p in t["players"]) for t in joined["teams"]] == [sorted(mine[0][1:]), sorted(mine[1] + [late])]
+    assert joined["teams"][1]["unrated"] == 1 and any(p["position"] is None for p in joined["teams"][1]["players"])
+
+    # Suggesting again balances from scratch.
+    again = owner.post(f"{url}/match-teams/suggest", headers=headers).json()["match_teams"]
+    assert again["by"] == "planner" and sorted(len(t["players"]) for t in again["teams"]) == [4, 4]
+    assert owner.post(f"/teams/{team_id}/sessions/{plain['id']}/match-teams/suggest", headers=headers).status_code == 409
+
+    # A session planned before match teams existed gets them when it's opened.
+    with SessionLocal() as db:
+        from app.models import TrainingSession
+        db.get(TrainingSession, session["id"]).match_teams = None
+        db.commit()
+    assert owner.get(url).json()["match_teams"]["by"] == "planner"
+
+    # Removing the full squad game removes the teams.
+    block = next(b for b in session["blocks"] if b["phase"] == "full_squad_game")
+    assert owner.delete(f"{url}/blocks/{block['id']}", headers=headers).json()["match_teams"] is None

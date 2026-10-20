@@ -1144,6 +1144,10 @@ a.public-brand { text-decoration: none; }
 .session-focus-pills .status-pill { margin: 0; font-size: .78rem; }
 .session-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 14px; }
 .session-group { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--accent-tint); font-size: .88rem; }
+.match-teams { margin: 10px 0 4px; }
+.match-teams .session-groups { margin-bottom: 6px; }
+.match-team-players { margin: 6px 0 0; padding-left: 18px; }
+.match-team-players li { margin: 2px 0; }
 .session-blocks { list-style: none; display: grid; gap: 10px; }
 .session-block { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--lime); border-radius: 10px; background: #fff; }
 .session-block.phase-warm_up, .session-block.phase-cool_down { border-left-color: #9fb0bf; }
@@ -1180,6 +1184,9 @@ a.public-brand { text-decoration: none; }
   .report-equipment ul, .report-register ul { list-style: none; padding: 0; }
   .report-box { display: inline-block; width: 9pt; height: 9pt; margin-right: 5pt; border: 1pt solid #111; vertical-align: -1pt; }
   .report-groups { margin-bottom: 8pt; break-inside: avoid; }
+  .report-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14pt; margin: 4pt 0 6pt; break-inside: avoid; }
+  .report-teams p { margin: 0 0 2pt; }
+  .report-teams ul { margin: 0; padding-left: 14pt; }
   .report-block { padding: 6pt 0 8pt; border-top: 1pt solid #111; }
   .report-block h2, .report-block h3, .report-label { break-after: avoid; }
   .report-text ol, .report-text ul, .report-storyboard, .report-lines { break-inside: avoid; }

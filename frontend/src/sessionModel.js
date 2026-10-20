@@ -88,3 +88,16 @@ export function sessionEquipment(blocks) {
   }
   return [...most].map(([item, quantity]) => ({ item, quantity }))
 }
+
+// One match team in a line: its size, positions, average age group and average level (1-5).
+// "4 players · 1 Goalkeeper, 2 Defenders, 1 Position not set · Average U10.5 · Average level 2.6 (1 not assessed)".
+export function teamSummary(team) {
+  const count = team.players.length
+  const positions = team.positions.map(p => `${p.count} ${p.count === 1 || !p.position ? p.label : `${p.label}s`}`).join(', ')
+  const parts = [`${count} ${count === 1 ? 'player' : 'players'}`, positions]
+  const age = team.average_age_group
+  if (age != null) parts.push(Number.isInteger(age) ? `U${age}` : `Average U${age}`)
+  if (team.average_level != null) parts.push(`Average level ${team.average_level}${team.unrated ? ` (${team.unrated} not assessed)` : ''}`)
+  else if (count) parts.push('Not assessed')
+  return parts.filter(Boolean).join(' · ')
+}

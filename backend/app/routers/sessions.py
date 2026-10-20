@@ -10,15 +10,17 @@ from ..auth import current_user, require_member
 from ..cycles import current_plan
 from ..database import get_db
 from ..insights import player_tags, team_insights
-from ..matrix import version_tags
+from ..matrix import period_document, version_tags
 from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SessionTemplate,
                       SkillTag, TrainingSession, User, utcnow)
-from ..sessions import LENGTHS, PHASES, block_groups, group_versions, plan as plan_session, ranked, split_groups
+from ..sessions import (LENGTHS, PHASES, add_to_teams, balance_teams, block_groups, group_versions, plan as plan_session, ranked,
+                        split_groups)
 from .drills import _library
 from .teams import scoped_period
 
 router = APIRouter(tags=["sessions"])
 GROUP_NAMES = ("Group A", "Group B", "Group C")
+TEAM_NAMES = ("Team 1", "Team 2")
 RECENT_SESSIONS = 3
 
 
@@ -122,6 +124,72 @@ def _session_data(db: DbSession, s: TrainingSession, user: User) -> dict:
                          exclude=s.id, minutes=s.phase_minutes)
 
 
+def _match_profiles(db: DbSession, s: TrainingSession, player_ids: list[int]) -> dict[int, dict]:
+    """What the match teams are balanced on, per player: primary position and average coach score in the session's
+    period, and age group. None where it isn't recorded."""
+    assessments = {a.player_id: a for a in db.query(Assessment).filter(
+        Assessment.period_id == s.period_id, Assessment.assessor == "coach", Assessment.player_id.in_(player_ids or [0]))}
+    ages = {g.player_id: g.age_group for g in db.query(PlayerGroup).filter(PlayerGroup.period_id == s.period_id, PlayerGroup.player_id.in_(player_ids or [0]))}
+    out = {}
+    for pid in player_ids:
+        a = assessments.get(pid)
+        scores = [r.score for r in a.ratings if r.score is not None] if a else []
+        out[pid] = {"id": pid, "position": a.primary_position if a and a.primary_position else None, "age": ages.get(pid),
+                    "level": sum(scores) / len(scores) if scores else None}
+    return out
+
+
+def _positions(db: DbSession, s: TrainingSession) -> list[dict]:
+    return period_document(db, db.get(Period, s.period_id))["positions"]
+
+
+def _refresh_teams(db: DbSession, s: TrainingSession, rebalance: bool = False):
+    """Keep the match teams in step with who's expected. The planner's teams are balanced again from scratch; a
+    coach's keep their players, losing anyone no longer expected and gaining newcomers where they balance best.
+    No full squad game, or fewer than two players: no teams."""
+    expected = _expected_ids(db, s)
+    has_match = db.query(SessionBlock).filter_by(session_id=s.id, phase="full_squad_game").first() is not None
+    if not has_match or len(expected) < 2:
+        s.match_teams = None
+        return
+    profiles = _match_profiles(db, s, expected)
+    current = s.match_teams
+    if rebalance or not current or current.get("by") != "coach":
+        order = [p["id"] for p in _positions(db, s)]
+        s.match_teams = {"by": "planner", "player_ids": balance_teams(list(profiles.values()), order)}
+        return
+    kept = [[pid for pid in team if pid in profiles] for team in current["player_ids"]]
+    placed = {pid for team in kept for pid in team}
+    joining = [profiles[pid] for pid in expected if pid not in placed]
+    s.match_teams = {"by": "coach", "player_ids": add_to_teams([[profiles[pid] for pid in team] for team in kept], joining)}
+
+
+def _match_teams_out(db: DbSession, s: TrainingSession, names: dict[int, str]) -> dict | None:
+    """The two teams, each with its players and the averages it's balanced on."""
+    if not s.match_teams:
+        return None
+    profiles = _match_profiles(db, s, [pid for team in s.match_teams["player_ids"] for pid in team])
+    positions = _positions(db, s)
+    labels = {p["id"]: p["label"] for p in positions}
+    order = [p["id"] for p in positions]
+    rank = lambda pos: order.index(pos) if pos in order else len(order)
+    teams = []
+    for name, team in zip(TEAM_NAMES, s.match_teams["player_ids"]):
+        players = [profiles[pid] for pid in team]
+        rated = [p["level"] for p in players if p["level"] is not None]
+        aged = [p["age"] for p in players if p["age"] is not None]
+        counts = Counter(p["position"] for p in players)
+        teams.append({"name": name,
+                      "players": sorted(({"id": p["id"], "name": names.get(p["id"], "?"), "position": p["position"],
+                                          "position_label": labels.get(p["position"]), "age_group": p["age"]} for p in players),
+                                        key=lambda p: (rank(p["position"]), p["name"].casefold())),
+                      "positions": [{"position": pos, "label": labels.get(pos, pos) if pos else "Position not set", "count": counts[pos]}
+                                    for pos in sorted(counts, key=rank)],
+                      "average_level": round(sum(rated) / len(rated), 1) if rated else None,
+                      "average_age_group": round(sum(aged) / len(aged), 1) if aged else None, "unrated": len(players) - len(rated)})
+    return {"by": s.match_teams["by"], "teams": teams}
+
+
 def _set_versions(block: SessionBlock, s: TrainingSession, variations: list[int], together: bool):
     """Store a block's versions: one for everyone, or one per group."""
     if s.versions == "groups" and not together:
@@ -184,6 +252,7 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
                                     for vid in variation_ids]})
     return {**session_summary(db, s, labels), "notes": s.notes, "blocks": blocks,
             "groups": [{"name": g["name"], "players": [{"id": pid, "name": names.get(pid, "?")} for pid in g["player_ids"]]} for g in s.groups],
+            "match_teams": _match_teams_out(db, s, names),
             "attendance": sorted(({"player_id": r.player_id, "name": names.get(r.player_id, "?"), "expected": r.expected, "attended": r.attended}
                                   for r in attendance), key=lambda r: r["name"].casefold()),
             "updated_at": s.updated_at}
@@ -259,6 +328,8 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
                             variation_id=b["variations"][0] if b["variations"] and (body.versions == "single" or b["together"]) else None,
                             group_variations={str(i): v for i, v in enumerate(b["variations"])} if body.versions == "groups" and not b["together"] else {}))
     db.add_all(SessionAttendance(session_id=session.id, player_id=pid, expected=True) for pid in player_ids)
+    db.flush()
+    _refresh_teams(db, session)
     record(db, team_id, user, "session_created", date=body.date.isoformat(), title=session.title)
     db.commit()
     return session_out(db, session)
@@ -267,7 +338,13 @@ def create_session(team_id: int, body: SessionIn, db: DbSession = Depends(get_db
 @router.get("/teams/{team_id}/sessions/{session_id}")
 def get_session(team_id: int, session_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
     require_member(team_id, db, user)
-    return session_out(db, _session(db, team_id, session_id))
+    s = _session(db, team_id, session_id)
+    if s.match_teams is None:
+        # Sessions planned before match teams existed get theirs on first opening.
+        _refresh_teams(db, s)
+        if s.match_teams:
+            db.commit()
+    return session_out(db, s)
 
 
 @router.patch("/teams/{team_id}/sessions/{session_id}")
@@ -344,6 +421,7 @@ def add_block(team_id: int, session_id: int, body: BlockIn, db: DbSession = Depe
     db.add(block)
     db.flush()
     _renumber(db, s)
+    _refresh_teams(db, s)
     _touch(s, user)
     db.commit()
     return session_out(db, s)
@@ -394,6 +472,7 @@ def remove_block(team_id: int, session_id: int, block_id: int, db: DbSession = D
     db.delete(_block(db, s, block_id))
     db.flush()
     _renumber(db, s)
+    _refresh_teams(db, s)
     _touch(s, user)
     db.commit()
     return session_out(db, s)
@@ -462,6 +541,7 @@ def regenerate_session(team_id: int, session_id: int, db: DbSession = Depends(ge
         db.add(block)
     db.flush()
     _renumber(db, s)
+    _refresh_teams(db, s)
     _touch(s, user)
     db.commit()
     return session_out(db, s)
@@ -514,6 +594,40 @@ def set_attendance(team_id: int, session_id: int, body: AttendanceIn, db: DbSess
                 drill = by_slug.get(db.get(Drill, block.drill_id).slug)
                 if drill:
                     _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
+    if after != before:
+        _refresh_teams(db, s)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+class MatchTeamsIn(BaseModel):
+    teams: list[list[int]] = Field(min_length=2, max_length=2)
+
+
+@router.put("/teams/{team_id}/sessions/{session_id}/match-teams")
+def set_match_teams(team_id: int, session_id: int, body: MatchTeamsIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The coach's own teams for the full squad game, kept as they are when the expected players change."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    if not s.match_teams:
+        raise HTTPException(409, "This session has no full squad game, or not enough players for two teams")
+    if sorted(pid for team in body.teams for pid in team) != _expected_ids(db, s):
+        raise HTTPException(422, "Each expected player must be in exactly one team")
+    s.match_teams = {"by": "coach", "player_ids": body.teams}
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.post("/teams/{team_id}/sessions/{session_id}/match-teams/suggest")
+def suggest_match_teams(team_id: int, session_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Balance the teams again from scratch, replacing a coach's changes."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    _refresh_teams(db, s, rebalance=True)
+    if not s.match_teams:
+        raise HTTPException(409, "This session has no full squad game, or not enough players for two teams")
     _touch(s, user)
     db.commit()
     return session_out(db, s)

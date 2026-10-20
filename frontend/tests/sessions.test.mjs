@@ -85,3 +85,25 @@ test('the paper report prints each block for the version used, with what it brin
   assert.match(html, /Ana/)
   assert.match(html, /<strong>Note:<\/strong> Good/)
 })
+
+test('the full squad game shows two balanced teams, which the coach can change', async () => {
+  const { teamSummary } = await loadJsx('src/sessionModel.js')
+  const team = { name: 'Team 1', players: [{ id: 1, name: 'Ana', position_label: 'Goalkeeper' }, { id: 2, name: 'Cat', position_label: 'Defender' },
+    { id: 3, name: 'Eve', position_label: 'Defender' }, { id: 4, name: 'Ivy', position_label: null }],
+  positions: [{ position: 'goalkeeper', label: 'Goalkeeper', count: 1 }, { position: 'defender', label: 'Defender', count: 2 }, { position: null, label: 'Position not set', count: 1 }],
+  average_level: 2.6, average_age_group: 10.5, unrated: 1 }
+  assert.equal(teamSummary(team), '4 players · 1 Goalkeeper, 2 Defenders, 1 Position not set · Average U10.5 · Average level 2.6 (1 not assessed)')
+  assert.equal(teamSummary({ ...team, average_age_group: 10, average_level: null, unrated: 4 }).split(' · ').slice(-2).join(' · '), 'U10 · Not assessed')
+
+  const { MatchTeams } = await loadJsx('src/areas/SessionsArea.jsx')
+  const match = { by: 'planner', teams: [team, { ...team, name: 'Team 2', players: team.players.map(p => ({ ...p, id: p.id + 10 })) }] }
+  const html = renderToStaticMarkup(React.createElement(MatchTeams, { match, editing: false }))
+  assert.match(html, /Suggested teams, balanced on positions, age group and level/)
+  assert.match(html, /Team 2/)
+  assert.match(html, /Ana<span class="muted"> · Goalkeeper/)
+  assert.match(html, /Change teams/)
+  const editing = renderToStaticMarkup(React.createElement(MatchTeams, { match: { ...match, by: 'coach' }, editing: true }))
+  assert.match(editing, /Save teams/)
+  assert.match(editing, /Team 1: 4 · Team 2: 4/)
+  assert.match(renderToStaticMarkup(React.createElement(MatchTeams, { match: null })), /once at least two players are expected/)
+})

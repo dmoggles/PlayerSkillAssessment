@@ -89,6 +89,8 @@ export const deleteSessionBlock = (id, sessionId, blockId) => data(api.delete(`$
 export const getBlockAlternatives = (id, sessionId, blockId) => data(api.get(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/alternatives`))
 export const setSessionGroups = (id, sessionId, groups) => data(api.put(`${team(id)}/sessions/${sessionId}/groups`, { groups }))
 export const regenerateSession = (id, sessionId) => data(api.post(`${team(id)}/sessions/${sessionId}/regenerate`))
+export const setMatchTeams = (id, sessionId, teams) => data(api.put(`${team(id)}/sessions/${sessionId}/match-teams`, { teams }))
+export const suggestMatchTeams = (id, sessionId) => data(api.post(`${team(id)}/sessions/${sessionId}/match-teams/suggest`))
 export const getSessionTemplates = id => data(api.get(`${team(id)}/session-templates`))
 export const createSessionTemplate = (id, template) => data(api.post(`${team(id)}/session-templates`, template))
 export const updateSessionTemplate = (id, templateId, template) => data(api.put(`${team(id)}/session-templates/${templateId}`, template))

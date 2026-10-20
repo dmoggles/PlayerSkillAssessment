@@ -43,6 +43,10 @@ export default function SessionReport({ session, teamName, drills }) {
       <h2><span className="report-block-time">{times[i]}–{ends[i]}</span> {PHASE_NAMES[b.block.phase]} · {b.block.minutes} min</h2>
       <h3>{b.title}</h3>
       {b.together && <p className="report-together">Everyone together</p>}
+      {b.block.phase === 'full_squad_game' && session.match_teams && <div className="report-teams">{session.match_teams.teams.map(t => <div key={t.name}>
+        <p><strong>{t.name}</strong> ({t.players.length})</p>
+        <ul>{t.players.map(p => <li key={p.id}>{p.name}{p.position_label ? ` · ${p.position_label}` : ''}</li>)}</ul>
+      </div>)}</div>}
       {b.versions.map(v => <p key={v.label} className="report-version"><strong>{v.label}</strong>{v.change ? ` ${v.change}` : ''}</p>)}
       {b.drill && <BlockDetail detail={b} />}
       {b.block.notes ? <p className="report-note"><strong>Note:</strong> {b.block.notes}</p> : <WriteLines label="Notes" count={b.drill ? 2 : 4} />}

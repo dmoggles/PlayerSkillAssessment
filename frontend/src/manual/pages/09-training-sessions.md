@@ -49,6 +49,21 @@ Choose a template under **Plan** when you plan a session. Everything else works 
 
 Every coach in the team can see and change the team's sessions.
 
+## Teams for the full squad game
+
+A session with a **full squad game** suggests two teams from the players expected. They're balanced on, in this order:
+- **positions**: each player's primary position from their coach assessment, goalkeepers first;
+- **age group**: the player's age group in the period;
+- **level**: the average of the player's coach scores.
+
+Players without an assessment are shared between the teams. Each team shows its positions, average age group and average level.
+
+- **Change teams** to move players yourself. Your teams stay as you set them: players no longer expected leave, and players expected later join the smaller team.
+- **Balance again** replaces your changes with freshly balanced teams.
+- Until you change them, the teams are balanced again whenever the expected players change.
+
+The printed session lists both teams under the game, with positions but not levels.
+
 ## Printing
 
 **Print** gives you a report made for paper, to take to training:

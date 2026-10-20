@@ -216,3 +216,75 @@ def split_groups(players: list[tuple[int, float | None]], count: int) -> list[li
         groups.append(order[at:at + n])
         at += n
     return groups
+
+
+# Two teams for a full squad game. Balanced, in order of importance, on positions (goalkeepers most of all), age
+# group and skill level. A position or age the coach hasn't recorded, or an unassessed player, counts as unknown:
+# unknowns are shared out like any position, and left out of the averages.
+POSITION_WEIGHTS = {"goalkeeper": 4.0}  # other positions 1 per player of imbalance
+AGE_WEIGHT = 2.0  # per year of difference between the teams' average age groups
+LEVEL_WEIGHT = 4.0  # per point of difference between average levels (1-5), so a quarter point costs as much as a position
+UNRATED_WEIGHT = 0.5
+
+
+def _imbalance(a: int, b: int) -> int:
+    """How far two counts are from an even split; an odd total can't do better than one apart."""
+    return abs(a - b) - (a + b) % 2
+
+
+def _mean_gap(a: list[float], b: list[float]) -> float:
+    return abs(sum(a) / len(a) - sum(b) / len(b)) if a and b else 0.0
+
+
+def teams_cost(teams: list[list[dict]]) -> float:
+    """How unbalanced two teams are; players are {"id", "position", "age", "level"}."""
+    a, b = teams
+    cost = 0.0
+    for position in {p["position"] for p in a + b}:
+        cost += POSITION_WEIGHTS.get(position, 1.0) * _imbalance(sum(p["position"] == position for p in a), sum(p["position"] == position for p in b))
+    cost += AGE_WEIGHT * _mean_gap([p["age"] for p in a if p["age"] is not None], [p["age"] for p in b if p["age"] is not None])
+    cost += LEVEL_WEIGHT * _mean_gap([p["level"] for p in a if p["level"] is not None], [p["level"] for p in b if p["level"] is not None])
+    cost += UNRATED_WEIGHT * _imbalance(sum(p["level"] is None for p in a), sum(p["level"] is None for p in b))
+    return cost
+
+
+def balance_teams(players: list[dict], order: list[str]) -> list[list[int]]:
+    """Two teams of near-equal size, as player ids. Players are dealt out by position (in `order`), strongest first,
+    alternating ABBA, then pairs are swapped between the teams while that improves the balance."""
+    rank = {p: i for i, p in enumerate(order)}
+    dealt = sorted(players, key=lambda p: (rank.get(p["position"], len(order)), -(p["level"] if p["level"] is not None else 0), p["id"]))
+    teams = [[], []]
+    for i, p in enumerate(dealt):
+        teams[0 if i % 4 in (0, 3) else 1].append(p)
+    return [[p["id"] for p in team] for team in improve(teams)]
+
+
+def improve(teams: list[list[dict]], rounds: int = 200) -> list[list[dict]]:
+    """Make the best swap of one player each way, until no swap helps."""
+    a, b = list(teams[0]), list(teams[1])
+    best = teams_cost([a, b])
+    for _ in range(rounds):
+        swap = None
+        for i in range(len(a)):
+            for j in range(len(b)):
+                a[i], b[j] = b[j], a[i]
+                cost = teams_cost([a, b])
+                a[i], b[j] = b[j], a[i]
+                if cost < best - 1e-9:
+                    best, swap = cost, (i, j)
+        if not swap:
+            break
+        i, j = swap
+        a[i], b[j] = b[j], a[i]
+    return [a, b]
+
+
+def add_to_teams(teams: list[list[dict]], joining: list[dict]) -> list[list[int]]:
+    """Players joining teams the coach has set: each goes to the smaller team, or where they balance it best."""
+    a, b = list(teams[0]), list(teams[1])
+    for p in joining:
+        if len(a) != len(b):
+            (a if len(a) < len(b) else b).append(p)
+        else:
+            (a if teams_cost([a + [p], b]) <= teams_cost([a, b + [p]]) else b).append(p)
+    return [[p["id"] for p in a], [p["id"] for p in b]]
