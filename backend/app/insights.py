@@ -111,7 +111,7 @@ def team_insights(db: DbSession, team_id: int, period: Period | None, position: 
         players = {a.player_id: players[a.player_id] for a in filtered.get(period.id, [])}
     by_skill, by_tag = defaultdict(list), defaultdict(dict)
     for row in db.query(PriorityConfirmation).filter(PriorityConfirmation.period_id == period.id, PriorityConfirmation.player_id.in_(players),
-                                                    PriorityConfirmation.cycle_id.in_(latest_cycle_ids(db, period_id=period.id))).order_by(PriorityConfirmation.rank):
+                                                    PriorityConfirmation.cycle_id.in_(latest_cycle_ids(db, period_id=period.id))).order_by(PriorityConfirmation.rank, PriorityConfirmation.player_id):
         name = players[row.player_id]
         by_skill[row.skill_id].append({"player": name, "rank": row.rank})
         for tag, weight in tags.get(row.skill_id, {}).items():
