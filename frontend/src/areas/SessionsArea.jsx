@@ -242,7 +242,7 @@ function Attendance({ session, players, onSave }) {
   const set = (id, patch) => setState(previous => ({ ...previous, [id]: { ...(previous[id] ?? { expected: false, attended: null }), ...patch } }))
   return <section className="session-attendance">
     <h3>Attendance</h3>
-    <p className="muted hint">Tick who's expected before the session; it changes the groups and versions. Afterwards, tick who came.</p>
+    <p className="muted hint">Tick who's expected before the session; it changes the groups, versions and teams. Afterwards, tick who came.</p>
     <table><thead><tr><th>Player</th><th>Expected</th><th>Came</th></tr></thead>
       <tbody>{rows.map(r => <tr key={r.id}><td>{r.name}</td>
         <td><input type="checkbox" aria-label={`${r.name} expected`} checked={state[r.id]?.expected ?? false} onChange={e => set(r.id, { expected: e.target.checked })} /></td>
@@ -327,7 +327,7 @@ function AddBlock({ onAdd, onCancel }) {
 }
 
 // The two suggested teams for the full squad game, balanced on positions, age group and level. The coach can move
-// players; teams they've changed keep their players when attendance changes, and newcomers join the smaller team.
+// players; any change to who's expected balances the teams again.
 export function MatchTeams({ match, editing, onEdit, onSave, onSuggest, onCancel }) {
   if (!match) return <p className="muted hint">Two teams are suggested here once at least two players are expected.</p>
   const suggest = () => { if (match.by !== 'coach' || window.confirm('Balance the teams again? Your changes to them are replaced.')) onSuggest() }
@@ -355,7 +355,7 @@ function TeamsEditor({ teams, onSave, onCancel }) {
   return <form className="block-editor no-print" onSubmit={save}>
     <div className="session-player-grid">{players.map(p => <label key={p.id} className="field">{p.name}{p.position_label ? ` (${p.position_label})` : ''}
       <select value={choice[p.id]} onChange={e => setChoice(c => ({ ...c, [p.id]: Number(e.target.value) }))}>{teams.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}</select></label>)}</div>
-    <p className="muted hint">{teams.map((t, i) => `${t.name}: ${sizes[i]}`).join(' · ')}. Your teams stay as you set them; players who are expected later join the smaller team.</p>
+    <p className="muted hint">{teams.map((t, i) => `${t.name}: ${sizes[i]}`).join(' · ')}. Changing who's expected balances the teams again.</p>
     <div className="inline-row"><button type="submit" className="primary-btn">Save teams</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
   </form>
 }

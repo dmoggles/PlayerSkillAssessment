@@ -58,9 +58,9 @@ A session with a **full squad game** suggests two teams from the players expecte
 
 Players without an assessment are shared between the teams. Each team shows its positions, average age group and average level.
 
-- **Change teams** to move players yourself. Your teams stay as you set them: players no longer expected leave, and players expected later join the smaller team.
+- **Saving attendance** with a change to who's expected balances the teams again from the players now expected.
+- **Change teams** to move players yourself. Your teams stay as you set them until the expected players change.
 - **Balance again** replaces your changes with freshly balanced teams.
-- Until you change them, the teams are balanced again whenever the expected players change.
 
 The printed session lists both teams under the game, with positions but not levels.
 

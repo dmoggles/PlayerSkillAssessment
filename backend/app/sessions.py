@@ -278,13 +278,3 @@ def improve(teams: list[list[dict]], rounds: int = 200) -> list[list[dict]]:
         a[i], b[j] = b[j], a[i]
     return [a, b]
 
-
-def add_to_teams(teams: list[list[dict]], joining: list[dict]) -> list[list[int]]:
-    """Players joining teams the coach has set: each goes to the smaller team, or where they balance it best."""
-    a, b = list(teams[0]), list(teams[1])
-    for p in joining:
-        if len(a) != len(b):
-            (a if len(a) < len(b) else b).append(p)
-        else:
-            (a if teams_cost([a + [p], b]) <= teams_cost([a, b + [p]]) else b).append(p)
-    return [[p["id"] for p in a], [p["id"] for p in b]]

@@ -13,7 +13,7 @@ from ..insights import player_tags, team_insights
 from ..matrix import period_document, version_tags
 from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SessionTemplate,
                       SkillTag, TrainingSession, User, utcnow)
-from ..sessions import (LENGTHS, PHASES, add_to_teams, balance_teams, block_groups, group_versions, plan as plan_session, ranked,
+from ..sessions import (LENGTHS, PHASES, balance_teams, block_groups, group_versions, plan as plan_session, ranked,
                         split_groups)
 from .drills import _library
 from .teams import scoped_period
@@ -144,24 +144,17 @@ def _positions(db: DbSession, s: TrainingSession) -> list[dict]:
 
 
 def _refresh_teams(db: DbSession, s: TrainingSession, rebalance: bool = False):
-    """Keep the match teams in step with who's expected. The planner's teams are balanced again from scratch; a
-    coach's keep their players, losing anyone no longer expected and gaining newcomers where they balance best.
-    No full squad game, or fewer than two players: no teams."""
+    """Balance the match teams from the expected players, keeping a coach's teams unless `rebalance`. No full squad
+    game, or fewer than two players: no teams."""
     expected = _expected_ids(db, s)
     has_match = db.query(SessionBlock).filter_by(session_id=s.id, phase="full_squad_game").first() is not None
     if not has_match or len(expected) < 2:
         s.match_teams = None
         return
-    profiles = _match_profiles(db, s, expected)
-    current = s.match_teams
-    if rebalance or not current or current.get("by") != "coach":
-        order = [p["id"] for p in _positions(db, s)]
-        s.match_teams = {"by": "planner", "player_ids": balance_teams(list(profiles.values()), order)}
+    if s.match_teams and s.match_teams.get("by") == "coach" and not rebalance:
         return
-    kept = [[pid for pid in team if pid in profiles] for team in current["player_ids"]]
-    placed = {pid for team in kept for pid in team}
-    joining = [profiles[pid] for pid in expected if pid not in placed]
-    s.match_teams = {"by": "coach", "player_ids": add_to_teams([[profiles[pid] for pid in team] for team in kept], joining)}
+    order = [p["id"] for p in _positions(db, s)]
+    s.match_teams = {"by": "planner", "player_ids": balance_teams(list(_match_profiles(db, s, expected).values()), order)}
 
 
 def _match_teams_out(db: DbSession, s: TrainingSession, names: dict[int, str]) -> dict | None:
@@ -595,7 +588,7 @@ def set_attendance(team_id: int, session_id: int, body: AttendanceIn, db: DbSess
                 if drill:
                     _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
     if after != before:
-        _refresh_teams(db, s)
+        _refresh_teams(db, s, rebalance=True)  # teams from the players now expected, even the coach's
     _touch(s, user)
     db.commit()
     return session_out(db, s)
@@ -607,7 +600,7 @@ class MatchTeamsIn(BaseModel):
 
 @router.put("/teams/{team_id}/sessions/{session_id}/match-teams")
 def set_match_teams(team_id: int, session_id: int, body: MatchTeamsIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    """The coach's own teams for the full squad game, kept as they are when the expected players change."""
+    """The coach's own teams for the full squad game, kept until the expected players change."""
     require_member(team_id, db, user)
     s = _session(db, team_id, session_id)
     if not s.match_teams:

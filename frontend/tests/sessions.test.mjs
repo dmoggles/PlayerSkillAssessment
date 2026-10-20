@@ -104,6 +104,6 @@ test('the full squad game shows two balanced teams, which the coach can change',
   assert.match(html, /Change teams/)
   const editing = renderToStaticMarkup(React.createElement(MatchTeams, { match: { ...match, by: 'coach' }, editing: true }))
   assert.match(editing, /Save teams/)
-  assert.match(editing, /Team 1: 4 · Team 2: 4/)
+  assert.match(editing, /Team 1: 4 · Team 2: 4. Changing who.*s expected balances the teams again/)
   assert.match(renderToStaticMarkup(React.createElement(MatchTeams, { match: null })), /once at least two players are expected/)
 })

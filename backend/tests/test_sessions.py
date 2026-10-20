@@ -387,9 +387,6 @@ def test_match_teams_balance_positions_then_ages_then_levels():
     assert abs(sum(levels[0]) / len(levels[0]) - sum(levels[1]) / len(levels[1])) <= 0.1
     assert sessions.teams_cost(teams) < 1
 
-    # Newcomers to a coach's teams fill the smaller team, then go where they balance best.
-    joined = sessions.add_to_teams([[by_id[1], by_id[3]], [by_id[2]]], [player(20, "defender"), player(21, "goalkeeper")])
-    assert joined == [[1, 3, 21], [2, 20]]
     assert sessions.balance_teams([player(1, "defender")], ORDER) == [[1], []]
 
 
@@ -431,20 +428,28 @@ def test_a_full_squad_game_suggests_two_teams(monkeypatch):
     assert abs(match["teams"][0]["average_level"] - match["teams"][1]["average_level"]) <= 0.5
     url = f"/teams/{team_id}/sessions/{session['id']}"
 
-    # The coach moves players; their teams keep them, and a newcomer without an assessment joins the smaller team.
+    # The coach moves players; their teams stay as they are while the session is edited.
     first, second = [[p["id"] for p in t["players"]] for t in match["teams"]]
     mine = [first + second[:1], second[1:]]
     assert owner.put(f"{url}/match-teams", json={"teams": [first, second[1:]]}, headers=headers).status_code == 422
     moved = owner.put(f"{url}/match-teams", json={"teams": mine}, headers=headers).json()["match_teams"]
     assert moved["by"] == "coach" and [len(t["players"]) for t in moved["teams"]] == [5, 3]
-    joined = owner.put(f"{url}/attendance", json={"players": [{"player_id": late, "expected": True}, {"player_id": first[0], "expected": False}]},
-                       headers=headers).json()["match_teams"]
-    assert [sorted(p["id"] for p in t["players"]) for t in joined["teams"]] == [sorted(mine[0][1:]), sorted(mine[1] + [late])]
-    assert joined["teams"][1]["unrated"] == 1 and any(p["position"] is None for p in joined["teams"][1]["players"])
+    kept = owner.post(f"{url}/blocks", json={"phase": "warm_up", "minutes": 5, "title": "Rondo"}, headers=headers).json()["match_teams"]
+    assert kept == moved
 
-    # Suggesting again balances from scratch.
+    # A change to who's expected balances the teams again from the players now expected, the coach's teams too.
+    gone = [first[0], second[0]]
+    joined = owner.put(f"{url}/attendance", json={"players": [{"player_id": late, "expected": True}] + [{"player_id": pid, "expected": False} for pid in gone]},
+                       headers=headers).json()["match_teams"]
+    assert joined["by"] == "planner" and sorted(len(t["players"]) for t in joined["teams"]) == [3, 4]
+    playing = sorted(p["id"] for t in joined["teams"] for p in t["players"])
+    assert playing == sorted(set(ids) - set(gone) | {late})
+    assert sum(t["unrated"] for t in joined["teams"]) == 1
+
+    # Balancing again replaces the coach's changes.
+    owner.put(f"{url}/match-teams", json={"teams": [playing[:1], playing[1:]]}, headers=headers)
     again = owner.post(f"{url}/match-teams/suggest", headers=headers).json()["match_teams"]
-    assert again["by"] == "planner" and sorted(len(t["players"]) for t in again["teams"]) == [4, 4]
+    assert again["by"] == "planner" and sorted(len(t["players"]) for t in again["teams"]) == [3, 4]
     assert owner.post(f"/teams/{team_id}/sessions/{plain['id']}/match-teams/suggest", headers=headers).status_code == 409
 
     # A session planned before match teams existed gets them when it's opened.
