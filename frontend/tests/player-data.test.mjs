@@ -179,7 +179,7 @@ test('history views mark comparisons that cross a skill matrix change', async ()
   assert.match(progress, /Restarts/, 'retired skills keep their name')
   assert.match(progress, /3<sup class="matrix-change" title="Skill matrix: wording changed in Spring/)
   assert.match(progress, /\+1\*/, 'change across a rewording is flagged')
-  assert.match(progress, /<td>Touch<\/td><td>2<\/td><td>3<\/td><td>\+1<\/td>/, 'unchanged skills are not flagged')
+  assert.match(progress, /<th scope="row">Touch<\/th><td class="num">2<\/td><td class="num">3<\/td><td class="num">\+1<\/td>/, 'unchanged skills are not flagged')
   assert.match(progress, /not directly comparable/)
 
   const periods = [{ id: 2, label: 'Spring' }, { id: 1, label: 'Autumn' }]

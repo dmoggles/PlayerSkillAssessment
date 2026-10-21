@@ -37,8 +37,8 @@ function Trends({ data }) {
     <TrendChart periods={periods} series={series} />
     {anyChange && <p className="matrix-change-note">{CHANGE_NOTE}</p>}
     <h3>By skill area</h3>
-    <div className="heatmap-scroll"><table className="heatmap-table insights-table"><thead><tr><th>Skill area</th>{data.trend.map(p => <th key={p.period_id}>{p.label}<small>{p.players} {p.players === 1 ? 'player' : 'players'}</small></th>)}</tr></thead>
-      <tbody>{series.map(s => <tr key={s.id}><td><span className="legend-key" style={{ background: s.color }} aria-hidden="true" />{s.label}</td>{s.values.map((v, i) => <td key={i}>{fmt(v)}{s.changed[i] && <sup className="matrix-change">*</sup>}</td>)}</tr>)}</tbody></table></div>
+    <div className="heatmap-scroll"><table className="data-table insights-table"><thead><tr><th scope="col">Skill area</th>{data.trend.map(p => <th scope="col" className="num" key={p.period_id}>{p.label}<small>{p.players} {p.players === 1 ? 'player' : 'players'}</small></th>)}</tr></thead>
+      <tbody>{series.map(s => <tr key={s.id}><th scope="row"><span className="legend-key" style={{ background: s.color }} aria-hidden="true" />{s.label}</th>{s.values.map((v, i) => <td className="num" key={i}>{fmt(v)}{s.changed[i] && <sup className="matrix-change">*</sup>}</td>)}</tr>)}</tbody></table></div>
     <h3>By skill tag</h3>
     <p className="muted">Tags compare across skill matrix versions, so these stay comparable even when the team's skills change.</p>
     <TagTable rows={tags} columns={periods} />
@@ -46,10 +46,10 @@ function Trends({ data }) {
 }
 
 function TagTable({ rows, columns }) {
-  return <div className="heatmap-scroll"><table className="heatmap-table insights-table"><thead><tr><th>Skill tag</th>{columns.map((c, i) => <th key={i}>{c}</th>)}</tr></thead>
+  return <div className="heatmap-scroll"><table className="data-table insights-table"><thead><tr><th scope="col">Skill tag</th>{columns.map((c, i) => <th scope="col" className="num" key={i}>{c}</th>)}</tr></thead>
     <tbody>{rows.flatMap((row, index) => [
       (index === 0 || rows[index - 1].area !== row.area) && <tr key={`area-${row.area}`} className="area-row"><th colSpan={columns.length + 1} scope="colgroup">{AREA_LABELS[row.area] ?? row.area}</th></tr>,
-      <tr key={row.id}><td>{row.label}</td>{row.values.map((v, i) => <td key={i}>{fmt(v)}</td>)}</tr>,
+      <tr key={row.id}><th scope="row">{row.label}</th>{row.values.map((v, i) => <td className="num" key={i}>{fmt(v)}</td>)}</tr>,
     ])}</tbody></table></div>
 }
 
@@ -89,13 +89,13 @@ function Positions({ data }) {
   const period = data.period
   if (!period?.positions.length) return <p className="muted">No coach assessments in this period yet.</p>
   const groups = period.positions
-  const header = <tr><th>{''}</th>{groups.map(g => <th key={g.position}>{positionLabel(g.position)}<small>{g.players} {g.players === 1 ? 'player' : 'players'}</small></th>)}</tr>
+  const header = <tr><th scope="col">Skill area</th>{groups.map(g => <th scope="col" className="num" key={g.position}>{positionLabel(g.position)}<small>{g.players} {g.players === 1 ? 'player' : 'players'}</small></th>)}</tr>
   const sectionIds = [...new Set(groups.flatMap(g => Object.keys(g.sections)))]
   return <div className="insights">
     <p className="muted">Average coach ratings in {period.label}, grouped by each player's primary position.</p>
     <h3>By skill area</h3>
-    <div className="heatmap-scroll"><table className="heatmap-table insights-table"><thead>{header}</thead>
-      <tbody>{sectionIds.map(id => <tr key={id}><td>{data.section_labels[id] ?? id}</td>{groups.map(g => <td key={g.position}>{fmt(g.sections[id]?.average)}</td>)}</tr>)}</tbody></table></div>
+    <div className="heatmap-scroll"><table className="data-table insights-table"><thead>{header}</thead>
+      <tbody>{sectionIds.map(id => <tr key={id}><th scope="row">{data.section_labels[id] ?? id}</th>{groups.map(g => <td className="num" key={g.position}>{fmt(g.sections[id]?.average)}</td>)}</tr>)}</tbody></table></div>
     <h3>By skill tag</h3>
     <TagTable rows={tagPositionRows(data, groups)} columns={groups.map(g => positionLabel(g.position))} />
   </div>
