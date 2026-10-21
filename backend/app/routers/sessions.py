@@ -13,13 +13,15 @@ from ..insights import player_tags, team_insights
 from ..matrix import period_document, version_tags
 from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SessionTemplate,
                       SkillTag, TrainingSession, User, utcnow)
-from ..sessions import (LENGTHS, PHASES, balance_teams, block_groups, group_versions, plan as plan_session, ranked,
+from ..sessions import (LENGTHS, PHASES, TOGETHER, balance_teams, block_groups, drill_group_count, group_versions, plan as plan_session, ranked,
                         split_groups)
 from .drills import _library
 from .teams import scoped_period
 
 router = APIRouter(tags=["sessions"])
 GROUP_NAMES = ("Group A", "Group B", "Group C")
+# An exercise's own level groups are numbered, so they aren't mistaken for the session's.
+BLOCK_GROUP_NAMES = tuple(f"Group {i}" for i in range(1, 7))
 TEAM_NAMES = ("Team 1", "Team 2")
 RECENT_SESSIONS = 3
 
@@ -184,23 +186,44 @@ def _match_teams_out(db: DbSession, s: TrainingSession, names: dict[int, str]) -
 
 
 def _set_versions(block: SessionBlock, s: TrainingSession, variations: list[int], together: bool):
-    """Store a block's versions: one for everyone, or one per group."""
-    if s.versions == "groups" and not together:
+    """Store a block's versions: one for everyone, or one per group (the block's own groups, or the session's)."""
+    if block.groups or (s.versions == "groups" and not together):
         block.variation_id, block.group_variations = None, {str(i): v for i, v in enumerate(variations)}
     else:
         block.variation_id, block.group_variations = (variations[0] if variations else None), {}
 
 
 def _place_drill(db: DbSession, block: SessionBlock, s: TrainingSession, drill: dict | None, data: dict, title: str = ""):
-    """Put a drill (planner format) in a block at each group's starting version, or make it the coach's own block."""
+    """Put a drill (planner format) in a block at each group's starting version, or make it the coach's own block.
+    A block with its own groups splits them again for the new drill, whose player numbers may differ."""
     groups = block_groups(block.phase, data["groups"])
     together = s.versions == "groups" and len(groups) == 1
     if drill is None:
-        block.drill_id, block.title = None, title
+        block.drill_id, block.title, block.groups = None, title, None
         _set_versions(block, s, [], together)
         return
     block.drill_id, block.title = db.query(Drill.id).filter_by(slug=drill["slug"]).scalar(), drill["title"]
+    if block.groups and _make_block_groups(db, s, block, drill):
+        return
+    block.groups = None
     _set_versions(block, s, group_versions(drill, data["focus"], groups), together)
+
+
+def _make_block_groups(db: DbSession, s: TrainingSession, block: SessionBlock, drill: dict, groups: list[list[int]] | None = None) -> bool:
+    """Give a block its own level groups: these, or the expected players split by level on the session's first focus,
+    into as many groups as the drill's numbers suit. Each group starts at the version for its level. False, leaving
+    the block as it was, when there aren't enough players for two groups."""
+    period = db.get(Period, s.period_id)
+    expected = _expected_ids(db, s)
+    levels = _levels(db, period, expected, s.focus_tags[0])
+    if groups is None:
+        count = drill_group_count(len(expected), drill["players"])
+        if count is None:
+            return False
+        groups = split_groups([(pid, levels[pid]) for pid in expected], count)
+    block.groups = groups
+    _set_versions(block, s, group_versions(drill, s.focus_tags, [{"levels": [levels[pid] for pid in ids]} for ids in groups]), together=False)
+    return True
 
 
 def _renumber(db: DbSession, s: TrainingSession):
@@ -230,14 +253,19 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
     for b in db.query(SessionBlock).filter_by(session_id=s.id).order_by(SessionBlock.position):
         drill = db.get(Drill, b.drill_id) if b.drill_id else None
         # In groups mode, a version per group; a block the squad runs together has one. A coach's own block has none.
-        together = s.versions == "groups" and not b.group_variations
-        if s.versions == "groups" and not together:
+        # A block with its own groups has a version for each of them.
+        together = s.versions == "groups" and not b.group_variations and not b.groups
+        if b.groups:
+            variation_ids = [b.group_variations.get(str(i)) for i in range(len(b.groups))]
+        elif s.versions == "groups" and not together:
             variation_ids = [b.group_variations.get(str(i)) for i in range(len(s.groups))]
         else:
             variation_ids = [b.variation_id] if b.variation_id else []
         variations = {v.id: v for v in db.query(DrillVariation).filter(DrillVariation.id.in_([v for v in variation_ids if v] or [0]))}
         options = db.query(DrillVariation).filter_by(drill_id=drill.id).order_by(DrillVariation.position).all() if drill else []
         blocks.append({"id": b.id, "phase": b.phase, "minutes": b.minutes, "title": b.title, "notes": b.notes, "together": together,
+                       "groups": [{"name": BLOCK_GROUP_NAMES[i], "players": [{"id": pid, "name": names.get(pid, "?")} for pid in ids]}
+                                  for i, ids in enumerate(b.groups)] if b.groups else None,
                        "drill_versions": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]} for v in options],
                        "drill": {"slug": drill.slug, "title": drill.title} if drill else None, "chosen_by": b.chosen_by, "reasons": b.reasons,
                        "versions": [{"variation_id": vid, "kind": variations[vid].kind, "title": variations[vid].title,
@@ -389,7 +417,7 @@ class BlockPatch(BaseModel):
     minutes: int | None = Field(default=None, ge=1, le=120)
     drill: str | None = None
     title: str | None = Field(default=None, max_length=160)
-    versions: list[int] | None = Field(default=None, max_length=3)
+    versions: list[int] | None = Field(default=None, max_length=6)
     notes: str | None = Field(default=None, max_length=1000)
 
 
@@ -453,8 +481,8 @@ def change_block(team_id: int, session_id: int, block_id: int, body: BlockPatch,
         if block.drill_id is None:
             raise HTTPException(422, "A block without a drill has no versions")
         allowed = {v.id for v in db.query(DrillVariation).filter_by(drill_id=block.drill_id)}
-        together = s.versions == "groups" and not block.group_variations
-        wanted = 1 if s.versions == "single" or together else len(s.groups)
+        together = s.versions == "groups" and not block.group_variations and not block.groups
+        wanted = len(block.groups) if block.groups else 1 if s.versions == "single" or together else len(s.groups)
         if len(body.versions) != wanted or not set(body.versions) <= allowed:
             raise HTTPException(422, f"Give {wanted} {'version' if wanted == 1 else 'versions'} of this block's drill")
         _set_versions(block, s, body.versions, together)
@@ -509,7 +537,7 @@ def set_groups(team_id: int, session_id: int, body: GroupsIn, db: DbSession = De
     data = _session_data(db, s, user)
     by_slug = {d["slug"]: d for d in data["drills"]}
     for block in db.query(SessionBlock).filter_by(session_id=s.id):
-        if block.drill_id and block.group_variations:
+        if block.drill_id and block.group_variations and not block.groups:
             drill = by_slug.get(db.get(Drill, block.drill_id).slug)
             if drill:
                 _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
@@ -593,14 +621,97 @@ def set_attendance(team_id: int, session_id: int, body: AttendanceIn, db: DbSess
         data = _session_data(db, s, user)
         by_slug = {d["slug"]: d for d in data["drills"]}
         for block in db.query(SessionBlock).filter_by(session_id=s.id):
-            if block.drill_id and block.group_variations and block.chosen_by != "coach":
+            if block.drill_id and block.group_variations and not block.groups and block.chosen_by != "coach":
                 drill = by_slug.get(db.get(Drill, block.drill_id).slug)
                 if drill:
                     _set_versions(block, s, group_versions(drill, data["focus"], data["groups"]), together=False)
     if after != before:
         _refresh_teams(db, s, rebalance=True)  # teams from the players now expected, even the coach's
+        _remake_block_groups(db, s, user)
     _touch(s, user)
     db.commit()
+    return session_out(db, s)
+
+
+def _remake_block_groups(db: DbSession, s: TrainingSession, user: User):
+    """Exercises with their own groups split the players now expected again; with too few for two groups, the
+    exercise goes back to running like the rest of the session."""
+    blocks = db.query(SessionBlock).filter(SessionBlock.session_id == s.id, SessionBlock.groups.isnot(None)).all()
+    if not blocks:
+        return
+    data = _session_data(db, s, user)
+    by_slug = {d["slug"]: d for d in data["drills"]}
+    for block in blocks:
+        drill = by_slug.get(db.get(Drill, block.drill_id).slug) if block.drill_id else None
+        if not drill or not _make_block_groups(db, s, block, drill):
+            block.groups = None
+            if drill:
+                _place_drill(db, block, s, drill, data)
+
+
+class BlockGroupsIn(BaseModel):
+    groups: list[list[int]] = Field(min_length=2, max_length=6)
+
+
+def _block_drill(db: DbSession, s: TrainingSession, block: SessionBlock, user: User) -> tuple[dict, dict]:
+    if not block.drill_id:
+        raise HTTPException(422, "Choose a drill for this block first")
+    if block.phase == "full_squad_game":
+        raise HTTPException(422, "The full squad game is played in two teams")
+    data = _session_data(db, s, user)
+    return _planner_drill(data, db.get(Drill, block.drill_id).slug), data
+
+
+@router.post("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups")
+def make_block_groups(team_id: int, session_id: int, block_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Split the expected players into level groups for this exercise, each at its own version; again if it has them."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    block = _block(db, s, block_id)
+    drill, _ = _block_drill(db, s, block, user)
+    if not _make_block_groups(db, s, block, drill):
+        raise HTTPException(422, f"Not enough players for two groups: this drill needs at least {drill['players'][0]} in each")
+    block.chosen_by, block.reasons = "coach", ["Chosen by a coach."]
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.put("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups")
+def set_block_groups(team_id: int, session_id: int, block_id: int, body: BlockGroupsIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """Move players between an exercise's groups. Each group restarts at the version for its level."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    block = _block(db, s, block_id)
+    if not block.groups:
+        raise HTTPException(409, "This exercise has no groups of its own")
+    drill, _ = _block_drill(db, s, block, user)
+    if sorted(pid for g in body.groups for pid in g) != _expected_ids(db, s) or not all(body.groups):
+        raise HTTPException(422, "Each expected player must be in exactly one group, and no group can be empty")
+    _make_block_groups(db, s, block, drill, body.groups)
+    _touch(s, user)
+    db.commit()
+    return session_out(db, s)
+
+
+@router.delete("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups")
+def remove_block_groups(team_id: int, session_id: int, block_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The exercise goes back to running like the rest of the session: everyone together, or in the session's groups."""
+    require_member(team_id, db, user)
+    s = _session(db, team_id, session_id)
+    block = _block(db, s, block_id)
+    if block.groups:
+        block.groups = None
+        data = _session_data(db, s, user)
+        drill = next((d for d in data["drills"] if block.drill_id and d["slug"] == db.get(Drill, block.drill_id).slug), None)
+        if drill:
+            _place_drill(db, block, s, drill, data)
+        else:  # no longer in the library for this age group: keep the first group's version
+            first = block.group_variations.get("0")
+            per_group = s.versions == "groups" and block.phase not in TOGETHER
+            _set_versions(block, s, [first] * (len(s.groups) if per_group else 1) if first else [], together=not per_group)
+        _touch(s, user)
+        db.commit()
     return session_out(db, s)
 
 

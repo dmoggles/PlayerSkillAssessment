@@ -114,3 +114,20 @@ test('a coach can rename a session', async () => {
   assert.match(html, /Session name<input required="" maxLength="120" value="Training match"/)
   assert.match(html, /Save name/)
 })
+
+test('an exercise\'s own groups show who is in each and its version, and a drill can be swapped in a click', async () => {
+  const { BlockGroups, SwapDrill } = await loadJsx('src/areas/SessionsArea.jsx')
+  const block = { id: 5, drill: { slug: 'square', title: 'Passing square' },
+    groups: [{ name: 'Group 1', players: [{ id: 1, name: 'Ana' }, { id: 2, name: 'Ben' }] }, { name: 'Group 2', players: [{ id: 3, name: 'Cal' }] }],
+    versions: [{ variation_id: 9, kind: 'escalator', title: 'Two touch' }, { variation_id: 8, kind: 'base', title: 'Free touches' }] }
+  const html = renderToStaticMarkup(React.createElement(BlockGroups, { block, editing: false }))
+  assert.match(html, /<strong>Group 1<\/strong> · [^<]*Two touch[^<]*<span class="muted"> · Ana, Ben<\/span>/)
+  assert.match(html, /Change groups/)
+  assert.match(html, /Make again/)
+  assert.match(html, /One group/)
+  const editing = renderToStaticMarkup(React.createElement(BlockGroups, { block, editing: true }))
+  assert.match(editing, /Each group starts again at the version for its level/)
+  const swap = renderToStaticMarkup(React.createElement(SwapDrill, { teamId: 1, sessionId: 2, block, onMessage: () => {} }))
+  assert.match(swap, /Swap Passing square for/)
+  assert.match(swap, /Loading drills…/)
+})

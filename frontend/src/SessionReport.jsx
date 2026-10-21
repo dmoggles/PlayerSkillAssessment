@@ -11,7 +11,7 @@ export default function SessionReport({ session, teamName, drills }) {
   const times = blockTimes(session.blocks, session.start_time)
   const ends = blockTimes([...session.blocks, { minutes: 0 }], session.start_time).slice(1)
   const groups = session.versions === 'groups' ? session.groups : null
-  const blocks = session.blocks.map(block => reportBlock(block, drills[block.drill?.slug], groups))
+  const blocks = session.blocks.map(block => reportBlock(block, drills[block.drill?.slug], block.groups ?? groups))
   const equipment = sessionEquipment(blocks)
   const groupOf = Object.fromEntries((groups ?? []).flatMap(g => g.players.map(p => [p.id, g.name])))
   const register = session.attendance.filter(r => r.expected || r.attended)
@@ -46,6 +46,10 @@ export default function SessionReport({ session, teamName, drills }) {
       {b.block.phase === 'full_squad_game' && session.match_teams && <div className="report-teams">{session.match_teams.teams.map(t => <div key={t.name}>
         <p><strong>{t.name}</strong> ({t.players.length})</p>
         <ul>{t.players.map(p => <li key={p.id}>{p.name}{p.position_label ? ` · ${p.position_label}` : ''}</li>)}</ul>
+      </div>)}</div>}
+      {b.block.groups && <div className="report-teams">{b.block.groups.map(g => <div key={g.name}>
+        <p><strong>{g.name}</strong> ({g.players.length})</p>
+        <ul>{g.players.map(p => <li key={p.id}>{p.name}</li>)}</ul>
       </div>)}</div>}
       {b.versions.map(v => <p key={v.label} className="report-version"><strong>{v.label}</strong>{v.change ? ` ${v.change}` : ''}</p>)}
       {b.drill && <BlockDetail detail={b} />}

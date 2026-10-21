@@ -202,6 +202,18 @@ def plan(data: dict) -> dict:
     return {"planner": PLANNER, "blocks": blocks}
 
 
+MAX_DRILL_GROUPS = 6
+
+
+def drill_group_count(size: int, players: list[int]) -> int | None:
+    """How many level groups to split `size` players into for a drill of [min, ideal, max] players: at least two,
+    each with at least the drill's minimum, as close to its ideal size as possible (fewer groups on a tie). None
+    when there aren't enough players for two groups."""
+    low, ideal, _ = players
+    counts = range(2, min(MAX_DRILL_GROUPS, size // max(low, 1)) + 1)
+    return min(counts, key=lambda k: (abs(size / k - ideal), k), default=None)
+
+
 def split_groups(players: list[tuple[int, float | None]], count: int) -> list[list[int]]:
     """Players split into `count` groups of near-equal size by level, highest first. Unrated players go to the
     middle of the order, so they land in a middle group."""

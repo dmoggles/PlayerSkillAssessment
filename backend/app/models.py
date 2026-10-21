@@ -488,6 +488,9 @@ class SessionBlock(Base):
     title: Mapped[str] = mapped_column(String(160), default="")
     variation_id: Mapped[int | None] = mapped_column(ForeignKey("drill_variations.id", ondelete="SET NULL"))
     group_variations: Mapped[dict] = mapped_column(JSONB, default=dict)  # {"0": variation_id, ...}
+    # The block's own level groups ([[player_id, ...], ...]), when a coach made groups for this exercise. They
+    # replace the session's groups for the block, and group_variations has a version for each.
+    groups: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
     reasons: Mapped[list] = mapped_column(JSONB, default=list)
     chosen_by: Mapped[str] = mapped_column(String(8), default="planner")
     notes: Mapped[str] = mapped_column(String(1000), default="")

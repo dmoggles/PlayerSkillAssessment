@@ -112,6 +112,9 @@ ACCESS = {
     ("PATCH", "/teams/{team_id}/sessions/{session_id}"): (MEMBER, {"title": "Renamed"}, None),
     # Ordered so the coach's run (last test below) uses the block and session before deleting them.
     ("POST", "/teams/{team_id}/sessions/{session_id}/blocks"): (MEMBER, {"phase": "cool_down", "minutes": 5, "title": "Stretches"}, None),
+    ("POST", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups"): (MEMBER, None, None),
+    ("PUT", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups"): (MEMBER, {"groups": [[1], [2]]}, None),
+    ("DELETE", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups"): (MEMBER, None, None),
     ("PUT", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, {"minutes": 12}, None),
     ("GET", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/alternatives"): (MEMBER, None, None),
     ("DELETE", "/teams/{team_id}/sessions/{session_id}/blocks/{block_id}"): (MEMBER, None, None),

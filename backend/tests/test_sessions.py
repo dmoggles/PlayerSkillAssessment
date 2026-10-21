@@ -473,3 +473,77 @@ def test_a_session_that_is_mostly_a_match_is_called_a_training_match():
     assert default_title(game(31), 60, ["Short passing"]) == "Training match"
     assert default_title(game(30), 60, ["Short passing", "1v1 attacking"]) == "Short passing and 1v1 attacking"  # half isn't more than half
     assert default_title(game(20) + [{"phase": "full_squad_game", "minutes": 15}], 60, ["Short passing"]) == "Training match"
+
+
+def test_groups_fit_the_drills_numbers():
+    assert sessions.drill_group_count(12, [4, 6, 8]) == 2
+    assert sessions.drill_group_count(14, [4, 5, 6]) == 3
+    assert sessions.drill_group_count(16, [2, 4, 6]) == 4
+    assert sessions.drill_group_count(7, [4, 6, 8]) is None
+    assert sessions.drill_group_count(40, [2, 2, 4]) == sessions.MAX_DRILL_GROUPS
+
+
+def test_coaches_make_level_groups_for_one_exercise(monkeypatch):
+    clean_database()
+    with SessionLocal() as db:
+        for name in ("drills_v1.json", "drills_v2.json", "drills_v3.json", "drills_v4.json", "drills_v5.json"):
+            load_file(db, DATA_DIR / name)
+    owner, csrf = signed_in("sessions-block-groups@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = owner.post("/teams", json={"name": "Splitters"}, headers=headers).json()["id"]
+    period_id = owner.post(f"/teams/{team_id}/periods", json={"label": "Autumn"}, headers=headers).json()["id"]
+    skills = starter_skills()
+    ids = []
+    for i in range(16):
+        pid = owner.post(f"/teams/{team_id}/players", json={"name": f"Player {i:02}"}, headers=headers).json()["id"]
+        ids.append(pid)
+        owner.put(f"/teams/{team_id}/players/{pid}/group", params={"period_id": period_id}, json={"age_group": 12}, headers=headers)
+        owner.put(f"/teams/{team_id}/assessments/coach", headers=headers, json={"player_id": pid, "period_id": period_id, "version": 0, "primary_position": "midfielder",
+                  "ratings": [{"skill_id": s, "score": 1 + (i % 5) if s == "passing_short" else 3} for s in skills]})
+    session = owner.post(f"/teams/{team_id}/sessions", json={"period_id": period_id, "date": "2026-10-20", "length": 60, "focus_tags": ["passing_short"],
+                                                             "player_ids": ids}, headers=headers).json()
+    url = f"/teams/{team_id}/sessions/{session['id']}"
+    technical = next(b for b in session["blocks"] if b["phase"] == "technical")
+    assert technical["groups"] is None and len(technical["versions"]) == 1
+    block = lambda out: next(b for b in out["blocks"] if b["id"] == technical["id"])
+
+    made = owner.post(f"{url}/blocks/{technical['id']}/groups", headers=headers)
+    assert made.status_code == 200, made.text
+    groups = block(made.json())["groups"]
+    assert len(groups) >= 2 and sorted(p["id"] for g in groups for p in g["players"]) == sorted(ids)
+    assert groups[0]["name"] == "Group 1" and len(block(made.json())["versions"]) == len(groups)
+    assert block(made.json())["chosen_by"] == "coach"
+    # Split by level: the first group is the strongest, so it starts at a version at least as hard.
+    levels = [v["levels"][0] for v in block(made.json())["versions"]]
+    assert levels == sorted(levels, reverse=True)
+    # Other blocks are untouched.
+    assert all(b["groups"] is None for b in made.json()["blocks"] if b["id"] != technical["id"])
+
+    # Moving a player; every expected player exactly once, no empty group; versions one per group.
+    a, b = [p["id"] for p in groups[0]["players"]], [p["id"] for p in groups[1]["players"]]
+    rest = [[p["id"] for p in g["players"]] for g in groups[2:]]
+    assert owner.put(f"{url}/blocks/{technical['id']}/groups", json={"groups": [a, b[1:], *rest]}, headers=headers).status_code == 422
+    moved = owner.put(f"{url}/blocks/{technical['id']}/groups", json={"groups": [a + b[:1], b[1:], *rest]}, headers=headers).json()
+    assert len(block(moved)["groups"][0]["players"]) == len(a) + 1
+    easiest = block(moved)["drill_versions"][0]["id"]
+    assert owner.put(f"{url}/blocks/{technical['id']}", json={"versions": [easiest]}, headers=headers).status_code == 422
+    picked = owner.put(f"{url}/blocks/{technical['id']}", json={"versions": [easiest] * len(groups)}, headers=headers).json()
+    assert [v["variation_id"] for v in block(picked)["versions"]] == [easiest] * len(groups)
+
+    # Fewer players expected: the groups are made again from those still coming.
+    fewer = owner.put(f"{url}/attendance", json={"players": [{"player_id": ids[0], "expected": False}]}, headers=headers).json()
+    assert ids[0] not in {p["id"] for g in block(fewer)["groups"] for p in g["players"]}
+    # Swapping the drill keeps the exercise in groups.
+    options = owner.get(f"{url}/blocks/{technical['id']}/alternatives").json()
+    other = next(o for o in options["ranked"] if o["slug"] != technical["drill"]["slug"])
+    swapped = owner.put(f"{url}/blocks/{technical['id']}", json={"drill": other["slug"]}, headers=headers).json()
+    assert block(swapped)["drill"]["slug"] == other["slug"] and block(swapped)["groups"]
+    assert len(block(swapped)["versions"]) == len(block(swapped)["groups"])
+    # Back to one group; re-planning keeps the exercise as the coach's.
+    single = owner.delete(f"{url}/blocks/{technical['id']}/groups", headers=headers).json()
+    assert block(single)["groups"] is None and len(block(single)["versions"]) == 1
+
+    # The full squad game is for teams, and a block without a drill can't be split.
+    own = owner.post(f"{url}/blocks", json={"phase": "opposed", "minutes": 5, "title": "Our game"}, headers=headers).json()
+    own_id = next(b["id"] for b in own["blocks"] if b["title"] == "Our game")
+    assert owner.post(f"{url}/blocks/{own_id}/groups", headers=headers).status_code == 422

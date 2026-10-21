@@ -1197,7 +1197,7 @@ a.public-brand { text-decoration: none; }
   .report-equipment ul, .report-register ul { list-style: none; padding: 0; }
   .report-box { display: inline-block; width: 9pt; height: 9pt; margin-right: 5pt; border: 1pt solid #111; vertical-align: -1pt; }
   .report-groups { margin-bottom: 8pt; break-inside: avoid; }
-  .report-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14pt; margin: 4pt 0 6pt; break-inside: avoid; }
+  .report-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(38mm, 1fr)); gap: 0 14pt; margin: 4pt 0 6pt; break-inside: avoid; }
   .report-teams p { margin: 0 0 2pt; }
   .report-teams ul { margin: 0; padding-left: 14pt; }
   .report-block { padding: 6pt 0 8pt; border-top: 1pt solid #111; }
@@ -1234,6 +1234,19 @@ a.public-brand { text-decoration: none; }
 .session-block-together { margin: 0 0 2px; font-size: .8rem; font-weight: 700; color: var(--accent-ink); }
 .session-block-phase .status-pill { margin-left: 8px; font-size: .62rem; text-transform: none; letter-spacing: 0; }
 .session-edit { margin-top: 6px; padding: 2px 0; font-size: .85rem; }
+.session-block-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.session-block-actions .secondary-btn { padding: 8px 14px; border-radius: 8px; font-weight: 600; }
+.swap-drill { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafb; }
+.swap-drill h5 { margin: 0; font-size: .9rem; }
+.swap-options { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.swap-options li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.swap-options li > div { display: grid; gap: 2px; min-width: 0; }
+.swap-options small { font-size: .8rem; }
+.swap-options .secondary-btn, .swap-drill form .secondary-btn { flex: none; padding: 6px 12px; border-radius: 8px; font-weight: 600; }
+.swap-drill select { flex: 1 1 220px; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.swap-drill > .link-btn { justify-self: start; }
+.block-groups { display: grid; gap: 4px; }
+.block-groups .session-block-versions li { line-height: 1.4; }
 .session-view > .link-btn, .session-groups .link-btn { justify-self: start; margin-top: 8px; }
 .block-editor { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafb; }
 .block-editor-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }

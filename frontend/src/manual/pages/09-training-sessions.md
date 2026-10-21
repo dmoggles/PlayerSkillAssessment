@@ -42,7 +42,14 @@ Choose a template under **Plan** when you plan a session. Everything else works 
 
 ## Changing it
 
-- **Edit** a block to change its minutes, choose another drill (suggestions for that part of the session first, or any drill), change a group's version, or replace the drill with your own activity.
+- **Swap drill** lists the drills that suit that part of the session, best first, each with why it fits. Press **Use this** on one, or pick any other drill from the list below them.
+- **Make groups** splits the players expected into level groups for that exercise only, each running its own version of the drill. It makes as many groups as the drill's player numbers suit, so a drill for 4 to 6 players with 15 expected gets three groups of 5. The first group has the highest level on the session's first focus. Then:
+  - **Change groups** to move players between them; each group starts again at the version for its level;
+  - **Make again** to split them afresh;
+  - **One group** to run the exercise like the rest of the session again.
+
+  The groups are made again when the players expected change, and when you swap the drill. They're printed under the exercise.
+- **Edit** a block to change its minutes, choose another drill, change a group's version, or replace the drill with your own activity.
 - **+ Add a block** for your own activity in any part of the session.
 - **Change groups** to move players between level groups. Each group's version restarts at its level.
 - **Rename** to change the session's name. It's named after its focus to start with, or *Training match* when the full squad game is more than half the session.
