@@ -214,6 +214,7 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
             onRemove={() => change(() => deleteSessionBlock(teamId, session.id, block.id))} onMessage={onMessage} />
           : editing === `swap-${block.id}`
             ? <SwapDrill teamId={teamId} sessionId={session.id} block={block} onCancel={() => setEditing(null)} onMessage={onMessage}
+              onOpen={slug => setOpenDrill({ slug, variationId: null })}
               onSwap={slug => change(() => updateSessionBlock(teamId, session.id, block.id, { drill: slug }))} />
             : <div className="session-block-actions no-print">
               <button type="button" className="secondary-btn" onClick={() => setEditing(`swap-${block.id}`)}>{block.drill ? 'Swap drill' : 'Choose a drill'}</button>
@@ -337,7 +338,7 @@ function BlockEditor({ teamId, sessionId, block, groups, onSave, onRemove, onCan
 }
 
 // A drill for a block in a click: the planner's suggestions for this part, each with why, or any drill.
-export function SwapDrill({ teamId, sessionId, block, onSwap, onCancel, onMessage }) {
+export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onCancel, onMessage }) {
   const [options, setOptions] = useState(null)
   const [other, setOther] = useState('')
   useEffect(() => {
@@ -351,7 +352,7 @@ export function SwapDrill({ teamId, sessionId, block, onSwap, onCancel, onMessag
     <h5>{block.drill ? `Swap ${block.drill.title} for` : 'Choose a drill'}</h5>
     {!options ? <p className="muted" role="status">Loading drills…</p> : <>
       {ranked.length > 0 ? <ul className="swap-options">{ranked.map(o => <li key={o.slug}>
-        <div><strong>{o.title}</strong>{o.reasons.length > 0 && <small className="muted">{o.reasons.join(' ')}</small>}</div>
+        <div><button type="button" className="link-btn" onClick={() => onOpen(o.slug)}>{o.title}</button>{o.reasons.length > 0 && <small className="muted">{o.reasons.join(' ')}</small>}</div>
         <button type="button" className="secondary-btn" onClick={() => onSwap(o.slug)}>Use this</button>
       </li>)}</ul> : <p className="muted">No other drills suit this part of the session.</p>}
       <form className="inline-row" onSubmit={event => { event.preventDefault(); if (other) onSwap(other) }}>

@@ -1243,6 +1243,7 @@ a.public-brand { text-decoration: none; }
 .swap-options li { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
 .swap-options li > div { display: grid; gap: 2px; flex: 1 1 160px; min-width: 0; }
 .swap-options small { font-size: .8rem; }
+.swap-options li > div > .link-btn { padding: 0; border: 0; background: none; color: var(--accent); font-size: inherit; font-weight: 700; text-align: left; }
 .swap-options .secondary-btn, .swap-drill form .secondary-btn { flex: none; padding: 6px 12px; border-radius: 8px; font-weight: 600; }
 .swap-drill form { flex-wrap: wrap; margin-top: 0; }
 .swap-drill select { flex: 1 1 200px; width: 100%; min-width: 0; max-width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
