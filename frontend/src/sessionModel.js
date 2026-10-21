@@ -58,6 +58,12 @@ export function blockTimes(blocks, start = null) {
 
 export const versionLabel = version => version ? `${version.kind === 'base' ? 'Base' : version.kind === 'regression' ? 'Easier' : 'Harder'}: ${version.title}` : 'Base version'
 
+// How big each group is when `players` split into `count` near-equal groups: "5 players each" or "4–5 players each".
+export const groupSizes = (players, count) => {
+  const size = Math.floor(players / count)
+  return players % count ? `${size}–${size + 1} players each` : `${size} ${size === 1 ? 'player' : 'players'} each`
+}
+
 // A focus suggestion's chip text: "Short passing · 5 players".
 export const focusChip = focus => `${focus.label}${focus.players ? ` · ${focus.players} ${focus.players === 1 ? 'player' : 'players'}` : ''}`
 

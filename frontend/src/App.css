@@ -1184,6 +1184,17 @@ a.public-brand { text-decoration: none; }
 .sheet-action:hover strong { color: var(--accent); }
 .sheet-action small { color: var(--muted); font-size: .82rem; }
 .sheet-action.danger strong { color: var(--error); }
+.make-groups { display: grid; gap: 12px; }
+.make-groups > p { margin: 0; font-size: .9rem; }
+.group-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.group-count { display: grid; justify-items: start; align-content: start; gap: 3px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--heading); font: inherit; text-align: left; cursor: pointer; }
+.group-count small { color: var(--muted); font-size: .8rem; }
+.group-count .status-pill { margin: 2px 0 0; font-size: .7rem; }
+.group-count.selected { border: 2px solid var(--accent); padding: 9px 11px; background: var(--accent-tint); }
+.group-count:disabled { opacity: .5; cursor: not-allowed; }
+.group-count .group-count-warn { color: #8a5300; }
+.make-groups .inline-row .link-btn { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-weight: 600; }
+.make-groups .primary-btn { padding: 8px 14px; border-radius: 8px; }
 .sheet .block-editor { margin: 0; padding: 0; border: 0; background: none; }
 .sheet .block-note-form { margin: 0; }
 @media (max-width: 600px) {

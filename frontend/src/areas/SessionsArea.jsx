@@ -6,7 +6,7 @@ import { DrillDialog } from '../DrillLibrary'
 import SessionReport from '../SessionReport'
 import { AREA_LABELS } from '../drillModel'
 import { DEFAULT_BREAKDOWNS, PHASE_NAMES, SESSION_LENGTHS, blockTimes, breakdownText, focusChip, sessionDate, splitSessions, teamSummary, templateProblems,
-  templateTotal, versionLabel } from '../sessionModel'
+  templateTotal, groupSizes, versionLabel } from '../sessionModel'
 import { Section } from './DashboardParts'
 
 const tomorrow = () => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10) }
@@ -244,8 +244,7 @@ function SessionSheet({ sheet, session, groups, teamId, onSheet, change, onOpenD
     </Sheet>
     case 'menu': return <Sheet title={name} onClose={close}>
       <BlockMenu block={block} onPick={kind => onSheet({ kind, block: block.id })}
-        onMakeGroups={() => change(() => makeBlockGroups(teamId, session.id, block.id))}
-        onRemakeGroups={() => change(() => makeBlockGroups(teamId, session.id, block.id), () => { close(); onMessage('Groups made again.') })}
+        onRemakeGroups={() => change(() => makeBlockGroups(teamId, session.id, block.id, block.groups.length), () => { close(); onMessage('Groups made again.') })}
         onOneGroup={() => change(() => removeBlockGroups(teamId, session.id, block.id))}
         onRemove={() => { if (window.confirm(`Remove ${name} from the session?`)) change(() => deleteSessionBlock(teamId, session.id, block.id)) }} />
     </Sheet>
@@ -256,6 +255,9 @@ function SessionSheet({ sheet, session, groups, teamId, onSheet, change, onOpenD
     case 'edit': return <Sheet title={`Edit ${name}`} onClose={close} onBack={toMenu}>
       <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={runGroups} onCancel={toMenu} onMessage={onMessage}
         onSave={changes => change(() => updateSessionBlock(teamId, session.id, block.id, changes))} />
+    </Sheet>
+    case 'make-groups': return <Sheet title={block.groups ? 'Number of groups' : 'Make groups'} onClose={close} onBack={toMenu}>
+      <MakeGroups block={block} expected={session.expected} onCancel={toMenu} onMake={count => change(() => makeBlockGroups(teamId, session.id, block.id, count))} />
     </Sheet>
     case 'block-groups': return <Sheet title="Change groups" onClose={close} onBack={toMenu}>
       <GroupsEditor groups={block.groups} onCancel={toMenu} hint="Each group starts again at the version for its level."
@@ -291,13 +293,14 @@ function SheetAction({ label, hint, danger = false, onClick }) {
 }
 
 // Everything that can change about one exercise, from its Change button.
-export function BlockMenu({ block, onPick, onMakeGroups, onRemakeGroups, onOneGroup, onRemove }) {
+export function BlockMenu({ block, onPick, onRemakeGroups, onOneGroup, onRemove }) {
   const groupable = block.drill && block.phase !== 'full_squad_game'
   return <div className="sheet-actions">
     <SheetAction label={block.drill ? 'Swap drill' : 'Choose a drill'} hint="From the drills that suit this part of the session, or any drill." onClick={() => onPick('swap')} />
-    {groupable && !block.groups && <SheetAction label="Make groups" hint="Split the players by level for this exercise, each group at its own version." onClick={onMakeGroups} />}
+    {groupable && !block.groups && <SheetAction label="Make groups" hint="Split the players by level for this exercise, each group at its own version." onClick={() => onPick('make-groups')} />}
     {groupable && block.groups && <>
       <SheetAction label="Change groups" hint="Move players between this exercise's groups." onClick={() => onPick('block-groups')} />
+      <SheetAction label="Number of groups" hint={`${block.groups.length} groups now. Choose from 2 to 6.`} onClick={() => onPick('make-groups')} />
       <SheetAction label="Make groups again" hint="Split the players by level afresh." onClick={onRemakeGroups} />
       <SheetAction label="One group" hint="Run this exercise like the rest of the session." onClick={onOneGroup} />
     </>}
@@ -431,6 +434,27 @@ export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onMessage 
         <button type="submit" className="secondary-btn" disabled={!other}>Use this</button>
       </form>
     </>}
+  </div>
+}
+
+// How many level groups to split the players into for one exercise: 2 to 6, with the number the drill's numbers suit marked.
+export function MakeGroups({ block, expected, onMake, onCancel }) {
+  const [low, ideal, high] = block.drill.players ?? [1, 1, 1]
+  const [count, setCount] = useState(Math.min(block.groups?.length ?? block.suggested_groups ?? 2, Math.max(expected, 2)))
+  return <div className="make-groups">
+    <p className="muted">{expected} players expected. {block.drill.title} is for {low === high ? low : `${low}–${high}`} players{ideal !== low && ideal !== high ? `, best with ${ideal}` : ''}.</p>
+    <div className="group-counts" role="radiogroup" aria-label="Number of groups">{[2, 3, 4, 5, 6].map(k => {
+      const few = Math.floor(expected / k) < low && (Math.ceil(expected / k) < low ? 'Under' : 'Some under')
+      return <button key={k} type="button" role="radio" aria-checked={k === count} className={`group-count${k === count ? ' selected' : ''}`} disabled={k > expected} onClick={() => setCount(k)}>
+        <strong>{k} groups</strong>
+        <small>{k > expected ? 'Not enough players' : groupSizes(expected, k)}</small>
+        {k === block.suggested_groups && <span className="status-pill info-pill">Suits the drill</span>}
+        {few && k <= expected && <small className="group-count-warn">{few} the drill's minimum of {low}</small>}
+      </button>
+    })}</div>
+    <p className="muted hint">Players are split by level on the session's first focus, highest first, and each group starts at the version for its level.</p>
+    <div className="inline-row"><button type="button" className="primary-btn" disabled={expected < 2} onClick={() => onMake(count)}>Make {count} groups</button>
+      <button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
   </div>
 }
 

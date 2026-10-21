@@ -518,6 +518,12 @@ def test_coaches_make_level_groups_for_one_exercise(monkeypatch):
     assert levels == sorted(levels, reverse=True)
     # Other blocks are untouched.
     assert all(b["groups"] is None for b in made.json()["blocks"] if b["id"] != technical["id"])
+    # Make groups suggests what the drill's numbers suit, and the coach can choose any number from 2 to 6.
+    assert block(made.json())["suggested_groups"] == len(groups) and block(made.json())["drill"]["players"]
+    assert owner.post(f"{url}/blocks/{technical['id']}/groups", json={"count": 7}, headers=headers).status_code == 422
+    four = owner.post(f"{url}/blocks/{technical['id']}/groups", json={"count": 4}, headers=headers).json()
+    groups = block(four)["groups"]
+    assert len(groups) == 4 and len(block(four)["versions"]) == 4 and sorted(p["id"] for g in groups for p in g["players"]) == sorted(ids)
 
     # Moving a player; every expected player exactly once, no empty group; versions one per group.
     a, b = [p["id"] for p in groups[0]["players"]], [p["id"] for p in groups[1]["players"]]
@@ -533,11 +539,12 @@ def test_coaches_make_level_groups_for_one_exercise(monkeypatch):
     # Fewer players expected: the groups are made again from those still coming.
     fewer = owner.put(f"{url}/attendance", json={"players": [{"player_id": ids[0], "expected": False}]}, headers=headers).json()
     assert ids[0] not in {p["id"] for g in block(fewer)["groups"] for p in g["players"]}
+    assert len(block(fewer)["groups"]) == 4  # still the number the coach chose
     # Swapping the drill keeps the exercise in groups.
     options = owner.get(f"{url}/blocks/{technical['id']}/alternatives").json()
     other = next(o for o in options["ranked"] if o["slug"] != technical["drill"]["slug"])
     swapped = owner.put(f"{url}/blocks/{technical['id']}", json={"drill": other["slug"]}, headers=headers).json()
-    assert block(swapped)["drill"]["slug"] == other["slug"] and block(swapped)["groups"]
+    assert block(swapped)["drill"]["slug"] == other["slug"] and len(block(swapped)["groups"]) == 4
     assert len(block(swapped)["versions"]) == len(block(swapped)["groups"])
     # Back to one group; re-planning keeps the exercise as the coach's.
     single = owner.delete(f"{url}/blocks/{technical['id']}/groups", headers=headers).json()

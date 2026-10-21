@@ -92,7 +92,7 @@ export const deleteSessionBlock = (id, sessionId, blockId) => data(api.delete(`$
 export const getBlockAlternatives = (id, sessionId, blockId) => data(api.get(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/alternatives`))
 export const setSessionGroups = (id, sessionId, groups) => data(api.put(`${team(id)}/sessions/${sessionId}/groups`, { groups }))
 export const regenerateSession = (id, sessionId) => data(api.post(`${team(id)}/sessions/${sessionId}/regenerate`))
-export const makeBlockGroups = (id, sessionId, blockId) => data(api.post(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/groups`))
+export const makeBlockGroups = (id, sessionId, blockId, count = null) => data(api.post(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/groups`, count ? { count } : {}))
 export const setBlockGroups = (id, sessionId, blockId, groups) => data(api.put(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/groups`, { groups }))
 export const removeBlockGroups = (id, sessionId, blockId) => data(api.delete(`${team(id)}/sessions/${sessionId}/blocks/${blockId}/groups`))
 export const setMatchTeams = (id, sessionId, teams) => data(api.put(`${team(id)}/sessions/${sessionId}/match-teams`, { teams }))

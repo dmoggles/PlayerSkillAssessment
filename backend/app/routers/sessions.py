@@ -13,7 +13,7 @@ from ..insights import player_tags, team_insights
 from ..matrix import period_document, version_tags
 from ..models import (Assessment, Drill, DrillVariation, Period, Player, PlayerGroup, SessionAttendance, SessionBlock, SessionTemplate,
                       SkillTag, TrainingSession, User, utcnow)
-from ..sessions import (LENGTHS, PHASES, TOGETHER, balance_teams, block_groups, drill_group_count, group_versions, plan as plan_session, ranked,
+from ..sessions import (LENGTHS, PHASES, TOGETHER, balance_teams, block_groups, MAX_DRILL_GROUPS, drill_group_count, group_versions, plan as plan_session, ranked,
                         split_groups)
 from .drills import _library
 from .teams import scoped_period
@@ -203,22 +203,23 @@ def _place_drill(db: DbSession, block: SessionBlock, s: TrainingSession, drill: 
         _set_versions(block, s, [], together)
         return
     block.drill_id, block.title = db.query(Drill.id).filter_by(slug=drill["slug"]).scalar(), drill["title"]
-    if block.groups and _make_block_groups(db, s, block, drill):
+    if block.groups and _make_block_groups(db, s, block, drill, count=len(block.groups)):
         return
     block.groups = None
     _set_versions(block, s, group_versions(drill, data["focus"], groups), together)
 
 
-def _make_block_groups(db: DbSession, s: TrainingSession, block: SessionBlock, drill: dict, groups: list[list[int]] | None = None) -> bool:
-    """Give a block its own level groups: these, or the expected players split by level on the session's first focus,
-    into as many groups as the drill's numbers suit. Each group starts at the version for its level. False, leaving
-    the block as it was, when there aren't enough players for two groups."""
+def _make_block_groups(db: DbSession, s: TrainingSession, block: SessionBlock, drill: dict, groups: list[list[int]] | None = None,
+                       count: int | None = None) -> bool:
+    """Give a block its own level groups: these, or the expected players split by level on the session's first focus
+    into `count` groups (the coach's choice), or as many as the drill's numbers suit. Each group starts at the version
+    for its level. False, leaving the block as it was, when there aren't enough players for two groups."""
     period = db.get(Period, s.period_id)
     expected = _expected_ids(db, s)
     levels = _levels(db, period, expected, s.focus_tags[0])
     if groups is None:
-        count = drill_group_count(len(expected), drill["players"])
-        if count is None:
+        count = min(count, len(expected)) if count else drill_group_count(len(expected), drill["players"]) or min(2, len(expected))
+        if count < 2:
             return False
         groups = split_groups([(pid, levels[pid]) for pid in expected], count)
     block.groups = groups
@@ -249,6 +250,7 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
     labels = _tag_labels(db, s.focus_tags)
     names = {p.id: p.name for p in db.query(Player).filter_by(team_id=s.team_id)}
     attendance = db.query(SessionAttendance).filter_by(session_id=s.id).all()
+    expected = sum(r.expected for r in attendance)
     blocks = []
     for b in db.query(SessionBlock).filter_by(session_id=s.id).order_by(SessionBlock.position):
         drill = db.get(Drill, b.drill_id) if b.drill_id else None
@@ -263,11 +265,14 @@ def session_out(db: DbSession, s: TrainingSession) -> dict:
             variation_ids = [b.variation_id] if b.variation_id else []
         variations = {v.id: v for v in db.query(DrillVariation).filter(DrillVariation.id.in_([v for v in variation_ids if v] or [0]))}
         options = db.query(DrillVariation).filter_by(drill_id=drill.id).order_by(DrillVariation.position).all() if drill else []
+        players = [drill.players_min, drill.players_ideal, drill.players_max] if drill else None
         blocks.append({"id": b.id, "phase": b.phase, "minutes": b.minutes, "title": b.title, "notes": b.notes, "together": together,
                        "groups": [{"name": BLOCK_GROUP_NAMES[i], "players": [{"id": pid, "name": names.get(pid, "?")} for pid in ids]}
                                   for i, ids in enumerate(b.groups)] if b.groups else None,
                        "drill_versions": [{"id": v.id, "kind": v.kind, "title": v.title, "levels": [v.level_min, v.level_max]} for v in options],
-                       "drill": {"slug": drill.slug, "title": drill.title} if drill else None, "chosen_by": b.chosen_by, "reasons": b.reasons,
+                       "drill": {"slug": drill.slug, "title": drill.title, "players": players} if drill else None, "chosen_by": b.chosen_by, "reasons": b.reasons,
+                       # how many groups Make groups suggests: what the drill's player numbers suit
+                       "suggested_groups": drill_group_count(expected, players) if drill else None,
                        "versions": [{"variation_id": vid, "kind": variations[vid].kind, "title": variations[vid].title,
                                      "levels": [variations[vid].level_min, variations[vid].level_max]} if vid in variations else None
                                     for vid in variation_ids]})
@@ -643,14 +648,18 @@ def _remake_block_groups(db: DbSession, s: TrainingSession, user: User):
     by_slug = {d["slug"]: d for d in data["drills"]}
     for block in blocks:
         drill = by_slug.get(db.get(Drill, block.drill_id).slug) if block.drill_id else None
-        if not drill or not _make_block_groups(db, s, block, drill):
+        if not drill or not _make_block_groups(db, s, block, drill, count=len(block.groups)):
             block.groups = None
             if drill:
                 _place_drill(db, block, s, drill, data)
 
 
 class BlockGroupsIn(BaseModel):
-    groups: list[list[int]] = Field(min_length=2, max_length=6)
+    groups: list[list[int]] = Field(min_length=2, max_length=MAX_DRILL_GROUPS)
+
+
+class MakeGroupsIn(BaseModel):
+    count: int | None = Field(None, ge=2, le=MAX_DRILL_GROUPS)  # none: as many as the drill's numbers suit
 
 
 def _block_drill(db: DbSession, s: TrainingSession, block: SessionBlock, user: User) -> tuple[dict, dict]:
@@ -663,14 +672,16 @@ def _block_drill(db: DbSession, s: TrainingSession, block: SessionBlock, user: U
 
 
 @router.post("/teams/{team_id}/sessions/{session_id}/blocks/{block_id}/groups")
-def make_block_groups(team_id: int, session_id: int, block_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
-    """Split the expected players into level groups for this exercise, each at its own version; again if it has them."""
+def make_block_groups(team_id: int, session_id: int, block_id: int, body: MakeGroupsIn | None = None, db: DbSession = Depends(get_db),
+                      user: User = Depends(current_user)):
+    """Split the expected players into level groups for this exercise, each at its own version; again if it has them.
+    The coach chooses how many, or it's as many as the drill's numbers suit."""
     require_member(team_id, db, user)
     s = _session(db, team_id, session_id)
     block = _block(db, s, block_id)
     drill, _ = _block_drill(db, s, block, user)
-    if not _make_block_groups(db, s, block, drill):
-        raise HTTPException(422, f"Not enough players for two groups: this drill needs at least {drill['players'][0]} in each")
+    if not _make_block_groups(db, s, block, drill, count=body.count if body else None):
+        raise HTTPException(422, "At least two players must be expected to make groups")
     block.chosen_by, block.reasons = "coach", ["Chosen by a coach."]
     _touch(s, user)
     db.commit()

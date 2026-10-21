@@ -45,12 +45,13 @@ Choose a template under **Plan** when you plan a session. Everything else works 
 Each block has a **Change** button. It opens a menu, from the bottom of the screen on a phone:
 
 - **Swap drill** lists the drills that suit that part of the session, best first, each with why it fits. Press a drill's name to see it in full, and **Use this** to swap it in, or pick any other drill from the list below them.
-- **Make groups** splits the players expected into level groups for that exercise only, each running its own version of the drill. It makes as many groups as the drill's player numbers suit, so a drill for 4 to 6 players with 15 expected gets three groups of 5. The first group has the highest level on the session's first focus. Once it has groups, the menu has:
+- **Make groups** splits the players expected into level groups for that exercise only, each running its own version of the drill. Choose from 2 to 6 groups; the number that suits the drill's player numbers is marked, so a drill for 4 to 6 players with 15 expected suggests three groups of 5, and you're told when groups would be smaller than the drill's minimum. The first group has the highest level on the session's first focus. Once it has groups, the menu has:
   - **Change groups** to move players between them; each group starts again at the version for its level;
-  - **Make groups again** to split them afresh;
+  - **Number of groups** to split them into more or fewer;
+  - **Make groups again** to split them afresh into the same number;
   - **One group** to run the exercise like the rest of the session again.
 
-  The groups are made again when the players expected change, and when you swap the drill. They're printed under the exercise.
+  The groups are made again, in the same number, when the players expected change and when you swap the drill. They're printed under the exercise.
 - **Edit** changes the block's minutes or a group's version, or replaces the drill with your own activity.
 - **Add note** says how it went.
 - **Remove from the session** takes the block out.

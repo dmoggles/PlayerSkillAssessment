@@ -5,7 +5,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { loadJsx } from './helpers.mjs'
 
 test('sessions split into upcoming and past, with times for each block', async () => {
-  const { blockTimes, focusChip, splitSessions, versionLabel } = await loadJsx('src/sessionModel.js')
+  const { blockTimes, focusChip, groupSizes, splitSessions, versionLabel } = await loadJsx('src/sessionModel.js')
+  assert.equal(groupSizes(14, 3), '4–5 players each')
+  assert.equal(groupSizes(12, 6), '2 players each')
   const sessions = [{ id: 1, date: '2026-10-10' }, { id: 2, date: '2026-10-20' }, { id: 3, date: '2026-10-18' }, { id: 4, date: '2026-10-01' }]
   const { upcoming, past } = splitSessions(sessions, '2026-10-18')
   assert.deepEqual(upcoming.map(s => s.id), [3, 2], 'today counts as upcoming, soonest first')
@@ -116,7 +118,7 @@ test('a coach can rename a session', async () => {
 })
 
 test('an exercise\'s own groups show who is in each and its version, and its menu has every change', async () => {
-  const { BlockGroups, BlockMenu, SwapDrill } = await loadJsx('src/areas/SessionsArea.jsx')
+  const { BlockGroups, BlockMenu, MakeGroups, SwapDrill } = await loadJsx('src/areas/SessionsArea.jsx')
   const block = { id: 5, drill: { slug: 'square', title: 'Passing square' },
     groups: [{ name: 'Group 1', players: [{ id: 1, name: 'Ana' }, { id: 2, name: 'Ben' }] }, { name: 'Group 2', players: [{ id: 3, name: 'Cal' }] }],
     versions: [{ variation_id: 9, kind: 'escalator', title: 'Two touch' }, { variation_id: 8, kind: 'base', title: 'Free touches' }] }
@@ -130,6 +132,13 @@ test('an exercise\'s own groups show who is in each and its version, and its men
   assert.match(single, /<strong>Edit note<\/strong>/)
   const game = renderToStaticMarkup(React.createElement(BlockMenu, { block: { ...block, groups: null, phase: 'full_squad_game', notes: '' } }))
   assert.doesNotMatch(game, /Make groups/)
+  assert.match(menu, /<strong>Number of groups<\/strong><small>2 groups now/)
+  const make = renderToStaticMarkup(React.createElement(MakeGroups, { block: { ...block, groups: null, suggested_groups: 2, drill: { ...block.drill, players: [4, 5, 6] } }, expected: 10 }))
+  assert.match(make, /10 players expected. Passing square is for 4–6 players, best with 5/)
+  assert.match(make, /aria-checked="true" class="group-count selected"[^>]*><strong>2 groups<\/strong><small>5 players each<\/small><span class="status-pill info-pill">Suits the drill/)
+  assert.match(make, /<strong>3 groups<\/strong><small>3–4 players each<\/small><small class="group-count-warn">Some under the drill&#x27;s minimum of 4/)
+  assert.match(make, /<strong>4 groups<\/strong><small>2–3 players each<\/small><small class="group-count-warn">Under the drill/)
+  assert.match(make, /Make 2 groups/)
   const swap = renderToStaticMarkup(React.createElement(SwapDrill, { teamId: 1, sessionId: 2, block, onMessage: () => {} }))
   assert.match(swap, /Instead of <strong>Passing square<\/strong>/)
   assert.match(swap, /Loading drills…/)
