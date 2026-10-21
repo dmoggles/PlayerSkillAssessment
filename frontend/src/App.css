@@ -801,7 +801,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .profile-label.active { fill: var(--heading); text-decoration: underline; }
 .profile-tooltip { left: auto; right: 0; transform: none; }
 /* Tables of figures: labels on the left, numbers right-aligned under right-aligned headings. */
-.data-table { width: auto; min-width: min(100%, 560px); border-collapse: collapse; font-size: .88rem; }
+/* Separate borders, so a cell kept in view on a phone keeps its own lines. */
+.data-table { width: auto; min-width: min(100%, 560px); border-collapse: separate; border-spacing: 0; font-size: .88rem; }
 .data-table th, .data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
 .data-table thead th { vertical-align: bottom; border-bottom-width: 2px; color: var(--muted); font-size: .78rem; font-weight: 700; white-space: nowrap; }
 .data-table thead th small { display: block; margin-top: 2px; font-size: .72rem; font-weight: 400; white-space: normal; }
@@ -818,7 +819,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .data-table thead th { font-size: .72rem; }
   .profile-table thead .legend-key { display: block; margin: 0 0 4px auto; }
   /* Wide tables scroll sideways with the names kept in view, rather than squeezing the names. */
-  .data-table:not(.profile-table) tbody tr:not(.area-row) th { min-width: 9rem; overflow-wrap: normal; position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .data-table:not(.profile-table) tbody tr:not(.area-row) th, .data-table:not(.profile-table) thead th:first-child { min-width: 9rem; overflow-wrap: normal; position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .data-table .area-row th > span { position: sticky; left: 8px; }
 }
 .legend-key-dashed { border: 2px dashed; width: 12px; height: 0; border-width: 2px 0 0; border-radius: 0; vertical-align: middle; }
 .insight-bars, .insight-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }

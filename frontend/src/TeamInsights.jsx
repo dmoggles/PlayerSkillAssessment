@@ -48,7 +48,7 @@ function Trends({ data }) {
 function TagTable({ rows, columns }) {
   return <div className="heatmap-scroll"><table className="data-table insights-table"><thead><tr><th scope="col">Skill tag</th>{columns.map((c, i) => <th scope="col" className="num" key={i}>{c}</th>)}</tr></thead>
     <tbody>{rows.flatMap((row, index) => [
-      (index === 0 || rows[index - 1].area !== row.area) && <tr key={`area-${row.area}`} className="area-row"><th colSpan={columns.length + 1} scope="colgroup">{AREA_LABELS[row.area] ?? row.area}</th></tr>,
+      (index === 0 || rows[index - 1].area !== row.area) && <tr key={`area-${row.area}`} className="area-row"><th colSpan={columns.length + 1} scope="colgroup"><span>{AREA_LABELS[row.area] ?? row.area}</span></th></tr>,
       <tr key={row.id}><th scope="row">{row.label}</th>{row.values.map((v, i) => <td className="num" key={i}>{fmt(v)}</td>)}</tr>,
     ])}</tbody></table></div>
 }
