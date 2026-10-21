@@ -42,18 +42,26 @@ Choose a template under **Plan** when you plan a session. Everything else works 
 
 ## Changing it
 
-- **Swap drill** lists the drills that suit that part of the session, best first, each with why it fits. Press **Use this** on one, or pick any other drill from the list below them.
-- **Make groups** splits the players expected into level groups for that exercise only, each running its own version of the drill. It makes as many groups as the drill's player numbers suit, so a drill for 4 to 6 players with 15 expected gets three groups of 5. The first group has the highest level on the session's first focus. Then:
+Each block has a **Change** button. It opens a menu, from the bottom of the screen on a phone:
+
+- **Swap drill** lists the drills that suit that part of the session, best first, each with why it fits. Press a drill's name to see it in full, and **Use this** to swap it in, or pick any other drill from the list below them.
+- **Make groups** splits the players expected into level groups for that exercise only, each running its own version of the drill. It makes as many groups as the drill's player numbers suit, so a drill for 4 to 6 players with 15 expected gets three groups of 5. The first group has the highest level on the session's first focus. Once it has groups, the menu has:
   - **Change groups** to move players between them; each group starts again at the version for its level;
-  - **Make again** to split them afresh;
+  - **Make groups again** to split them afresh;
   - **One group** to run the exercise like the rest of the session again.
 
   The groups are made again when the players expected change, and when you swap the drill. They're printed under the exercise.
-- **Edit** a block to change its minutes, choose another drill, change a group's version, or replace the drill with your own activity.
-- **+ Add a block** for your own activity in any part of the session.
-- **Change groups** to move players between level groups. Each group's version restarts at its level.
-- **Rename** to change the session's name. It's named after its focus to start with, or *Training match* when the full squad game is more than half the session.
-- **Re-plan** plans the session again. Blocks you changed or added are kept, marked *Your choice*.
+- **Edit** changes the block's minutes or a group's version, or replaces the drill with your own activity.
+- **Add note** says how it went.
+- **Remove from the session** takes the block out.
+
+The session's own **Change** button, at the top, has:
+
+- **Rename**, to change the session's name. It's named after its focus to start with, or *Training match* when the full squad game is more than half the session.
+- **Re-plan**, to plan the session again. Blocks you changed or added are kept, marked *Your choice*.
+- **Change level groups**, to move players between the session's level groups. Each group's version restarts at its level.
+- **Add a block**, for your own activity in any part of the session. **+ Add a block** under the blocks does the same.
+- **Print** and **Delete the session**.
 
 Every coach in the team can see and change the team's sessions.
 
@@ -87,6 +95,6 @@ It prints in black on white; notes you've already saved print in place of the bl
 ## Afterwards
 
 - **Attendance:** tick who came. Before the session, ticking who's expected updates the groups.
-- **Add note** on a block to say how it went, and write a few lines under **How did it go?** for the whole session.
+- **Add note**, from a block's **Change** menu, to say how it went, and write a few lines under **How did it go?** for the whole session.
 
 > **Tip:** Which sessions a player was expected at and came to is part of what's recorded about them, so it's included when an owner exports a player's data, and removed when a player is deleted.

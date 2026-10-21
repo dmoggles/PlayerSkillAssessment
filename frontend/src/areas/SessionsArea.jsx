@@ -139,7 +139,8 @@ function NewSession({ team, period, players, onCreated, onCancel, onMessage }) {
 function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }) {
   const [session, setSession] = useState(null)
   const [openDrill, setOpenDrill] = useState(null)
-  const [editing, setEditing] = useState(null)  // a block id, 'swap-<id>', 'groups-<id>', 'title', 'groups', 'teams' or 'add'
+  const [editing, setEditing] = useState(null)  // 'teams', while the full squad game's teams are changed
+  const [sheet, setSheet] = useState(null)  // what's open in the sheet: see SessionSheet
   const [drills, setDrills] = useState({})  // each block's drill in full, by slug, for the printed report
   useEffect(() => {
     let live = true
@@ -162,7 +163,7 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
   const matchBlock = session.blocks.find(b => b.phase === 'full_squad_game')?.id
   // Every change returns the whole session, which replaces the one shown.
   const change = async (call, done = () => setEditing(null)) => {
-    try { setSession(await call()); done() } catch (e) { onMessage(errorMessage(e, 'Could not save the change.')) }
+    try { setSession(await call()); setSheet(null); done() } catch (e) { onMessage(errorMessage(e, 'Could not save the change.')) }
   }
   const remove = async () => {
     if (!window.confirm(`Delete ${session.title} on ${sessionDate(session.date)}? This can't be undone.`)) return
@@ -173,22 +174,17 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
   return <Section className="session-view" title={session.title} description={`${sessionDate(session.date, session.start_time)} · ${session.length} minutes${session.template ? ` (${session.template.name})` : ''} · ${session.expected} players expected`}>
     <div className="session-actions no-print">
       <button type="button" className="link-btn back-link" onClick={onBack}>← All sessions</button>
-      <button className="secondary-btn" type="button" onClick={() => setEditing('title')}>Rename</button>
-      <button className="secondary-btn" type="button" onClick={replan}>Re-plan</button>
       <button className="secondary-btn" type="button" onClick={() => window.print()}>Print</button>
-      <button type="button" className="danger-btn" onClick={remove}>Delete</button>
+      <button className="secondary-btn" type="button" aria-label="Change the session" onClick={() => setSheet({ kind: 'session' })}>Change</button>
     </div>
-    {editing === 'title' && <SessionName title={session.title} onCancel={() => setEditing(null)}
-      onSave={title => change(() => updateSession(teamId, session.id, { title }), () => { setEditing(null); onMessage('Session renamed.') })} />}
     <p className="session-focus-pills">{session.focus.map(f => <span key={f.tag_id} className="status-pill info-pill">{f.label}</span>)}
       {total !== session.length && <span className="status-pill warn-pill">{total} of {session.length} minutes planned</span>}</p>
-
     {groups && <div className="session-groups">{groups.map(g => <div key={g.name} className="session-group"><strong>{g.name}</strong><span>{g.players.map(p => p.name).join(', ') || 'Nobody'}</span></div>)}
-      {editing !== 'groups' && <button type="button" className="link-btn no-print" onClick={() => setEditing('groups')}>Change groups</button>}</div>}
-    {editing === 'groups' && <GroupsEditor groups={groups} onCancel={() => setEditing(null)} onSave={next => change(() => setSessionGroups(teamId, session.id, next))} />}
+      <button type="button" className="link-btn no-print" onClick={() => setSheet({ kind: 'groups' })}>Change groups</button></div>}
 
     <ol className="session-blocks">{session.blocks.map((block, i) => { const runGroups = block.groups ?? (groups && !block.together ? groups : null); return <li key={block.id} className={`session-block phase-${block.phase}`}>
       <div className="session-block-time"><span>{times[i]}</span><small>{block.minutes} min</small></div>
+      <button type="button" className="block-change-btn no-print" aria-label={`Change ${block.drill?.title ?? block.title}`} onClick={() => setSheet({ kind: 'menu', block: block.id })}>Change</button>
       <div className="session-block-body">
         <p className="session-block-phase">{PHASE_NAMES[block.phase]}{block.chosen_by === 'coach' && <span className="status-pill muted-pill">Your choice</span>}</p>
         {block.drill
@@ -196,42 +192,119 @@ function SessionView({ teamId, teamName, sessionId, players, onBack, onMessage }
           : <h4 className="session-own">{block.title}</h4>}
         {groups && block.together && <p className="session-block-together">Everyone together</p>}
         {block.drill && (block.groups
-          ? <BlockGroups block={block} editing={editing === `groups-${block.id}`} onEdit={() => setEditing(`groups-${block.id}`)} onCancel={() => setEditing(null)}
-            onSave={next => change(() => setBlockGroups(teamId, session.id, block.id, next))}
-            onRemake={() => change(() => makeBlockGroups(teamId, session.id, block.id), () => { setEditing(null); onMessage('Groups made again.') })}
-            onRemove={() => change(() => removeBlockGroups(teamId, session.id, block.id))} />
+          ? <BlockGroups block={block} />
           : runGroups
             ? <ul className="session-block-versions">{runGroups.map((g, j) => <li key={g.name}><strong>{g.name}:</strong> {versionLabel(block.versions[j])}</li>)}</ul>
             : <p className="session-block-version">{versionLabel(block.versions[0])}</p>)}
         {block.reasons.length > 0 && <p className="muted session-block-reasons">{block.reasons.join(' ')}</p>}
+        {block.notes && <p className="session-block-note"><strong>Note:</strong> {block.notes}</p>}
         {block.id === matchBlock && <MatchTeams match={session.match_teams} editing={editing === 'teams'} onEdit={() => setEditing('teams')} onCancel={() => setEditing(null)}
           onSave={teams => change(() => setMatchTeams(teamId, session.id, teams))}
           onSuggest={() => change(() => suggestMatchTeams(teamId, session.id), () => { setEditing(null); onMessage('Teams balanced again.') })} />}
-        <BlockNote note={block.notes} onSave={notes => change(() => updateSessionBlock(teamId, session.id, block.id, { notes }), () => {})} />
-        {editing === block.id
-          ? <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={runGroups} onCancel={() => setEditing(null)}
-            onSave={changes => change(() => updateSessionBlock(teamId, session.id, block.id, changes))}
-            onRemove={() => change(() => deleteSessionBlock(teamId, session.id, block.id))} onMessage={onMessage} />
-          : editing === `swap-${block.id}`
-            ? <SwapDrill teamId={teamId} sessionId={session.id} block={block} onCancel={() => setEditing(null)} onMessage={onMessage}
-              onOpen={slug => setOpenDrill({ slug, variationId: null })}
-              onSwap={slug => change(() => updateSessionBlock(teamId, session.id, block.id, { drill: slug }))} />
-            : <div className="session-block-actions no-print">
-              <button type="button" className="secondary-btn" onClick={() => setEditing(`swap-${block.id}`)}>{block.drill ? 'Swap drill' : 'Choose a drill'}</button>
-              {block.drill && !block.groups && block.phase !== 'full_squad_game' && <button type="button" className="secondary-btn"
-                onClick={() => change(() => makeBlockGroups(teamId, session.id, block.id))}>Make groups</button>}
-              <button type="button" className="secondary-btn" onClick={() => setEditing(block.id)}>Edit</button>
-            </div>}
       </div>
     </li> })}</ol>
-    {editing === 'add'
-      ? <AddBlock onCancel={() => setEditing(null)} onAdd={block => change(() => addSessionBlock(teamId, session.id, block))} />
-      : <button type="button" className="link-btn no-print" onClick={() => setEditing('add')}>+ Add a block</button>}
+    <button type="button" className="link-btn no-print" onClick={() => setSheet({ kind: 'add' })}>+ Add a block</button>
     <Attendance session={session} players={players} onSave={rows => change(() => setSessionAttendance(teamId, session.id, rows), () => onMessage('Attendance saved.'))} />
     <SessionNotes notes={session.notes} onSave={notes => change(() => updateSession(teamId, session.id, { notes }), () => onMessage('Notes saved.'))} />
+    {sheet && <SessionSheet key={sheet.block ?? sheet.kind} sheet={sheet} session={session} groups={groups} teamId={teamId} onSheet={setSheet} change={change}
+      onOpenDrill={setOpenDrill} onReplan={replan} onRemove={remove} onMessage={onMessage} />}
     {openDrill && <DrillDialog drill={openDrill} onMessage={onMessage} onClose={() => setOpenDrill(null)} />}
     <SessionReport session={session} teamName={teamName} drills={drills} />
   </Section>
+}
+
+// What's open in a session's sheet: the session's menu, or one exercise's menu and the change chosen from it.
+function SessionSheet({ sheet, session, groups, teamId, onSheet, change, onOpenDrill, onReplan, onRemove, onMessage }) {
+  const close = () => onSheet(null)
+  const block = sheet.block != null ? session.blocks.find(b => b.id === sheet.block) : null
+  if (sheet.block != null && !block) return null
+  const toMenu = () => onSheet({ kind: 'menu', block: block.id })
+  const runGroups = block && (block.groups ?? (groups && !block.together ? groups : null))
+  const name = block && (block.drill?.title ?? block.title)
+  switch (sheet.kind) {
+    case 'session': return <Sheet title={session.title} onClose={close}>
+      <div className="sheet-actions">
+        <SheetAction label="Rename" hint="Give the session another name." onClick={() => onSheet({ kind: 'title' })} />
+        <SheetAction label="Re-plan" hint="Plan it again. Blocks you chose or added are kept." onClick={() => { close(); onReplan() }} />
+        {groups && <SheetAction label="Change level groups" hint="Move players between the session's groups." onClick={() => onSheet({ kind: 'groups' })} />}
+        <SheetAction label="Add a block" hint="Your own activity, in any part of the session." onClick={() => onSheet({ kind: 'add' })} />
+        <SheetAction label="Print" hint="A plan made for paper, to take to training." onClick={() => { close(); setTimeout(() => window.print(), 50) }} />
+        <SheetAction label="Delete the session" danger onClick={() => { close(); onRemove() }} />
+      </div>
+    </Sheet>
+    case 'title': return <Sheet title="Rename" onClose={close} onBack={() => onSheet({ kind: 'session' })}>
+      <SessionName title={session.title} onCancel={close}
+        onSave={title => change(() => updateSession(teamId, session.id, { title }), () => { close(); onMessage('Session renamed.') })} />
+    </Sheet>
+    case 'groups': return <Sheet title="Change level groups" onClose={close}>
+      <GroupsEditor groups={groups} onCancel={close} onSave={next => change(() => setSessionGroups(teamId, session.id, next))} />
+    </Sheet>
+    case 'add': return <Sheet title="Add a block" onClose={close}>
+      <AddBlock onCancel={close} onAdd={added => change(() => addSessionBlock(teamId, session.id, added))} />
+    </Sheet>
+    case 'menu': return <Sheet title={name} onClose={close}>
+      <BlockMenu block={block} onPick={kind => onSheet({ kind, block: block.id })}
+        onMakeGroups={() => change(() => makeBlockGroups(teamId, session.id, block.id))}
+        onRemakeGroups={() => change(() => makeBlockGroups(teamId, session.id, block.id), () => { close(); onMessage('Groups made again.') })}
+        onOneGroup={() => change(() => removeBlockGroups(teamId, session.id, block.id))}
+        onRemove={() => { if (window.confirm(`Remove ${name} from the session?`)) change(() => deleteSessionBlock(teamId, session.id, block.id)) }} />
+    </Sheet>
+    case 'swap': return <Sheet title={block.drill ? 'Swap drill' : 'Choose a drill'} onClose={close} onBack={toMenu}>
+      <SwapDrill teamId={teamId} sessionId={session.id} block={block} onMessage={onMessage} onOpen={slug => onOpenDrill({ slug, variationId: null })}
+        onSwap={slug => change(() => updateSessionBlock(teamId, session.id, block.id, { drill: slug }))} />
+    </Sheet>
+    case 'edit': return <Sheet title={`Edit ${name}`} onClose={close} onBack={toMenu}>
+      <BlockEditor teamId={teamId} sessionId={session.id} block={block} groups={runGroups} onCancel={toMenu} onMessage={onMessage}
+        onSave={changes => change(() => updateSessionBlock(teamId, session.id, block.id, changes))} />
+    </Sheet>
+    case 'block-groups': return <Sheet title="Change groups" onClose={close} onBack={toMenu}>
+      <GroupsEditor groups={block.groups} onCancel={toMenu} hint="Each group starts again at the version for its level."
+        onSave={next => change(() => setBlockGroups(teamId, session.id, block.id, next))} />
+    </Sheet>
+    case 'note': return <Sheet title={block.notes ? 'Edit note' : 'Add note'} onClose={close} onBack={toMenu}>
+      <NoteForm note={block.notes} onCancel={toMenu} onSave={notes => change(() => updateSessionBlock(teamId, session.id, block.id, { notes }))} />
+    </Sheet>
+    default: return null
+  }
+}
+
+// A panel for changing part of a session: it slides up from the bottom on a phone, and sits in the middle on a wider screen.
+export function Sheet({ title, onBack, onClose, children }) {
+  const dialog = useRef(null)
+  useEffect(() => { if (dialog.current && !dialog.current.open) dialog.current.showModal?.() }, [])
+  return <dialog ref={dialog} className="sheet no-print" aria-label={title} onClose={onClose}
+    onClick={event => { if (event.target === dialog.current) dialog.current.close() }}>
+    <div className="sheet-inner">
+      <header className="sheet-head">
+        {onBack && <button type="button" className="sheet-back" aria-label="Back" onClick={onBack}>←</button>}
+        <h3>{title}</h3>
+        <button type="button" className="sheet-close" aria-label="Close" onClick={() => dialog.current?.close()}>✕</button>
+      </header>
+      {children}
+    </div>
+  </dialog>
+}
+
+// One choice in a sheet's menu: what it does, and a line more about it.
+function SheetAction({ label, hint, danger = false, onClick }) {
+  return <button type="button" className={`sheet-action${danger ? ' danger' : ''}`} onClick={onClick}><strong>{label}</strong>{hint && <small>{hint}</small>}</button>
+}
+
+// Everything that can change about one exercise, from its Change button.
+export function BlockMenu({ block, onPick, onMakeGroups, onRemakeGroups, onOneGroup, onRemove }) {
+  const groupable = block.drill && block.phase !== 'full_squad_game'
+  return <div className="sheet-actions">
+    <SheetAction label={block.drill ? 'Swap drill' : 'Choose a drill'} hint="From the drills that suit this part of the session, or any drill." onClick={() => onPick('swap')} />
+    {groupable && !block.groups && <SheetAction label="Make groups" hint="Split the players by level for this exercise, each group at its own version." onClick={onMakeGroups} />}
+    {groupable && block.groups && <>
+      <SheetAction label="Change groups" hint="Move players between this exercise's groups." onClick={() => onPick('block-groups')} />
+      <SheetAction label="Make groups again" hint="Split the players by level afresh." onClick={onRemakeGroups} />
+      <SheetAction label="One group" hint="Run this exercise like the rest of the session." onClick={onOneGroup} />
+    </>}
+    <SheetAction label="Edit" hint={block.drill ? 'Its minutes and versions, or your own activity instead.' : 'Its minutes and what you\'ll do.'} onClick={() => onPick('edit')} />
+    <SheetAction label={block.notes ? 'Edit note' : 'Add note'} hint="How it went, for next time." onClick={() => onPick('note')} />
+    <SheetAction label="Remove from the session" danger onClick={onRemove} />
+  </div>
 }
 
 // A note on one block, for afterwards: how it went.
@@ -244,15 +317,11 @@ export function SessionName({ title, onSave, onCancel }) {
   </form>
 }
 
-function BlockNote({ note, onSave }) {
-  const [open, setOpen] = useState(false)
+function NoteForm({ note, onSave, onCancel }) {
   const [text, setText] = useState(note)
-  if (!open) return note
-    ? <p className="session-block-note"><strong>Note:</strong> {note} <button type="button" className="link-btn no-print" onClick={() => setOpen(true)}>Edit note</button></p>
-    : <button type="button" className="link-btn session-edit no-print" onClick={() => setOpen(true)}>Add note</button>
-  return <form className="block-note-form no-print" onSubmit={event => { event.preventDefault(); onSave(text.trim()); setOpen(false) }}>
-    <textarea rows={2} maxLength={1000} aria-label="Note on this block" placeholder="How did it go?" value={text} onChange={e => setText(e.target.value)} />
-    <div className="inline-row"><button type="submit" className="primary-btn">Save note</button><button type="button" className="link-btn" onClick={() => { setText(note); setOpen(false) }}>Cancel</button></div>
+  return <form className="block-note-form" onSubmit={event => { event.preventDefault(); onSave(text.trim()) }}>
+    <textarea rows={4} maxLength={1000} aria-label="Note on this block" placeholder="How did it go?" value={text} onChange={e => setText(e.target.value)} />
+    <div className="inline-row"><button type="submit" className="primary-btn">Save note</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
   </form>
 }
 
@@ -291,7 +360,7 @@ function SessionNotes({ notes, onSave }) {
 const OWN = '__own__'
 
 // Change one block: its minutes, its drill (or your own activity), and its version for each group.
-function BlockEditor({ teamId, sessionId, block, groups, onSave, onRemove, onCancel, onMessage }) {
+function BlockEditor({ teamId, sessionId, block, groups, onSave, onCancel, onMessage }) {
   const [minutes, setMinutes] = useState(block.minutes)
   const [drill, setDrill] = useState(block.drill?.slug ?? OWN)
   const [title, setTitle] = useState(block.drill ? '' : block.title)
@@ -332,13 +401,12 @@ function BlockEditor({ teamId, sessionId, block, groups, onSave, onRemove, onCan
     <div className="inline-row">
       <button type="submit" className="primary-btn">Save</button>
       <button type="button" className="link-btn" onClick={onCancel}>Cancel</button>
-      <button type="button" className="link-btn danger-link" onClick={() => { if (window.confirm('Remove this block from the session?')) onRemove() }}>Remove block</button>
     </div>
   </form>
 }
 
 // A drill for a block in a click: the planner's suggestions for this part, each with why, or any drill.
-export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onCancel, onMessage }) {
+export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onMessage }) {
   const [options, setOptions] = useState(null)
   const [other, setOther] = useState('')
   useEffect(() => {
@@ -348,8 +416,8 @@ export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onCancel, 
   }, [teamId, sessionId, block.id, onMessage])
   const current = block.drill?.slug
   const ranked = (options?.ranked ?? []).filter(o => o.slug !== current)
-  return <div className="swap-drill no-print">
-    <h5>{block.drill ? `Swap ${block.drill.title} for` : 'Choose a drill'}</h5>
+  return <div className="swap-drill">
+    {block.drill && <p className="muted">Instead of <strong>{block.drill.title}</strong>:</p>}
     {!options ? <p className="muted" role="status">Loading drills…</p> : <>
       {ranked.length > 0 ? <ul className="swap-options">{ranked.map(o => <li key={o.slug}>
         <div><button type="button" className="link-btn" onClick={() => onOpen(o.slug)}>{o.title}</button>{o.reasons.length > 0 && <small className="muted">{o.reasons.join(' ')}</small>}</div>
@@ -363,23 +431,14 @@ export function SwapDrill({ teamId, sessionId, block, onSwap, onOpen, onCancel, 
         <button type="submit" className="secondary-btn" disabled={!other}>Use this</button>
       </form>
     </>}
-    <button type="button" className="link-btn" onClick={onCancel}>Cancel</button>
   </div>
 }
 
-// An exercise's own level groups: who's in each and the version it runs, with changes, splitting again, or one group.
-export function BlockGroups({ block, editing, onEdit, onSave, onRemake, onRemove, onCancel }) {
-  if (editing) return <GroupsEditor groups={block.groups} onSave={onSave} onCancel={onCancel} hint="Each group starts again at the version for its level." />
-  return <div className="block-groups">
-    <ul className="session-block-versions">{block.groups.map((g, j) => <li key={g.name}>
-      <strong>{g.name}</strong> · {versionLabel(block.versions[j])}<span className="muted"> · {g.players.map(p => p.name).join(', ') || 'Nobody'}</span>
-    </li>)}</ul>
-    <div className="inline-row no-print">
-      <button type="button" className="link-btn" onClick={onEdit}>Change groups</button>
-      <button type="button" className="link-btn" onClick={onRemake}>Make again</button>
-      <button type="button" className="link-btn" onClick={onRemove}>One group</button>
-    </div>
-  </div>
+// An exercise's own level groups: the version each runs, and who's in it. They're changed from the exercise's Change button.
+export function BlockGroups({ block }) {
+  return <ul className="session-block-versions block-groups">{block.groups.map((g, j) => <li key={g.name}>
+    <strong>{g.name}</strong> · {versionLabel(block.versions[j])}<span className="muted">{g.players.map(p => p.name).join(', ') || 'Nobody'}</span>
+  </li>)}</ul>
 }
 
 // Add your own activity to a part of the session; choose a drill for it afterwards with Edit if you like.
