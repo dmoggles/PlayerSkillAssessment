@@ -87,6 +87,15 @@ A team can submit one of its drills to the shared library. Site admins review su
 
 **Decline** with a reason the team sees.
 
+### Site admin review
+
+Every site admin gets an email, with a link to Settings, when something is waiting for them. Sending is best effort: the item is saved and waits in Settings even if the email fails.
+
+- **An access request** from the landing page, and **a new account** that didn't come from a team invitation.
+- **A video suggestion** on a library drill. Review it under **Settings → Video suggestions**. Nothing is shown until it's approved; approved videos are shown to every coach, and to players in shared reports.
+- **A drill submitted** to the shared library: see **Drills** above.
+- **A reported link** on a library drill, dead or inappropriate. Only the first open report of a link sends an email; later reports of it are counted in **Settings → Reported links**. **Hide from the drill** takes the link off it for everyone, and it stays hidden when the drill files are loaded again; **It's fine, keep it** dismisses the reports; **Show it again** brings back a hidden link. A coach can have up to 20 open reports.
+
 ### Public pages and search engines
 
 The landing page, the manual (`frontend/src/manual/pages/*.md`) and the legal pages are prerendered to static HTML at build time (`frontend/scripts/prerender.mjs`), each with its own title, description and link-preview tags; the coach app and private links get the plain shell, `app.html`. The web image takes two build arguments: `SITE_URL`, the site's address, and `SITE_INDEXING`. Only the production workflow sets `SITE_INDEXING=true`, which writes a `sitemap.xml` and a `robots.txt` that keeps the app and private links out of search; every other build is `noindex` and disallows everything.
