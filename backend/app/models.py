@@ -550,6 +550,27 @@ class DrillVideoSuggestion(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class DrillLinkReport(Base):
+    """A coach reporting a drill's video or link as broken or inappropriate. Reports are kept by URL, not by media
+    row, because the loader rewrites drill_media on every deploy; hiding a link hides that URL on that drill."""
+    __tablename__ = "drill_link_reports"
+    __table_args__ = (CheckConstraint("reason IN ('dead', 'inappropriate', 'other')", name="ck_drill_link_reports_reason"),
+                      CheckConstraint("status IN ('open', 'hidden', 'dismissed')", name="ck_drill_link_reports_status"),
+                      Index("ix_drill_link_reports_drill_url", "drill_id", "url"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"))
+    url: Mapped[str] = mapped_column(String(500))
+    # Set when the link is an approved coach's suggestion rather than one of the drill's own.
+    suggestion_id: Mapped[int | None] = mapped_column(ForeignKey("drill_video_suggestions.id", ondelete="CASCADE"))
+    reason: Mapped[str] = mapped_column(String(15))
+    note: Mapped[str] = mapped_column(String(500), default="")
+    reported_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[str] = mapped_column(String(10), default="open", index=True)
+    handled_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    handled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class DrillVote(Base):
     """A coach's like (+1) or dislike (-1) of a drill; the reason is optional and for dislikes only."""
     __tablename__ = "drill_votes"

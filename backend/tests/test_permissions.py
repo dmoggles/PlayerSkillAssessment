@@ -24,6 +24,11 @@ ACCESS = {
     ("PUT", "/drills/{slug}/vote"): (SIGNED_IN, {"vote": 1}, None),
     ("POST", "/drills/{slug}/video-suggestions"): (SIGNED_IN, {"url": "https://www.youtube.com/watch?v=aaaaaaaaaaa"}, None),
     ("GET", "/me/video-suggestions"): (SIGNED_IN, None, None),
+    ("POST", "/drills/{slug}/link-reports"): (SIGNED_IN, {"url": "https://example.com", "reason": "dead"}, None),
+    ("GET", "/admin/link-reports"): (ADMIN, None, None),
+    ("POST", "/admin/link-reports/{report_id}/hide"): (ADMIN, None, None),
+    ("POST", "/admin/link-reports/{report_id}/keep"): (ADMIN, None, None),
+    ("POST", "/admin/link-reports/{report_id}/restore"): (ADMIN, None, None),
     ("GET", "/admin/video-suggestions"): (ADMIN, None, None),
     ("POST", "/admin/video-suggestions/{suggestion_id}/approve"): (ADMIN, {"caption": "A video"}, None),
     ("POST", "/admin/video-suggestions/{suggestion_id}/reject"): (ADMIN, {"reason": "quality"}, None),
@@ -169,7 +174,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     ids = {"team_id": team_id, "template_id": template_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": drill_slug,
-           "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0}
+           "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0, "report_id": 0}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

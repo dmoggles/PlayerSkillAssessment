@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as DbSession
 from ..auth import current_user, require_member
 from ..database import get_db
 from ..matrix import version_tags
-from ..models import utcnow, Assessment, Drill, DrillSubmission, Membership, DrillLink, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
+from ..models import utcnow, Assessment, Drill, DrillSubmission, Membership, DrillLink, DrillLinkReport, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
 from .video_suggestions import approved_videos
 
 router = APIRouter(tags=["drills"])
@@ -83,10 +83,16 @@ def drill_detail(slug: str, db: DbSession = Depends(get_db), user: User = Depend
     return drill_out(db, drill_for(db, slug, user), user)
 
 
+def hidden_urls(db: DbSession, drill_id: int) -> set[str]:
+    """Links a site admin hid after a report. They stay off the drill, whatever the data files say."""
+    return {url for (url,) in db.query(DrillLinkReport.url).filter_by(drill_id=drill_id, status="hidden").distinct()}
+
+
 def drill_out(db: DbSession, drill: Drill, user: User | None) -> dict:
     """A drill in full. Without a user (a shared plan's link) there are no votes and no related drills."""
     variations = db.query(DrillVariation).filter_by(drill_id=drill.id).order_by(DrillVariation.position).all()
-    media = db.query(DrillMedia).filter_by(drill_id=drill.id).order_by(DrillMedia.position).all()
+    hidden = hidden_urls(db, drill.id)
+    media = [m for m in db.query(DrillMedia).filter_by(drill_id=drill.id).order_by(DrillMedia.position) if m.kind == "diagram" or m.url not in hidden]
     links = db.query(DrillLink, Drill).join(Drill, Drill.id == DrillLink.to_drill_id).filter(
         DrillLink.from_drill_id == drill.id, Drill.status == "published").all()
     levels = (min(v.level_min for v in variations), max(v.level_max for v in variations))

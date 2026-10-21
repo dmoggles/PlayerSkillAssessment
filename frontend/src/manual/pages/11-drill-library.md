@@ -50,6 +50,10 @@ If it's approved, the video is shown to everyone who uses TapLine IDP, including
 - if it shows players from your club, check with your club's welfare officer first;
 - don't suggest links that were shared with you privately, such as unlisted videos or links from a club or parents' group.
 
+## Reporting a link
+
+If a video or link on a library drill doesn't work, or shouldn't be there, press **Report link** next to it. Say what's wrong with it, and add a note if it helps. A site admin checks it, and either hides it from the drill for everyone or keeps it. Your team's own drills don't have the button: edit the drill to change its video.
+
 ## Heading drills
 
 Heading drills are for U12 and older only, and follow the FA's guidance on how many headers players take in training.

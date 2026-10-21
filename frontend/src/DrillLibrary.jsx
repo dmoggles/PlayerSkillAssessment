@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { deleteTeamDrill, errorMessage, getDrill, getDrills, submitTeamDrill, unlinkTeamDrill, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
 import TeamDrillForm from './TeamDrillForm'
+import ReportLink from './ReportLink'
 import { SuggestVideo } from './VideoSuggestions'
 import { AREA_LABELS, DISLIKE_REASONS, EMPTY_FILTERS, FORMAT_LABELS, INTENSITY_LABELS, PHASE_LABELS, activeFilterCount, effectiveDrill, equipmentLabel, filterOptions, matchesFilters, sortDrills, hasVideo, isVerticalVideo, levelRange, playersText, variationDiagram, videoEmbedUrl, visibleVideos } from './drillModel'
 
@@ -145,6 +146,8 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
   const shown = variationDiagram(drill, selected)
   const videos = visibleVideos(drill, selected)
   const links = drill.media.filter(m => m.kind === 'link')
+  // Coaches report a library drill's links; a team changes its own drill's video by editing it.
+  const reportable = drill.votes && !drill.team_id ? drill : null
   const view = effectiveDrill(drill, selected)
   const changedTag = field => view.changed.has(field) && <span className="status-pill warn-pill variation-changed">Changed for this variation</span>
 
@@ -169,7 +172,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
       </section>
       {shown && <DiagramPlayer key={shown.id} diagram={shown.diagram} caption={shown.caption} />}
     </div>
-    {videos.map(v => <VideoLink key={v.id} video={v} />)}
+    {videos.map(v => <VideoLink key={v.id} video={v} reportOn={reportable} />)}
     {drill.votes && !drill.team_id && <SuggestVideo key={drill.slug} drill={drill} variation={selected} prominent={!hasVideo(drill)} />}
     <p className="muted variation-note" aria-live="polite">Showing: <strong>{selected?.title}</strong>{view.changed.size ? '. Sections marked below differ from the base version.' : ''}</p>
     {view.setup && <section><h4>Setup {changedTag('setup')}</h4><p>{view.setup}</p></section>}
@@ -177,7 +180,7 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     <section><h4>How it runs {changedTag('instructions')}</h4><ol>{view.instructions.map(i => <li key={i}>{i}</li>)}</ol></section>
     <section><h4>Coaching points {changedTag('coaching_points')}</h4><ul>{view.coaching_points.map(c => <li key={c}>{c}</li>)}</ul></section>
     {drill.indoors && <section><h4>Indoors</h4><p>{drill.indoors}</p></section>}
-    {links.length > 0 && <section><h4>Links</h4><ul>{links.map(l => <li key={l.id}><a href={l.url} target="_blank" rel="noreferrer">{l.caption || l.url}</a></li>)}</ul></section>}
+    {links.length > 0 && <section><h4>Links</h4><ul>{links.map(l => <li key={l.id}><a href={l.url} target="_blank" rel="noreferrer">{l.caption || l.url}</a>{reportable && <ReportLink drill={reportable} url={l.url} />}</li>)}</ul></section>}
     {drill.links.length > 0 && <section><h4>Related drills</h4><ul>{drill.links.map(l => <li key={l.slug}><button type="button" className="link-btn" onClick={() => onOpen(l.slug)}>{l.title}</button> <span className="muted">({l.relation.replace('_', ' ')})</span></li>)}</ul></section>}
   </article>
 }
@@ -249,17 +252,19 @@ function DrillVote({ votes, onVote }) {
   </div>
 }
 
-// Videos load only when asked for, using YouTube's privacy-enhanced domain.
-export function VideoLink({ video }) {
+// Videos load only when asked for, using YouTube's privacy-enhanced domain. With `reportOn`, coaches can report it.
+export function VideoLink({ video, reportOn = null }) {
   const [playing, setPlaying] = useState(false)
   const embed = videoEmbedUrl(video.url, video.start_seconds)
-  if (!embed) return <p><a href={video.url} target="_blank" rel="noreferrer">{video.caption || 'Watch the video'}</a></p>
+  const report = reportOn && <ReportLink drill={reportOn} url={video.url} />
+  if (!embed) return <section className="drill-video"><p><a href={video.url} target="_blank" rel="noreferrer">{video.caption || 'Watch the video'}</a></p>{report}</section>
   return <section className="drill-video">
     <div className="drill-video-head">
       <button className="secondary-btn" type="button" aria-expanded={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Close video' : '▶ Play video'}</button>
       {video.forVariation && <span className="status-pill warn-pill variation-changed">For this variation</span>}
       {video.suggested && <span className="status-pill muted-pill">Suggested by a coach</span>}
       {video.caption && <p>{video.caption}</p>}
+      {report}
     </div>
     {/* Closing removes the player entirely, which also stops the video. */}
     {playing && <iframe className={isVerticalVideo(video.url) ? 'vertical' : undefined} src={embed} title={video.caption || 'Drill video'} allow="encrypted-media; picture-in-picture; fullscreen" referrerPolicy="strict-origin-when-cross-origin" />}

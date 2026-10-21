@@ -127,6 +127,7 @@ export function sortDrills(drills) {
 
 // Video suggestions: where each stands, and why an admin turned one down.
 export const SUGGESTION_STATUS = { pending: 'Waiting for review', approved: 'Added to the drill', rejected: 'Not added', hidden: 'Removed: no longer available' }
+export const LINK_REPORT_REASONS = { dead: "It doesn't work", inappropriate: "It's inappropriate", other: 'Something else' }
 export const REJECT_REASONS = { not_a_demo: "Doesn't show how to run the drill", mismatch: "Doesn't match this drill", quality: 'Poor quality', shared_privately: 'Shared privately: not for the library', safeguarding: 'Not suitable to share', other: 'Other' }
 // Ticked by a site admin before every approval: approved videos reach every coach, and players through shared reports.
 export const REVIEW_CHECKS = [

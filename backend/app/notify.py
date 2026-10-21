@@ -54,3 +54,11 @@ def drill_submitted(db: DbSession, submission, drill, team, user: User):
     if submission.note:
         lines.append(f"Their note:\n{submission.note}")
     notify_admins(db, f"Drill to review: {drill.title}", "\n\n".join(lines))
+
+
+def link_reported(db: DbSession, report, drill, user):
+    problem = {"dead": "doesn't work", "inappropriate": "is inappropriate", "other": "has a problem"}[report.reason]
+    lines = [f"{user.email} says a link on {drill.title} {problem}:", report.url]
+    if report.note:
+        lines.append(f"Their note:\n{report.note}")
+    notify_admins(db, f"Link reported on {drill.title}", "\n\n".join(lines))

@@ -266,3 +266,18 @@ test("a team's own version of a library drill starts from its words only, and th
   assert.match(ours, /Your team&#x27;s version of .*Rondo/)
   assert.ok(ours.includes('Unlink') && ours.includes('Use the library version instead') && !ours.includes('Submit to the shared library') && !ours.includes('>Delete<'))
 })
+
+test('coaches can report a library drill\'s videos, and site admins see what was reported', async () => {
+  const { VideoLink } = await loadJsx('src/DrillLibrary.jsx')
+  const { LINK_REPORT_REASONS } = await loadJsx('src/drillModel.js')
+  const { default: LinkReportQueue } = await loadJsx('src/areas/LinkReportQueue.jsx')
+  const video = { id: 1, url: 'https://www.youtube.com/watch?v=abcdefghijk', caption: 'A rondo' }
+  const drill = { slug: 'rondo-4v1' }
+  assert.match(renderToStaticMarkup(React.createElement(VideoLink, { video, reportOn: drill })), /aria-expanded="false"[^>]*>Report link</)
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(VideoLink, { video })), /Report link/)
+  assert.match(renderToStaticMarkup(React.createElement(VideoLink, { video: { ...video, url: 'https://example.com/clip' }, reportOn: drill })), /Report link/)
+  assert.deepEqual(Object.keys(LINK_REPORT_REASONS), ['dead', 'inappropriate', 'other'])
+  const html = renderToStaticMarkup(React.createElement(LinkReportQueue, { onMessage: () => {} }))
+  assert.match(html, /Reported links/)
+  assert.match(html, /Hidden/)
+})
