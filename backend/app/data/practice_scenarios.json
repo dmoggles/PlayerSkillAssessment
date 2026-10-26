@@ -111,8 +111,8 @@
         "type": "ellipse",
         "cx": 7.7,
         "cy": 16.8,
-        "rx": 3.5,
-        "ry": 3.5,
+        "rx": 3,
+        "ry": 3,
         "points": 60
        }
       ],
@@ -322,6 +322,102 @@
        },
        {
         "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-near-the-box-001",
+   "title": "Danger near the box",
+   "stage": 1,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "BALL_SIDE"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is wide, near your box. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 12,
+      "y": 4,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 10,
+       "y": 19
+      },
+      {
+       "id": "a2",
+       "x": 12,
+       "y": 4
+      },
+      {
+       "id": "a3",
+       "x": 24,
+       "y": 24
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 13,
+       "y": 26
+      },
+      {
+       "id": "d2",
+       "x": 10,
+       "y": 6,
+       "action": "PRESS"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 8.1,
+        "cy": 17.9,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 8.1,
+        "cy": 17.9,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Near goal, stay close: goal-side and on the ball's side.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
        }
       ]
      }
@@ -679,6 +775,958 @@
        },
        {
         "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-cover-presser-001",
+   "title": "Your partner presses: where do you cover?",
+   "stage": 3,
+   "role": "COVER",
+   "concepts": [
+    "COVER",
+    "PRESS"
+   ],
+   "skills": [
+    "pressing",
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "Your partner is pressing the ball. Where do you stand?",
+     "mark": "a2",
+     "ball": {
+      "x": 22,
+      "y": 14,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 22,
+       "y": 14
+      },
+      {
+       "id": "a2",
+       "x": 18,
+       "y": 24
+      },
+      {
+       "id": "a3",
+       "x": 26,
+       "y": 30
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 19.5,
+       "y": 14.5,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 12,
+       "y": 27
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 15.0,
+        "cy": 17.4,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 15.0,
+        "cy": 17.4,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Behind your partner, ready to help, and covering the next pass.",
+      "checks": [
+       {
+        "check": "BEHIND_PRESSER"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-partner-beaten-001",
+   "title": "Your partner is beaten",
+   "stage": 3,
+   "role": "PRESS",
+   "concepts": [
+    "COVER",
+    "PRESS",
+    "GOAL_SIDE"
+   ],
+   "skills": [
+    "pressing",
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "Your partner is pressing. Where do you cover?",
+     "mark": "a2",
+     "ball": {
+      "x": 24,
+      "y": 26,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 24,
+       "y": 26
+      },
+      {
+       "id": "a2",
+       "x": 20,
+       "y": 12
+      },
+      {
+       "id": "a3",
+       "x": 28,
+       "y": 6
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 21.5,
+       "y": 25.5,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 11,
+       "y": 12
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 17.4,
+        "cy": 22.0,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 17.4,
+        "cy": 22.0,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Behind your partner, between the ball and the goal.",
+      "checks": [
+       {
+        "check": "BEHIND_PRESSER"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "The attacker gets past your partner! What now?",
+     "mark": "a1",
+     "ball": {
+      "x": 17,
+      "y": 23.5,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 17,
+       "y": 23.5
+      },
+      {
+       "id": "a2",
+       "x": 20,
+       "y": 12
+      },
+      {
+       "id": "a3",
+       "x": 28,
+       "y": 6
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 21,
+       "y": 26.5
+      },
+      {
+       "id": "you",
+       "x": 17.4,
+       "y": 22
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 15.1,
+        "cy": 22.9,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 15.1,
+        "cy": 22.9,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Step up and press: close and goal-side, so they can't shoot.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-press-far-side-001",
+   "title": "Your partner presses on the far side",
+   "stage": 3,
+   "role": "COVER",
+   "concepts": [
+    "COVER",
+    "BALL_SIDE",
+    "DISTANCE_DROP"
+   ],
+   "skills": [
+    "pressing",
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "Your partner presses on the other wing. Where do you go?",
+     "mark": "a2",
+     "ball": {
+      "x": 20,
+      "y": 6,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 20,
+       "y": 6
+      },
+      {
+       "id": "a2",
+       "x": 16,
+       "y": 27
+      },
+      {
+       "id": "a3",
+       "x": 27,
+       "y": 18
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 17.5,
+       "y": 6.5,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 14,
+       "y": 30
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 13.5,
+        "cy": 23.2,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 13.5,
+        "cy": 23.2,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Shifted across towards the ball, still goal-side of your attacker.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-who-presses-001",
+   "title": "You're nearest: press",
+   "stage": 3,
+   "role": "PRESS",
+   "concepts": [
+    "PRESS",
+    "GOAL_SIDE",
+    "DISTANCE_TIGHT"
+   ],
+   "skills": [
+    "pressing"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball comes to the attacker nearest you. What do you do?",
+     "mark": "a1",
+     "ball": {
+      "x": 18,
+      "y": 12,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 18,
+       "y": 12
+      },
+      {
+       "id": "a2",
+       "x": 16,
+       "y": 27
+      },
+      {
+       "id": "a3",
+       "x": 28,
+       "y": 20
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 11,
+       "y": 18
+      },
+      {
+       "id": "d1",
+       "x": 12,
+       "y": 27,
+       "action": "MARK"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 16.3,
+        "cy": 12.6,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 16.3,
+        "cy": 12.6,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "You're nearest, so you press: close and goal-side.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-free-attacker-001",
+   "title": "Pick up the free attacker",
+   "stage": 4,
+   "role": "MARK",
+   "concepts": [
+    "NEAREST_THREAT",
+    "GOAL_SIDE",
+    "SCAN_MARKER"
+   ],
+   "skills": [
+    "scanning",
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "Two attackers are near you. Who do you mark, and where?",
+     "mark": "a3",
+     "showMark": false,
+     "ball": {
+      "x": 25,
+      "y": 18,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 25,
+       "y": 18
+      },
+      {
+       "id": "a2",
+       "x": 14,
+       "y": 10
+      },
+      {
+       "id": "a3",
+       "x": 15,
+       "y": 25
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 22,
+       "y": 18,
+       "action": "PRESS"
+      },
+      {
+       "id": "d2",
+       "x": 12,
+       "y": 11,
+       "action": "MARK"
+      },
+      {
+       "id": "you",
+       "x": 10,
+       "y": 17
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 12.7,
+        "cy": 22.9,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 12.7,
+        "cy": 22.9,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "The free attacker is the danger: goal-side of them, ball-side.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT",
+        "message": "Your teammate has one attacker. Pick up the free one."
+       },
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-ball-switches-001",
+   "title": "The ball switches: pick again",
+   "stage": 4,
+   "role": "MARK",
+   "concepts": [
+    "NEAREST_THREAT",
+    "SCAN_MARKER",
+    "BALL_SIDE"
+   ],
+   "skills": [
+    "scanning",
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is on the left. Who is the danger to mark?",
+     "mark": "a2",
+     "showMark": false,
+     "ball": {
+      "x": 22,
+      "y": 5,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 22,
+       "y": 5
+      },
+      {
+       "id": "a2",
+       "x": 16,
+       "y": 15
+      },
+      {
+       "id": "a3",
+       "x": 14,
+       "y": 28
+      },
+      {
+       "id": "a4",
+       "x": 24,
+       "y": 32
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 19.5,
+       "y": 6,
+       "action": "PRESS"
+      },
+      {
+       "id": "d2",
+       "x": 11,
+       "y": 26,
+       "action": "MARK"
+      },
+      {
+       "id": "you",
+       "x": 9,
+       "y": 21
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 12.9,
+        "cy": 14.6,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 12.9,
+        "cy": 14.6,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "The attacker nearest the ball and goal is the danger.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT",
+        "message": "Find the free attacker nearest the ball."
+       },
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "The ball switches to the right. Who now?",
+     "mark": "a3",
+     "showMark": false,
+     "ball": {
+      "x": 22,
+      "y": 32,
+      "with": "a4"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 23,
+       "y": 7
+      },
+      {
+       "id": "a2",
+       "x": 16,
+       "y": 15
+      },
+      {
+       "id": "a3",
+       "x": 14,
+       "y": 24
+      },
+      {
+       "id": "a4",
+       "x": 22,
+       "y": 32
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 18,
+       "y": 12
+      },
+      {
+       "id": "d2",
+       "x": 19.5,
+       "y": 31.5,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 12.9,
+       "y": 14.6
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 10.8,
+        "cy": 23.8,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 10.8,
+        "cy": 23.8,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Your partner presses, so you take the free attacker inside.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT",
+        "message": "Your partner went to the ball. Who is free now?"
+       },
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-run-in-behind-001",
+   "title": "Your attacker runs in behind",
+   "stage": 4,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "BALL_SIDE"
+   ],
+   "skills": [
+    "team_shape",
+    "scanning"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is in midfield. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 26,
+      "y": 12,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 16,
+       "y": 20
+      },
+      {
+       "id": "a2",
+       "x": 26,
+       "y": 12
+      },
+      {
+       "id": "a3",
+       "x": 22,
+       "y": 30
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 23,
+       "y": 13,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 10,
+       "y": 26
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 13.2,
+        "cy": 18.5,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 13.2,
+        "cy": 18.5,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Goal-side and ball-side, ready for a run.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "Your attacker runs in behind you! Where now?",
+     "mark": "a1",
+     "ball": {
+      "x": 25,
+      "y": 13,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 9,
+       "y": 22
+      },
+      {
+       "id": "a2",
+       "x": 25,
+       "y": 13
+      },
+      {
+       "id": "a3",
+       "x": 22,
+       "y": 30
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "d1",
+       "x": 23,
+       "y": 14,
+       "action": "PRESS"
+      },
+      {
+       "id": "you",
+       "x": 13.2,
+       "y": 18.5
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 7.0,
+        "cy": 20.3,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 7.0,
+        "cy": 20.3,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Turn and get goal-side again, with the ball still in view.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
        }
       ]
      }

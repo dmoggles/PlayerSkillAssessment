@@ -19,7 +19,9 @@ export function scoreFrame(scenario, frame, position) {
   const checks = (frame.target.checks ?? []).map(({ check, message }) => {
     const definition = CHECKS[check]
     const { pass, reason } = definition.run(position, frame, context)
-    return { id: check, pass, reason: pass === false ? reason : null, priority: definition.priority,
+    // When picking the right opponent is the task (they aren't shown), picking them is the first thing to fix.
+    const priority = check === 'NEAREST_THREAT' && frame.showMark === false ? 0 : definition.priority
+    return { id: check, pass, reason: pass === false ? reason : null, priority,
       message: pass === false ? message ?? definition.messages[reason] : null }
   })
   const failing = checks.filter(c => c.pass === false).sort((a, b) => a.priority - b.priority)

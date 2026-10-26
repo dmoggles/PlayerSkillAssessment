@@ -108,6 +108,8 @@ def scenario_problems(scenario, formats: dict, tags: set[str] | None = None) -> 
     unknown = set(scenario.get("thresholds") or {}) - THRESHOLDS
     if unknown or not all(_number(v) and v > 0 for v in (scenario.get("thresholds") or {}).values()):
         say(f"{sid}: thresholds must be positive numbers, from {sorted(THRESHOLDS)}")
+    if scenario.get("lines") is not None and not isinstance(scenario["lines"], bool):
+        say(f"{sid}: lines must be true or false")
     pitch = pitch_for(scenario, formats)
     view = scenario.get("view")
     if view is not None and not (isinstance(view, dict) and _number(view.get("depth")) and 10 <= view["depth"] <= pitch["length"]):
@@ -164,6 +166,11 @@ def _frame_problems(frame: dict, where: str, topic: dict, pitch: dict, controlle
     mark = frame.get("mark")
     if mark is not None and people.get(mark, ("",))[0] != "opponents":
         say(f"{where}: mark must be an opponent's id")
+    # Whether the player is shown which opponent is theirs (not when picking them is the task), and whether the
+    # lines to goal start on.
+    for flag in ("showMark", "lines"):
+        if frame.get(flag) is not None and not isinstance(frame[flag], bool):
+            say(f"{where}: {flag} must be true or false")
     target = frame.get("target")
     if not isinstance(target, dict):
         return problems + [f"{where}: a frame needs a target"]
