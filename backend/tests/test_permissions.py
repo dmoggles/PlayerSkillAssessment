@@ -20,6 +20,7 @@ ACCESS = {
     ("GET", "/teams/{team_id}/matrix-versions/{version_id}"): (MEMBER, None, None),
     ("GET", "/skill-tags"): (SIGNED_IN, None, None),
     ("GET", "/drills"): (SIGNED_IN, None, None),
+    ("GET", "/practice/scenarios"): (SIGNED_IN, None, None),
     ("GET", "/drills/{slug}"): (SIGNED_IN, None, None),
     ("PUT", "/drills/{slug}/vote"): (SIGNED_IN, {"vote": 1}, None),
     ("POST", "/drills/{slug}/video-suggestions"): (SIGNED_IN, {"url": "https://www.youtube.com/watch?v=aaaaaaaaaaa"}, None),

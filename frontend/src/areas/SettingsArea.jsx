@@ -9,6 +9,7 @@ import LinkReportQueue from './LinkReportQueue'
 import VideoSuggestionQueue from './VideoSuggestionQueue'
 import LegalLinks from '../legal/LegalLinks'
 import DrillLibrary, { DrillLibrarySummary } from '../DrillLibrary'
+import PracticeLibrary, { PracticeLibrarySummary } from '../practice/PracticeLibrary'
 import MatrixSummary from '../MatrixSummary'
 import PeriodForm from '../PeriodForm'
 import SelfAssessmentBoard from '../SelfAssessmentBoard'
@@ -29,6 +30,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
   const { team, setTeams, players, setPlayers, periods, setPeriods, period, groups, setGroups, members, setMembers,
     chooseTeam, choosePeriod, choosePlayer, selectPeriod, dropTeam, confirmDiscard, restorePlayer, deletePlayer, forgetMatrices, onMessage } = dashboard
   const [drillLibraryOpen, setDrillLibraryOpen] = useState(false)
+  const [practiceOpen, setPracticeOpen] = useState(false)
   const [editingMatrix, setEditingMatrix] = useState(false)
   const owner = canManageTeam(team)
   const squad = squadGroups(players, groups)
@@ -46,6 +48,12 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <DrillLibrary key={`${team?.id}-${period?.id}-${squad.single}`} teamId={team?.id} ageGroup={squad.single} ageSpan={squad.span} onMessage={onMessage} />
     </Section>
   }
+  if (practiceOpen) {
+    return <Section title="Practice scenarios" description="Game situations players solve on a pitch, with feedback on every answer">
+      <button type="button" className="link-btn back-link" onClick={() => setPracticeOpen(false)}>← Back to settings</button>
+      <PracticeLibrary key={team?.id} ageGroup={squad.single} onMessage={onMessage} />
+    </Section>
+  }
   return <div className="settings-grid">
     <TeamsSection onCreated={created => { setTeams(previous => [...previous, created]); chooseTeam(String(created.id)); onMessage('Team created.') }} onMessage={onMessage} />
     {team && <>
@@ -57,6 +65,7 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
         <SelfAssessmentBoard key={`${team.id}-${period.id}`} teamId={String(team.id)} period={period} rosterKey={players.filter(p => p.active).map(p => `${p.id}:${p.name}`).join(',')} onMessage={onMessage} />
       </Section>}
       <Section title="Drill library" description="The shared library of drills for every skill"><DrillLibrarySummary onOpen={() => setDrillLibraryOpen(true)} /></Section>
+      <Section title="Practice scenarios" description="Game situations players solve on a pitch"><PracticeLibrarySummary onOpen={() => setPracticeOpen(true)} /></Section>
       {owner && <Section title="Skill matrix" description="The skills and level descriptions this team is rated on">
         <MatrixSummary key={team.id} teamId={String(team.id)} onEdit={() => setEditingMatrix(true)} />
       </Section>}

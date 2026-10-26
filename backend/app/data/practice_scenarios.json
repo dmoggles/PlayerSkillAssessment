@@ -1,0 +1,689 @@
+{
+ "formats": {
+  "7v7": {
+   "length": 54.9,
+   "width": 36.6,
+   "goalWidth": 3.66,
+   "penaltyArea": {
+    "depth": 9.14,
+    "width": 16.46
+   },
+   "penaltySpot": 7.32
+  },
+  "9v9": {
+   "length": 73.2,
+   "width": 45.7,
+   "goalWidth": 4.88,
+   "penaltyArea": {
+    "depth": 11.89,
+    "width": 29.26
+   },
+   "penaltySpot": 8.23
+  },
+  "11v11": {
+   "length": 100.0,
+   "width": 64.0,
+   "goalWidth": 7.32,
+   "penaltyArea": {
+    "depth": 16.5,
+    "width": 40.3
+   },
+   "penaltySpot": 11.0
+  }
+ },
+ "scenarios": [
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-drop-off-001",
+   "title": "Ball far away: where do you stand?",
+   "stage": 1,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "BALL_SIDE",
+    "DISTANCE_DROP"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is far from your attacker. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 31,
+      "y": 22,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 12,
+       "y": 14
+      },
+      {
+       "id": "a2",
+       "x": 31,
+       "y": 22
+      },
+      {
+       "id": "a3",
+       "x": 14,
+       "y": 28
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 12,
+       "y": 9
+      },
+      {
+       "id": "d2",
+       "x": 10.5,
+       "y": 26.5,
+       "action": "MARK"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 7.7,
+        "cy": 16.8,
+        "rx": 2,
+        "ry": 2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 7.7,
+        "cy": 16.8,
+        "rx": 3.5,
+        "ry": 3.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Goal-side and a few steps off: you see the ball and your attacker.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-tight-001",
+   "title": "Your attacker has the ball",
+   "stage": 1,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "DISTANCE_TIGHT"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "Your attacker has the ball near goal. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 14,
+      "y": 20,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 14,
+       "y": 20
+      },
+      {
+       "id": "a2",
+       "x": 24,
+       "y": 8
+      },
+      {
+       "id": "a3",
+       "x": 17,
+       "y": 31
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 8,
+       "y": 26
+      },
+      {
+       "id": "d2",
+       "x": 13,
+       "y": 29,
+       "action": "MARK"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 12,
+        "cy": 19.8,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 12,
+        "cy": 19.8,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Close and goal-side: you can block the shot without diving in.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-far-wing-001",
+   "title": "Ball on the far wing",
+   "stage": 1,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "BALL_SIDE",
+    "DISTANCE_DROP"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is on the far wing. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 20,
+      "y": 3,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 14,
+       "y": 30
+      },
+      {
+       "id": "a2",
+       "x": 20,
+       "y": 3
+      },
+      {
+       "id": "a3",
+       "x": 22,
+       "y": 16
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 15,
+       "y": 33
+      },
+      {
+       "id": "d2",
+       "x": 15,
+       "y": 7,
+       "action": "PRESS"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 11.8,
+        "cy": 25.6,
+        "rx": 1.8,
+        "ry": 1.8,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 11.8,
+        "cy": 25.6,
+        "rx": 3.5,
+        "ry": 3.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Goal-side, and shifted towards the ball to cover the space inside.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-wide-then-inside-001",
+   "title": "A wide pass, then inside",
+   "stage": 2,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "BALL_SIDE",
+    "DISTANCE_TIGHT"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is out wide. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 22,
+      "y": 4,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 15,
+       "y": 22
+      },
+      {
+       "id": "a2",
+       "x": 22,
+       "y": 4
+      },
+      {
+       "id": "a3",
+       "x": 24,
+       "y": 17
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 9,
+       "y": 27
+      },
+      {
+       "id": "d2",
+       "x": 17,
+       "y": 8,
+       "action": "PRESS"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 12,
+        "cy": 19.7,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 12,
+        "cy": 19.7,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Goal-side, and a step towards the ball.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "The ball goes inside, near your attacker. Where now?",
+     "mark": "a1",
+     "ball": {
+      "x": 21,
+      "y": 19,
+      "with": "a3"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 15,
+       "y": 22
+      },
+      {
+       "id": "a2",
+       "x": 22,
+       "y": 5
+      },
+      {
+       "id": "a3",
+       "x": 21,
+       "y": 19
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 9,
+       "y": 27
+      },
+      {
+       "id": "d2",
+       "x": 18,
+       "y": 15,
+       "action": "PRESS"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 13.2,
+        "cy": 20.9,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 13.2,
+        "cy": 20.9,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Tighter now the ball is close, and still goal-side.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "topic": "defending_off_ball",
+   "format": "7v7",
+   "ages": [
+    9,
+    12
+   ],
+   "controlled": "you",
+   "id": "def-ball-goes-away-001",
+   "title": "The ball goes away",
+   "stage": 2,
+   "role": "MARK",
+   "concepts": [
+    "GOAL_SIDE",
+    "DISTANCE_TIGHT",
+    "DISTANCE_DROP"
+   ],
+   "skills": [
+    "team_shape"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "The ball is near your attacker. Where do you stand?",
+     "mark": "a1",
+     "ball": {
+      "x": 18,
+      "y": 26,
+      "with": "a2"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 14,
+       "y": 22
+      },
+      {
+       "id": "a2",
+       "x": 18,
+       "y": 26
+      },
+      {
+       "id": "a3",
+       "x": 30,
+       "y": 6
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 8,
+       "y": 14
+      },
+      {
+       "id": "d2",
+       "x": 15.5,
+       "y": 28.5,
+       "action": "PRESS"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 11.9,
+        "cy": 22.1,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 11.9,
+        "cy": 22.1,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Tight and goal-side, on the ball's side.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "The ball goes back, far away. Where now?",
+     "mark": "a1",
+     "ball": {
+      "x": 30,
+      "y": 6,
+      "with": "a3"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 14,
+       "y": 22
+      },
+      {
+       "id": "a2",
+       "x": 19,
+       "y": 27
+      },
+      {
+       "id": "a3",
+       "x": 30,
+       "y": 6
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 8,
+       "y": 14
+      },
+      {
+       "id": "d2",
+       "x": 15,
+       "y": 27,
+       "action": "MARK"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 9.6,
+        "cy": 19.0,
+        "rx": 1.8,
+        "ry": 1.8,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 9.6,
+        "cy": 19.0,
+        "rx": 3.5,
+        "ry": 3.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Dropped off and goal-side: you see the ball and your attacker.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       },
+       {
+        "check": "DISTANCE_DROP"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

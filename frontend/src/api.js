@@ -80,6 +80,7 @@ export const editPlanSlot = (id, playerId, periodId, skillId, slot, change) => d
 export const generateSquadPlans = (id, periodId, onlyMissing) => data(api.post(`${team(id)}/plans/generate`, { period_id: periodId, only_missing: onlyMissing }))
 export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
+export const getPracticeLibrary = () => data(api.get('/practice/scenarios'))
 export const getSessions = (id, periodId) => data(api.get(`${team(id)}/sessions`, { params: periodId ? { period_id: periodId } : {} }))
 export const getSessionFocus = (id, periodId) => data(api.get(`${team(id)}/sessions/focus`, { params: { period_id: periodId } }))
 export const createSession = (id, session) => data(api.post(`${team(id)}/sessions`, session))
