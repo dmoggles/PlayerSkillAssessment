@@ -582,3 +582,51 @@ class DrillVote(Base):
     vote: Mapped[int] = mapped_column(SmallInteger)
     reason: Mapped[str | None] = mapped_column(String(20))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class PracticeLink(Base):
+    """A player's link to their practice scenarios: no account, just this link, which a coach can replace or
+    revoke. One per player; only the token's hash is kept."""
+    __tablename__ = "practice_links"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id", ondelete="CASCADE"), unique=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PracticeAssignment(Base):
+    """Practice a coach sets a player: one scenario, or a whole stage of a topic. Scenarios are content in
+    app/data/practice_scenarios.json, so they're named by their stable ids."""
+    __tablename__ = "practice_assignments"
+    __table_args__ = (CheckConstraint("(scenario_id IS NULL) <> (stage IS NULL)", name="ck_practice_assignments_one_target"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id", ondelete="CASCADE"), index=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id", ondelete="CASCADE"), index=True)
+    topic: Mapped[str] = mapped_column(String(40))
+    stage: Mapped[int | None] = mapped_column(SmallInteger)
+    scenario_id: Mapped[str | None] = mapped_column(String(80))
+    assigned_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    due_on: Mapped[date_type | None] = mapped_column(Date)
+
+
+class PracticeAttempt(Base):
+    """One check of one frame: where the player put themselves (or, for other tasks, what they chose), the points,
+    and which checks it missed. Append-only; summaries are worked out when they're read. Nothing else is kept:
+    no free text, device or location."""
+    __tablename__ = "practice_attempts"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id", ondelete="CASCADE"), index=True)
+    scenario_id: Mapped[str] = mapped_column(String(80))
+    frame_id: Mapped[str] = mapped_column(String(40))
+    attempt_no: Mapped[int] = mapped_column(SmallInteger)
+    x: Mapped[float | None] = mapped_column(Float)
+    y: Mapped[float | None] = mapped_column(Float)
+    choice: Mapped[str | None] = mapped_column(String(40))
+    points: Mapped[int] = mapped_column(SmallInteger)
+    zone_hit: Mapped[int | None] = mapped_column(SmallInteger)
+    failed_checks: Mapped[list] = mapped_column(JSONB, default=list)
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

@@ -1358,3 +1358,33 @@ a.public-brand { text-decoration: none; }
 .practice-stars { font-size: 2.4rem; letter-spacing: 4px; color: #d7dde3; }
 .practice-stars .earned { color: #f2b705; }
 @media (max-width: 600px) { .practice-pitch { width: calc(100% + 24px); max-width: none; margin: 0 -12px; } }
+
+/* A player's practice, and the coach's Practice tab. */
+.practice-page .public-card { max-width: 520px; margin-inline: auto; }
+.practice-card h1 { margin: 0 0 6px; font-size: 1.4rem; }
+.practice-card > p { font-size: 1rem; }
+.practice-assignment { display: grid; gap: 6px; margin-top: 18px; }
+.practice-assignment h2 { margin: 0; font-size: 1.1rem; }
+.practice-assignment > p { margin: 0; }
+.practice-assignment progress { width: 100%; height: 10px; accent-color: var(--accent); }
+.practice-scenarios .primary-btn { padding: 8px 16px; border-radius: 8px; font-weight: 700; min-height: 44px; }
+.practice-scenarios .secondary-btn { min-height: 44px; }
+.practice-mini-stars { color: #f2b705; font-size: 1rem; letter-spacing: 2px; }
+.practice-mini-stars span { color: #d7dde3; }
+.practice-panel { display: grid; gap: 20px; }
+.practice-panel h3 { margin: 0 0 8px; }
+.practice-panel h4 { margin: 12px 0 4px; font-size: .95rem; }
+.practice-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--accent-tint); font-size: .92rem; }
+.practice-panel .inline-row .link-btn { padding: 6px 2px; border: 0; background: none; font-weight: 600; color: var(--accent); }
+.practice-panel .danger-link { color: var(--error) !important; }
+.practice-panel .practice-scenarios small .link-btn { padding: 0 8px 0 0; border: 0; background: none; color: var(--accent); font-size: .85rem; text-align: left; }
+.practice-assign { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+.practice-assign .field { flex: 1 1 220px; }
+.practice-assign select, .practice-assign input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.practice-assign .primary-btn { padding: 9px 18px; border-radius: 8px; }
+.practice-weeks { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 140px; max-width: 520px; }
+.practice-week { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; height: 100%; gap: 2px; }
+.practice-week-bar { align-self: end; width: 70%; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--accent); }
+.practice-week-average { font-size: .75rem; font-weight: 700; color: var(--heading); }
+.practice-week small { font-size: .68rem; color: var(--muted); white-space: nowrap; }
+.practice-missed { margin: 0 0 12px; padding-left: 18px; }

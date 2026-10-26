@@ -126,3 +126,30 @@ test('a scenario opens on its first step, with Check disabled until your player 
   assert.match(html, /role="button" aria-label="Your player, [\d.]+ metres from your goal line/)
   assert.match(html, /<svg class="practice-pitch"/)
 })
+
+test('a player sees what their coach set, with progress and stars; a coach sees results as practice, not assessment', async () => {
+  const React = (await import('react')).default
+  const { renderToStaticMarkup } = await import('react-dom/server')
+  const { PracticeList } = await loadJsx('src/practice/PracticePage.jsx')
+  const { AssignForm, PracticeResults } = await loadJsx('src/practice/PracticePanel.jsx')
+  const [one, two] = SCENARIOS
+  const practice = { name: 'Isla', assignments: [{ id: 1, label: 'Off-ball defending, stage 1: Goal-side basics', due_on: '2026-11-01',
+    scenarios: [{ ...one, progress: { done: true, stars: 2, frames_done: 1, frames: 1 } }, { ...two, progress: { done: false, stars: 0, frames_done: 0, frames: 1 } }] }] }
+  const page = renderToStaticMarkup(React.createElement(PracticeList, { practice }))
+  assert.match(page, /Hi Isla/)
+  assert.match(page, /1 of 2 done · By /)
+  assert.match(page, /aria-label="2 of 3 stars">★★<span>★<\/span>/)
+  assert.match(page, />Play again<\/button>/)
+  assert.match(page, />Start<\/button>/)
+
+  const library = { topics: [{ id: 'defending_off_ball', label: 'Off-ball defending', stages: [{ stage: 1, label: 'Goal-side basics' }] }], scenarios: [one] }
+  const form = renderToStaticMarkup(React.createElement(AssignForm, { library }))
+  assert.match(form, /value="stage:defending_off_ball:1">Stage 1: Goal-side basics \(all\)/)
+  assert.match(form, new RegExp(`value="scenario:${one.id}"`))
+  const summary = { attempts: 6, weeks: [{ week_of: '2026-10-19', attempts: 2, average: 60 }, { week_of: '2026-10-26', attempts: 4, average: 80 }],
+    concepts: [{ concept: 'GOAL_SIDE', tries: 4, average: 70 }], missed: [{ check: 'GOAL_SIDE', count: 3 }] }
+  const results = renderToStaticMarkup(React.createElement(PracticeResults, { summary }))
+  assert.match(results, /Not goal-side <span class="muted">\(3 times\)/)
+  assert.match(results, /<th scope="row">Goal-side<\/th><td class="num">4<\/td><td class="num">70<\/td>/)
+  assert.match(renderToStaticMarkup(React.createElement(PracticeResults, { summary: { ...summary, attempts: 0 } })), /No practice yet/)
+})

@@ -1,5 +1,6 @@
 import ComparisonView from '../ComparisonView'
 import ConfirmedPrioritiesPanel from '../ConfirmedPrioritiesView'
+import PracticePanel from '../practice/PracticePanel'
 import ProfileView from '../ProfileView'
 import ProgressView from '../ProgressView'
 import ReportPanel from '../ReportPanel'
@@ -23,6 +24,7 @@ export default function PlayerDataArea({ team, player, players, period, periods,
     {shown === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={selfAssessment} />}
     {shown === 'progress' && <ProgressView matrix={matrix} history={history} />}
     {shown === 'priorities' && <ConfirmedPrioritiesPanel key={`${ids.teamId}-${ids.playerId}`} matrix={matrix} {...ids} periods={periods} />}
+    {shown === 'practice' && <PracticePanel key={`${ids.teamId}-${ids.playerId}`} teamId={ids.teamId} player={player} onMessage={onMessage} />}
     {shown === 'report' && <ReportPanel key={`${ids.teamId}-${ids.playerId}-${ids.periodId}`} matrix={matrix} {...ids} readOnly={!player.active} onMessage={onMessage} onDirtyChange={onReportDirty} />}
   </Section>
 }

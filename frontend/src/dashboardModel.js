@@ -46,6 +46,7 @@ export const PLAYER_DATA_TABS = [
   ['comparison', 'Comparison'],
   ['progress', 'Progress'],
   ['priorities', 'Confirmed priorities'],
+  ['practice', 'Practice'],
   ['report', 'Report'],
 ]
 

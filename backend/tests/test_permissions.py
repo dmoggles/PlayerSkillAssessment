@@ -21,6 +21,13 @@ ACCESS = {
     ("GET", "/skill-tags"): (SIGNED_IN, None, None),
     ("GET", "/drills"): (SIGNED_IN, None, None),
     ("GET", "/practice/scenarios"): (SIGNED_IN, None, None),
+    ("GET", "/practice/{token}"): (PUBLIC, None, None),
+    ("POST", "/practice/{token}/attempts"): (PUBLIC, None, None),
+    ("GET", "/teams/{team_id}/players/{player_id}/practice"): (MEMBER, None, None),
+    ("POST", "/teams/{team_id}/players/{player_id}/practice/assignments"): (MEMBER, {"topic": "defending_off_ball", "stage": 1}, None),
+    ("DELETE", "/teams/{team_id}/players/{player_id}/practice/assignments/{assignment_id}"): (MEMBER, None, None),
+    ("POST", "/teams/{team_id}/players/{player_id}/practice/link"): (MEMBER, None, None),
+    ("DELETE", "/teams/{team_id}/players/{player_id}/practice/link"): (MEMBER, None, None),
     ("GET", "/drills/{slug}"): (SIGNED_IN, None, None),
     ("PUT", "/drills/{slug}/vote"): (SIGNED_IN, {"vote": 1}, None),
     ("POST", "/drills/{slug}/video-suggestions"): (SIGNED_IN, {"url": "https://www.youtube.com/watch?v=aaaaaaaaaaa"}, None),
@@ -175,10 +182,12 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
     team_drill = {"title": "Passing square", "session_phase": "technical", "format": "small_group", "players": [4, 8, 12], "ages": [8, 14],
                   "duration": [10, 15], "intensity": "medium", "setup": "A square.", "instructions": ["Pass."], "tags": {"passing_short": 1.0}}
     drill_slug = owner.post(f"/teams/{team_id}/drills", json=team_drill, headers=headers).json()["slug"]
+    practice = owner.post(f"/teams/{team_id}/players/{player_id}/practice/assignments", json={"topic": "defending_off_ball", "stage": 1}, headers=headers).json()
     ids = {"team_id": team_id, "template_id": template_id, "player_id": player_id, "period_id": period_id, "session_id": session["id"], "block_id": session["blocks"][-1]["id"],
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": drill_slug,
-           "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0, "report_id": 0}
+           "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0, "report_id": 0,
+           "assignment_id": practice["assignments"][0]["id"]}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

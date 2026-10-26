@@ -4,6 +4,7 @@ import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, use
 const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
+const PracticePage = lazy(() => import('./practice/PracticePage'))
 import UpdateBanner from './UpdateBanner'
 import Landing from './site/Landing'
 import { LegalPage, ManualPage } from './site/lazyPages'
@@ -132,6 +133,7 @@ function Shell() {
     <Route path="/" element={<Landing user={loading ? undefined : user} />} />
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
+    <Route path="/practice/:token" element={<PracticePage />} />
     <Route path="/manual" element={<ManualPage user={loading ? undefined : user} />} />
     <Route path="/manual/:slug" element={<ManualPage user={loading ? undefined : user} />} />
     <Route path="/privacy" element={<LegalPage page="privacy" />} />

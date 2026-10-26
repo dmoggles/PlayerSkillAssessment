@@ -6,7 +6,7 @@ from ..audit import record
 from ..auth import consume_auth_token, current_user, require_member, send_email
 from ..config import settings
 from ..database import get_db
-from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User, SessionAttendance, SessionTemplate, TrainingSession, Drill
+from ..models import Assessment, AssessmentRevision, AuditEvent, AuthToken, MatrixDraft, MatrixSkillTag, MatrixVersion, Membership, Period, Player, PlayerReport, PracticeAssignment, PracticeAttempt, PracticeLink, PriorityConfirmation, Rating, SelfLink, PlayerGroup, PlayerPlan, DevelopmentCycle, CycleCheckin, SkillMatrix, Team, User, SessionAttendance, SessionTemplate, TrainingSession, Drill
 from .. import invites
 from .accounts import delivery_message
 
@@ -68,7 +68,8 @@ def scoped_period(db: DbSession, team_id: int, period_id: int) -> Period:
 
 def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     """Delete assessments, ratings, revisions, priorities, reports, saved plans, cycles and their check-ins, playing groups,
-    self links and training sessions (or a player's place in them) for the given players or periods."""
+    self links and training sessions (or a player's place in them) for the given players or periods, and a player's
+    practice: their link, what they were set and every attempt."""
     def scoped(model):
         query = db.query(model)
         if player_ids is not None:
@@ -89,6 +90,8 @@ def purge_assessment_data(db: DbSession, player_ids=None, period_ids=None):
     if player_ids is not None:
         gone = {pid for (pid,) in player_ids} if hasattr(player_ids, "all") else set(player_ids)  # a query or a list
         db.query(SessionAttendance).filter(SessionAttendance.player_id.in_(gone)).delete(synchronize_session=False)
+        for model in (PracticeAttempt, PracticeAssignment, PracticeLink):
+            db.query(model).filter(model.player_id.in_(gone)).delete(synchronize_session=False)
         team_ids = {t for (t,) in db.query(Player.team_id).filter(Player.id.in_(gone)).distinct()}
         for session in db.query(TrainingSession).filter(TrainingSession.team_id.in_(team_ids), TrainingSession.versions == "groups"):
             if any(gone & set(g["player_ids"]) for g in session.groups):

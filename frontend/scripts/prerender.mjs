@@ -56,7 +56,7 @@ for (const route of PUBLIC_ROUTES) {
 }
 
 // The app, private links and the API stay out of search results; development builds stay out entirely.
-const PRIVATE = ['/app/', '/api/', '/self/', '/report/', '/invite/', '/verify/', '/reset/', '/sign-in']
+const PRIVATE = ['/app/', '/api/', '/self/', '/report/', '/practice/', '/invite/', '/verify/', '/reset/', '/sign-in']
 fs.writeFileSync(path.join(dist, 'robots.txt'), indexing
   ? `User-agent: *\n${PRIVATE.map(p => `Disallow: ${p}`).join('\n')}\n\nSitemap: ${site}/sitemap.xml\n`
   : 'User-agent: *\nDisallow: /\n')

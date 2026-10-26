@@ -87,6 +87,26 @@ A team can submit one of its drills to the shared library. Site admins review su
 
 **Decline** with a reason the team sees.
 
+### Practice scenarios
+
+Practice scenarios are game situations a player solves on a pitch: they drag their player into position, press Check, and get points and one short reason. Like drills, they're content: `backend/app/data/practice_scenarios.json`, served by `GET /practice/scenarios` and checked by `backend/app/practice.py` (`file_problems` lists every mistake). The backend tests check the file and its skill tags. The frontend tests (`frontend/tests/practice.test.mjs`) check that each frame's best spot scores 100 and passes the frame's checks, and that no player starts on it.
+
+**Writing a scenario.** Each scenario has:
+- **About it:** an `id` that never changes, since attempts and assignments refer to it; a `topic` (`defending_off_ball` so far) and its `stage`; a `format`; the `ages` it suits; the `role`, `concepts` and skill tags it trains; and the `controlled` player's id.
+- **Frames:** each frame has a `prompt` of 15 words or fewer, the `ball` (with whoever has it), `team` and `opponents` (teammates may have an `action` of PRESS, COVER or MARK), and the `mark`, the opponent the player is responsible for.
+- **A target for each frame:** nested ellipse or polygon `zones` (the best scores 100, outer ones less), `reasonCorrect`, and the `checks` that apply, each with an optional `message`.
+- **Optional settings:** `showMark: false` hides which opponent is theirs, where picking them is the task. `lines` turns the lines to goal on or off. `next` names the following frame. `thresholds` overrides the defaults for that scenario.
+
+**Positions** are in metres. x runs from our goal line up the pitch and y across it, so our goal's centre is (0, width / 2). The FA's pitch, penalty area and goal sizes for each format are under `formats` in the same file, and a scenario can override them in `pitch`. Work out a frame's best spot from the coaching point (goal-side on the attacker's line to goal, shifted towards the ball, at the right distance), then run the frontend tests.
+
+**Scoring** happens in the app (`frontend/src/practice/`). The points are those of the best zone the position is in, or 0. The diagnostic checks in `checks.js` say what's wrong. Where the position isn't the best spot, the first failing check by priority gives the hint: goal-side, ball-side, distance, covering a presser, then picking the threat; picking comes first where `showMark` is false. Stars come from each frame's first try: an average of 90 or more is three stars, 60 or more is two.
+
+**Tuning:** the distances and angles behind the checks are in `frontend/src/practice/thresholds.js`, each explained, for coaches to review. Their names are listed in `practice.THRESHOLDS`.
+
+**A new topic** adds its roles, concepts, checks and stages to `practice.TOPICS`, and its checks to `checks.js`. A new kind of task, other than dragging into position, adds its name to `practice.TASKS`. Attempts already have room for a chosen option (`choice`) as well as a position.
+
+**Players** have no accounts. A coach gives each a link from Player Data → Practice: a random token, stored only as its hash, working for 30 days, and replaced or revoked by the coach. It opens only that player's practice. An attempt is refused unless it's for a scenario the player was set and fits its frame. A player can save at most 300 attempts an hour.
+
 ### Site admin review
 
 Every site admin gets an email, with a link to Settings, when something is waiting for them. Sending is best effort: the item is saved and waits in Settings even if the email fails.

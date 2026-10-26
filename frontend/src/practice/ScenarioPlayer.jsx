@@ -65,7 +65,6 @@ export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit }) 
     const earned = stars(firstTries)
     return <div className="practice-done" role="status">
       <p className="practice-stars" aria-label={`${earned} of 3 stars`}>{[1, 2, 3].map(n => <span key={n} className={n <= earned ? 'earned' : ''} aria-hidden="true">★</span>)}</p>
-      <h3>{scenario.title}</h3>
       <p>{earned === 3 ? 'Great positions all the way through.' : earned === 2 ? 'Good work. Try it again to get all three stars.' : 'Well done for finishing. Have another go!'}</p>
       <div className="practice-actions">
         <button type="button" className="secondary-btn" onClick={() => restart()}>Play again</button>

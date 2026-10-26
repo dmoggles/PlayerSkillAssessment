@@ -19,9 +19,9 @@ test('API validation errors become readable text without exposing submitted valu
 })
 
 test('player data exposes all sub-tabs, including confirmed priorities and the report', () => {
-  assert.deepEqual(PLAYER_DATA_TABS.map(([id]) => id), ['summary', 'profile', 'comparison', 'progress', 'priorities', 'report'])
-  assert.deepEqual(playerDataTabs(false).map(([id]) => id), ['summary', 'profile', 'progress', 'priorities', 'report'], 'no Comparison tab without self-assessment')
-  assert.equal(playerDataTabs(true).length, 6)
+  assert.deepEqual(PLAYER_DATA_TABS.map(([id]) => id), ['summary', 'profile', 'comparison', 'progress', 'priorities', 'practice', 'report'])
+  assert.deepEqual(playerDataTabs(false).map(([id]) => id), ['summary', 'profile', 'progress', 'priorities', 'practice', 'report'], 'no Comparison tab without self-assessment')
+  assert.equal(playerDataTabs(true).length, 7)
 })
 
 test('shared context chooses an active player and period, or a valid fallback', () => {
