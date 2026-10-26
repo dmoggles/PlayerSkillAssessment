@@ -9,7 +9,7 @@ import { Section } from './DashboardParts'
 
 // Player Data: one player's results for the period, in tabs. Without self-assessment there is no Comparison tab,
 // and nothing derived from self-ratings is shown.
-export default function PlayerDataArea({ team, player, period, periods, matrix, comparison, selfAssessment, history, view, onViewChange, confirmDiscard, onMessage, onReportDirty }) {
+export default function PlayerDataArea({ team, player, players, period, periods, matrix, comparison, selfAssessment, history, view, onViewChange, confirmDiscard, onMessage, onReportDirty }) {
   const selfAssessmentOn = Boolean(team.self_assessment_enabled)
   const tabs = playerDataTabs(selfAssessmentOn)
   const shown = tabs.some(([id]) => id === view) ? view : 'summary'
@@ -19,7 +19,7 @@ export default function PlayerDataArea({ team, player, period, periods, matrix, 
       <button aria-current={shown === id ? 'page' : undefined} className={shown === id ? 'active' : ''} key={id} type="button" onClick={() => { if (id !== shown && confirmDiscard()) onViewChange(id) }}>{label}</button>)}
     </nav>
     {shown === 'summary' && <SummaryView matrix={matrix} coach={comparison?.coach} player={selfAssessment} selfAssessmentOn={selfAssessmentOn} />}
-    {shown === 'profile' && <ProfileView key={`${ids.teamId}-${ids.playerId}-${ids.periodId}`} {...ids} selfAssessmentOn={selfAssessmentOn} />}
+    {shown === 'profile' && <ProfileView key={`${ids.teamId}-${ids.playerId}-${ids.periodId}`} {...ids} selfAssessmentOn={selfAssessmentOn} playerName={player.name} players={players} />}
     {shown === 'comparison' && <ComparisonView matrix={matrix} coach={comparison?.coach} player={selfAssessment} />}
     {shown === 'progress' && <ProgressView matrix={matrix} history={history} />}
     {shown === 'priorities' && <ConfirmedPrioritiesPanel key={`${ids.teamId}-${ids.playerId}`} matrix={matrix} {...ids} periods={periods} />}

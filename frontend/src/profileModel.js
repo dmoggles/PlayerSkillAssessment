@@ -47,8 +47,13 @@ export function labelLines(label, max = 12) {
 }
 
 // The shapes drawn on the web, back to front: last period's coach levels, then this period's player and coach.
-export function profileSeries(profile) {
+// Compared with another player, it's just the two players' coach levels, so the shapes stay readable.
+export function profileSeries(profile, compare = null) {
   const values = levels => profile.categories.map(c => levels?.[c.id] ?? null)
+  if (compare) return [
+    { id: 'compare', label: `${compare.name}, coach`, short: compare.name, color: SERIES_COLORS[2], values: values(compare.profile.coach) },
+    { id: 'coach', label: `${profile.name ?? 'This player'}, coach`, short: profile.name ?? 'Coach', color: SERIES_COLORS[0], filled: true, values: values(profile.coach) },
+  ]
   const series = []
   if (profile.previous) series.push({ id: 'previous', label: `Coach, ${profile.previous.period_label}`, short: 'Previous', sub: profile.previous.period_label, color: '#8795a1', dashed: true, values: values(profile.previous.coach) })
   if (profile.player) series.push({ id: 'player', label: 'Player', short: 'Player', color: SERIES_COLORS[1], values: values(profile.player) })

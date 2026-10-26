@@ -7,7 +7,7 @@ summary: Each player's summary, profile and progress, and the squad-wide picture
 Choose a player and period, then a tab:
 
 - **Summary:** how complete the assessment is, average ratings for each section, strengths and focus areas, and the biggest disagreements with the player's own view.
-- **Profile:** a web of the player's level in each skill category, from 1 at the centre to 5 at the edge.
+- **Profile:** a web of the player's level in each skill category, from 1 at the centre to 5 at the edge. **Compare with** lays another player from your team over it: the web then shows just the two players' coach levels for the period, and the table has a column for each. A goalkeeper and an outfield player are compared on the categories they share.
 - **Comparison:** your ratings and the player's, side by side (when self-assessment is on).
 - **Progress:** every skill across every period, with the change. Ratings carried over without review, a move to another age group, and skills whose wording changed are all marked, since they aren't directly comparable.
 - **Confirmed priorities:** what the player is working on, cycle by cycle.

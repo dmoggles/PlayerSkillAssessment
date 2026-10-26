@@ -270,7 +270,7 @@ export default function CoachDashboard({ user, onLogout }) {
             note: assessmentNote, setNote: setAssessmentNote, carried, setCarried, rate, keepCarried }} />)}
       {selectedTeam && currentArea.id === 'player-data' && (!selectedPlayer || !selectedPeriod || !matrix
         ? <Section title="No player data yet"><p className="muted">Add a player and period in Settings to view their data.</p></Section>
-        : <PlayerDataArea team={selectedTeam} player={selectedPlayer} period={selectedPeriod} periods={periods} matrix={matrix} comparison={comparison}
+        : <PlayerDataArea team={selectedTeam} player={selectedPlayer} players={players} period={selectedPeriod} periods={periods} matrix={matrix} comparison={comparison}
           selfAssessment={selfAssessment} history={history} view={playerDataView} onViewChange={setPlayerDataView} confirmDiscard={confirmDiscard}
           onMessage={setMessage} onReportDirty={setReportDirty} />)}
       {selectedTeam && currentArea.id === 'team-data' && (!selectedPeriod || !matrix

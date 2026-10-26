@@ -7,26 +7,47 @@ const W = 480, H = 360, GEOMETRY = { cx: W / 2, cy: H / 2, r: 120 }
 
 // The player's level per skill category as a web: coach and self-assessment for the period, and the coach's
 // levels from the previous period. The table underneath holds the same values.
-export default function ProfileView({ teamId, playerId, periodId, selfAssessmentOn }) {
+// A coach can lay another player from the team over it, to compare the two players' coach levels.
+export default function ProfileView({ teamId, playerId, periodId, selfAssessmentOn, playerName, players = [] }) {
   const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
+  const [compareId, setCompareId] = useState('')
+  const [compare, setCompare] = useState(null)  // { id, name, profile } once loaded
 
   useEffect(() => {
     let live = true
     getPlayerProfile(teamId, playerId, periodId).then(value => { if (live) setProfile(value) }).catch(e => { if (live) setError(errorMessage(e)) })
     return () => { live = false }
   }, [teamId, playerId, periodId])
+  useEffect(() => {
+    if (!compareId) return undefined
+    let live = true
+    const name = players.find(p => String(p.id) === compareId)?.name ?? 'Other player'
+    getPlayerProfile(teamId, compareId, periodId).then(value => { if (live) setCompare({ id: compareId, name, profile: value }) })
+      .catch(e => { if (live) setError(errorMessage(e)) })
+    return () => { live = false }
+  }, [teamId, compareId, periodId, players])
 
   if (error) return <p className="error" role="alert">{error}</p>
   if (!profile) return <p className="muted" role="status">Loading profile…</p>
-  return <ProfileChart profile={profile} selfAssessmentOn={selfAssessmentOn} />
+  const others = players.filter(p => String(p.id) !== String(playerId) && (p.active || String(p.id) === compareId)).sort((a, b) => a.name.localeCompare(b.name))
+  const shown = compareId && compare?.id === compareId ? compare : null
+  return <>
+    {others.length > 0 && <label className="field profile-compare">Compare with
+      <select value={compareId} onChange={e => setCompareId(e.target.value)}>
+        <option value="">Nobody</option>
+        {others.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select></label>}
+    {compareId && !shown && <p className="muted" role="status">Loading…</p>}
+    <ProfileChart profile={{ ...profile, name: playerName }} compare={shown} selfAssessmentOn={selfAssessmentOn} />
+  </>
 }
 
-export function ProfileChart({ profile, selfAssessmentOn }) {
+export function ProfileChart({ profile, selfAssessmentOn, compare = null }) {
   const [hover, setHover] = useState(null)
   if (!profile.coach && !profile.player) return <p className="muted">No assessments recorded for this player yet.</p>
   const { categories } = profile
-  const series = profileSeries(profile)
+  const series = profileSeries(profile, compare)
   const n = categories.length
 
   const nearest = event => {
@@ -43,7 +64,10 @@ export function ProfileChart({ profile, selfAssessmentOn }) {
 
   return <div className="profile">
     {!profile.coach && <p className="warning">You haven't saved a coach assessment yet.</p>}
-    {selfAssessmentOn && profile.coach && !profile.player && <p className="warning">No player self-assessment submitted yet.</p>}
+    {!compare && selfAssessmentOn && profile.coach && !profile.player && <p className="warning">No player self-assessment submitted yet.</p>}
+    {compare && !compare.profile.coach && <p className="warning">{compare.name} has no coach assessment this period.</p>}
+    {compare?.profile.coach && compare.profile.position !== profile.position && <p className="muted hint">
+      {compare.name} is assessed as {compare.profile.position === 'goalkeeper' ? 'a goalkeeper' : 'an outfield player'}, so only the categories they share are compared.</p>}
     <ul className="chart-legend">{series.map(s => <li key={s.id}><span className={`legend-key${s.dashed ? ' legend-key-dashed' : ''}`} style={{ background: s.dashed ? 'none' : s.color, borderColor: s.color }} aria-hidden="true" />{s.label}</li>)}</ul>
     {canDrawWeb(categories)
       ? <div className="profile-plot">

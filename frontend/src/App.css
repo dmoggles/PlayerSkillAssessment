@@ -795,6 +795,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .chart-tooltip { position: absolute; top: 8px; transform: translateX(-50%); min-width: 150px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 4px 14px #1423341f; font-size: .8rem; pointer-events: none; display: grid; gap: 2px; }
 .chart-tooltip b { margin-right: 4px; }
 .profile { display: grid; gap: 12px; }
+.profile-compare { max-width: 320px; margin-bottom: 12px; }
+.profile-compare select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.profile-table th small { overflow-wrap: anywhere; }
 .profile-plot { position: relative; max-width: 560px; }
 .profile-plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
 .profile-label { fill: var(--text); font-size: 13px; font-weight: 600; }

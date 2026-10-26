@@ -308,4 +308,18 @@ test('profile chart draws coach, player and previous shapes with a table of the 
   assert.doesNotMatch(few, /<svg/)
   const none = renderToStaticMarkup(React.createElement(ProfileChart, { profile: { categories: [], coach: null, player: null, previous: null } }))
   assert.match(none, /No assessments recorded/)
+
+  // Compared with a teammate: just the two players' coach levels, in the shared categories.
+  const named = { ...profile, name: 'Ana', position: 'outfield' }
+  const compare = { name: 'Ben', profile: { position: 'outfield', coach: { passing: 4, mentality: 2 } } }
+  const both = renderToStaticMarkup(React.createElement(ProfileChart, { profile: named, compare, selfAssessmentOn: true }))
+  assert.equal((both.match(/<polygon/g) || []).length, 5 + 1, 'Ana closes her shape; Ben has a gap, so his is a line')
+  assert.match(both, /Ben, coach/)
+  assert.match(both, /Ana, coach/)
+  assert.doesNotMatch(both, /Autumn|Player<|self-assessment/)
+  assert.match(both, /<th scope="row">Finishing<\/th><td class="num">2.5<\/td><td class="num">—<\/td>/)
+  const keeper = renderToStaticMarkup(React.createElement(ProfileChart, { profile: named, compare: { ...compare, profile: { ...compare.profile, position: 'goalkeeper' } } }))
+  assert.match(keeper, /Ben is assessed as a goalkeeper, so only the categories they share are compared/)
+  const unrated = renderToStaticMarkup(React.createElement(ProfileChart, { profile: named, compare: { name: 'Cal', profile: { position: 'outfield', coach: null } } }))
+  assert.match(unrated, /Cal has no coach assessment this period/)
 })
