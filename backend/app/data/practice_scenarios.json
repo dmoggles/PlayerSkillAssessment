@@ -41,7 +41,7 @@
    ],
    "controlled": "you",
    "id": "def-drop-off-001",
-   "title": "Ball far away: where do you stand?",
+   "title": "Ball far away",
    "stage": 1,
    "role": "MARK",
    "concepts": [
@@ -55,7 +55,7 @@
    "frames": [
     {
      "id": "f1",
-     "prompt": "The ball is far from your attacker. Where do you stand?",
+     "prompt": "The ball is far away. Where do you stand?",
      "mark": "a1",
      "ball": {
       "x": 31,
@@ -119,6 +119,9 @@
       "reasonCorrect": "Goal-side and a few steps off: you see the ball and your attacker.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -141,7 +144,7 @@
    ],
    "controlled": "you",
    "id": "def-tight-001",
-   "title": "Your attacker has the ball",
+   "title": "Ball at an attacker's feet",
    "stage": 1,
    "role": "MARK",
    "concepts": [
@@ -154,7 +157,7 @@
    "frames": [
     {
      "id": "f1",
-     "prompt": "Your attacker has the ball near goal. Where do you stand?",
+     "prompt": "An attacker has the ball near your goal. Where do you stand?",
      "mark": "a1",
      "ball": {
       "x": 14,
@@ -315,6 +318,9 @@
       "reasonCorrect": "Goal-side, and shifted towards the ball to cover the space inside.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -414,6 +420,9 @@
       "reasonCorrect": "Near goal, stay close: goal-side and on the ball's side.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -511,6 +520,9 @@
       "reasonCorrect": "Goal-side, and a step towards the ball.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -524,7 +536,7 @@
     },
     {
      "id": "f2",
-     "prompt": "The ball goes inside, near your attacker. Where now?",
+     "prompt": "The ball is passed inside. Where now?",
      "mark": "a1",
      "ball": {
       "x": 21,
@@ -588,6 +600,9 @@
       "reasonCorrect": "Tighter now the ball is close, and still goal-side.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -624,7 +639,7 @@
    "frames": [
     {
      "id": "f1",
-     "prompt": "The ball is near your attacker. Where do you stand?",
+     "prompt": "The ball is close by. Where do you stand?",
      "mark": "a1",
      "ball": {
       "x": 18,
@@ -687,6 +702,9 @@
       ],
       "reasonCorrect": "Tight and goal-side, on the ball's side.",
       "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
        {
         "check": "GOAL_SIDE"
        },
@@ -767,6 +785,9 @@
       ],
       "reasonCorrect": "Dropped off and goal-side: you see the ball and your attacker.",
       "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
        {
         "check": "GOAL_SIDE"
        },
@@ -1134,6 +1155,9 @@
       "reasonCorrect": "Shifted across towards the ball, still goal-side of your attacker.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -1268,9 +1292,8 @@
    "frames": [
     {
      "id": "f1",
-     "prompt": "Two attackers are near you. Who do you mark, and where?",
+     "prompt": "Two attackers are near you. Where do you stand?",
      "mark": "a3",
-     "showMark": false,
      "ball": {
       "x": 25,
       "y": 18,
@@ -1340,7 +1363,9 @@
       "checks": [
        {
         "check": "NEAREST_THREAT",
-        "message": "Your teammate has one attacker. Pick up the free one."
+        "clues": [
+         "Your teammate is marking one attacker. Who has nobody?"
+        ]
        },
        {
         "check": "GOAL_SIDE"
@@ -1379,7 +1404,6 @@
      "id": "f1",
      "prompt": "The ball is on the left. Who is the danger to mark?",
      "mark": "a2",
-     "showMark": false,
      "ball": {
       "x": 22,
       "y": 5,
@@ -1454,7 +1478,9 @@
       "checks": [
        {
         "check": "NEAREST_THREAT",
-        "message": "Find the free attacker nearest the ball."
+        "clues": [
+         "Which attacker near the ball has nobody with them?"
+        ]
        },
        {
         "check": "GOAL_SIDE"
@@ -1472,7 +1498,6 @@
      "id": "f2",
      "prompt": "The ball switches to the right. Who now?",
      "mark": "a3",
-     "showMark": false,
      "ball": {
       "x": 22,
       "y": 32,
@@ -1546,7 +1571,9 @@
       "checks": [
        {
         "check": "NEAREST_THREAT",
-        "message": "Your partner went to the ball. Who is free now?"
+        "clues": [
+         "Your partner went to the ball. Who is free now?"
+        ]
        },
        {
         "check": "GOAL_SIDE"
@@ -1568,7 +1595,7 @@
    ],
    "controlled": "you",
    "id": "def-run-in-behind-001",
-   "title": "Your attacker runs in behind",
+   "title": "A run in behind",
    "stage": 4,
    "role": "MARK",
    "concepts": [
@@ -1646,6 +1673,9 @@
       "reasonCorrect": "Goal-side and ball-side, ready for a run.",
       "checks": [
        {
+        "check": "NEAREST_THREAT"
+       },
+       {
         "check": "GOAL_SIDE"
        },
        {
@@ -1659,7 +1689,7 @@
     },
     {
      "id": "f2",
-     "prompt": "Your attacker runs in behind you! Where now?",
+     "prompt": "An attacker runs in behind you! Where now?",
      "mark": "a1",
      "ball": {
       "x": 25,
@@ -1722,6 +1752,9 @@
       ],
       "reasonCorrect": "Turn and get goal-side again, with the ball still in view.",
       "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
        {
         "check": "GOAL_SIDE"
        },

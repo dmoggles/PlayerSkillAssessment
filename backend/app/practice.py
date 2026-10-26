@@ -166,11 +166,9 @@ def _frame_problems(frame: dict, where: str, topic: dict, pitch: dict, controlle
     mark = frame.get("mark")
     if mark is not None and people.get(mark, ("",))[0] != "opponents":
         say(f"{where}: mark must be an opponent's id")
-    # Whether the player is shown which opponent is theirs (not when picking them is the task), and whether the
-    # lines to goal start on.
-    for flag in ("showMark", "lines"):
-        if frame.get(flag) is not None and not isinstance(frame[flag], bool):
-            say(f"{where}: {flag} must be true or false")
+    # The player isn't shown which opponent is theirs: working it out is part of it. The lines to goal may start on.
+    if frame.get("lines") is not None and not isinstance(frame["lines"], bool):
+        say(f"{where}: lines must be true or false")
     target = frame.get("target")
     if not isinstance(target, dict):
         return problems + [f"{where}: a frame needs a target"]
@@ -193,8 +191,9 @@ def _frame_problems(frame: dict, where: str, topic: dict, pitch: dict, controlle
         if cid not in topic["checks"]:
             say(f"{where}: unknown check {cid!r}")
             continue
-        if check.get("message") is not None and not (isinstance(check["message"], str) and 3 <= len(check["message"]) <= MESSAGE_LENGTH):
-            say(f"{where}: {cid}'s message must be 3 to {MESSAGE_LENGTH} characters")
+        clues = check.get("clues")
+        if clues is not None and not (isinstance(clues, list) and 1 <= len(clues) <= 2 and all(isinstance(c, str) and 3 <= len(c) <= MESSAGE_LENGTH for c in clues)):
+            say(f"{where}: {cid}'s clues must be one or two sentences of 3 to {MESSAGE_LENGTH} characters: a question first, then a pointer")
         if cid in NEEDS_MARK and mark is None:
             say(f"{where}: {cid} needs the frame's mark")
         if cid in NEEDS_PRESSER and not any(side == "team" and p.get("action") == "PRESS" for side, p in people.values()):

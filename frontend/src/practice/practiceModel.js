@@ -1,11 +1,12 @@
 // Scoring a practice frame: the zone the player's position is in, the diagnostic checks, and one short message.
 // Pure functions, so the same answer always scores the same.
-import { CHECKS } from './checks'
+import { CHECKS, LINE_CHECKS } from './checks'
 import { inZone, zoneCentre } from './geometry'
 import { thresholdsFor } from './thresholds'
 
-export const NEARLY = 'Nearly there. The ghost shows the best spot.'
-export const ELSEWHERE = 'Look at the ghost to see a better spot.'
+// When every check passes but the spot still isn't the best: two clues, like a check's.
+export const NEARLY = ['Close! Small changes make the difference.', 'Nearly there. Think about your angle and your distance.']
+export const SHOW_AFTER = 3  // misses before the best spot is shown
 
 // The best spot: the centre of the zone worth most.
 export const idealPosition = frame => zoneCentre(bestZone(frame))
@@ -16,17 +17,26 @@ export function scoreFrame(scenario, frame, position) {
   const context = { pitch: scenario.pitch, thresholds: thresholdsFor(scenario) }
   let points = 0, zoneHit = null
   frame.target.zones.forEach((zone, i) => { if (zone.points > points && inZone(zone, position)) { points = zone.points; zoneHit = i } })
-  const checks = (frame.target.checks ?? []).map(({ check, message }) => {
+  const checks = (frame.target.checks ?? []).map(({ check, clues }) => {
     const definition = CHECKS[check]
     const { pass, reason } = definition.run(position, frame, context)
-    // When picking the right opponent is the task (they aren't shown), picking them is the first thing to fix.
-    const priority = check === 'NEAREST_THREAT' && frame.showMark === false ? 0 : definition.priority
-    return { id: check, pass, reason: pass === false ? reason : null, priority,
-      message: pass === false ? message ?? definition.messages[reason] : null }
+    const defaults = pass === false ? definition.clues[reason] : null
+    return { id: check, pass, reason: pass === false ? reason : null, priority: definition.priority,
+      clues: pass === false ? [clues?.[0] ?? defaults[0], clues?.[1] ?? defaults[1]] : null }
   })
   const failing = checks.filter(c => c.pass === false).sort((a, b) => a.priority - b.priority)
-  const message = points === 100 ? frame.target.reasonCorrect : failing[0]?.message ?? (points > 0 ? NEARLY : ELSEWHERE)
-  return { points, zoneHit, checks: checks.map(c => ({ id: c.id, pass: c.pass, reason: c.reason, message: c.message })), failed: failing.map(c => c.id), message, headline: headline(points) }
+  return { points, zoneHit, checks: checks.map(c => ({ id: c.id, pass: c.pass, reason: c.reason })), failed: failing.map(c => c.id),
+    clues: points === 100 ? null : failing[0]?.clues ?? NEARLY, lineClue: LINE_CHECKS.has(failing[0]?.id), headline: headline(points),
+    message: points === 100 ? frame.target.reasonCorrect : (failing[0]?.clues ?? NEARLY)[0] }
+}
+
+// What to tell the player on their nth try at a frame: a question to think about first, a plainer pointer next,
+// and only then the best spot, with why it's best. On the second miss at a goal-side or ball-side idea, the lines to
+// goal come on to help.
+export function feedbackFor(frame, result, tries) {
+  if (result.points === 100) return { message: frame.target.reasonCorrect, ghost: false, lines: false }
+  if (tries >= SHOW_AFTER) return { message: `Here's the best spot. ${frame.target.reasonCorrect}`, ghost: true, lines: false }
+  return { message: result.clues[Math.min(tries, 2) - 1], ghost: false, lines: tries >= 2 && result.lineClue }
 }
 
 // Encouraging words, never "wrong".

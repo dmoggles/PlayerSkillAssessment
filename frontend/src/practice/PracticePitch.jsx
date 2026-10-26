@@ -6,9 +6,10 @@ const R = 1.35  // a player's drawn radius, in metres: bigger than life, to see 
 const STEP = 0.5, BIG_STEP = 2  // metres an arrow key moves your player, without and with Shift
 
 // The pitch for a practice frame, upright with our goal at the bottom, drawn in metres. Your player can be dragged,
-// placed with a tap, or moved with the arrow keys; everything else shows where it is. `shown` holds the positions
+// placed with a tap, or moved with the arrow keys; everything else shows where it is. Which attacker is theirs to
+// mark isn't shown: working that out is part of it. `shown` holds the positions
 // to draw (they move between frames), `position` is your player's.
-export default function PracticePitch({ scenario, frame, shown, position, onMove, disabled = false, ghost = null, lines = false }) {
+export default function PracticePitch({ scenario, shown, position, onMove, disabled = false, ghost = null, lines = false }) {
   const svg = useRef(null)
   const dragging = useRef(false)
   const { pitch } = scenario
@@ -44,7 +45,6 @@ export default function PracticePitch({ scenario, frame, shown, position, onMove
   }
 
   const ball = at(shown.ball)
-  const marked = frame.showMark !== false ? shown.opponents.find(p => p.id === frame.mark) : null
   const presser = shown.team.find(p => p.action === 'PRESS')
   return <svg ref={svg} className="practice-pitch" viewBox={`${-PAD} ${-PAD} ${pitch.width + 2 * PAD} ${depth + 2 * PAD + 1}`}
     role="application" aria-label="Pitch with your goal at the bottom. Drag your player, tap where they should stand, or use the arrow keys."
@@ -75,8 +75,7 @@ export default function PracticePitch({ scenario, frame, shown, position, onMove
 
     {shown.opponents.map(p => {
       const [x, y] = at(p)
-      return <g key={p.id}><path d={`M${x},${y - R * 1.2} L${x + R * 1.1},${y + R * 0.8} L${x - R * 1.1},${y + R * 0.8} Z`} className="practice-opponent" />
-        {p === marked && <text x={x} y={y - R - 0.9} textAnchor="middle" className="practice-tag">Your attacker</text>}</g>
+      return <path key={p.id} d={`M${x},${y - R * 1.2} L${x + R * 1.1},${y + R * 0.8} L${x - R * 1.1},${y + R * 0.8} Z`} className="practice-opponent" />
     })}
     {shown.team.filter(p => p.id !== scenario.controlled).map(p => {
       const [x, y] = at(p)

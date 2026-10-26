@@ -1,7 +1,10 @@
 // Diagnostic checks: why a position isn't quite right, whatever zone it's in. Each takes the player's position and
 // the frame, and says whether it passes (null when it doesn't apply to this frame) with a reason. A frame lists the
 // checks that apply to it in target.checks; when the position misses the best zone, the first failing check by
-// priority gives the hint. A new topic adds its checks here, and lists them in backend/app/practice.py's TOPICS.
+// priority gives the clue. A new topic adds its checks here, and lists them in backend/app/practice.py's TOPICS.
+//
+// Each reason has two clues: first a question that gets the player thinking about the idea, then, if they miss
+// again, a plainer pointer to what to change. The best spot itself is only shown after that (see feedbackFor).
 import { angleAt, distance, distanceToLine, goalOf, sideOf } from './geometry'
 
 const opponent = (frame, id) => frame.opponents.find(p => p.id === id)
@@ -9,10 +12,21 @@ const presser = frame => frame.team.find(p => p.action === 'PRESS')
 const result = (pass, reason = null) => ({ pass, reason })
 
 export const CHECKS = {
+  NEAREST_THREAT: {
+    // Nobody is told which attacker is theirs, so picking the right one comes first.
+    priority: 0,
+    label: 'Marking the wrong attacker',
+    clues: { wrong_player: ['Look around: which attacker has nobody near them?', 'Pick up the free attacker nearest the ball and your goal.'] },
+    run(position, frame) {
+      const threat = opponent(frame, frame.mark)
+      const others = frame.opponents.filter(p => p.id !== frame.mark)
+      return result(others.every(p => distance(position, threat) < distance(position, p)), 'wrong_player')
+    },
+  },
   GOAL_SIDE: {
     priority: 1,
     label: 'Not goal-side',
-    messages: { not_goal_side: 'Get between your attacker and the goal.' },
+    clues: { not_goal_side: ['If they got the ball now, could they run straight at goal?', 'Stand on the line from the attacker to the middle of your goal.'] },
     run(position, frame, { pitch, thresholds }) {
       const attacker = opponent(frame, frame.mark), goal = goalOf(pitch)
       const closer = distance(position, goal) < distance(attacker, goal)
@@ -22,7 +36,7 @@ export const CHECKS = {
   BALL_SIDE: {
     priority: 2,
     label: 'Not ball-side',
-    messages: { not_ball_side: 'Shift a little towards the side the ball is on.' },
+    clues: { not_ball_side: ['Which side would a pass to the attacker come from?', 'Take a step off their line to goal, towards the ball.'] },
     run(position, frame, { pitch, thresholds }) {
       const attacker = opponent(frame, frame.mark), goal = goalOf(pitch)
       // With the ball on the line from the attacker to goal (or at their feet), neither side is the ball side.
@@ -33,7 +47,7 @@ export const CHECKS = {
   DISTANCE_TIGHT: {
     priority: 3,
     label: 'Too far off',
-    messages: { too_far: 'The ball is near your attacker. Get closer to them.' },
+    clues: { too_far: ['The ball is close to the attacker. Could you stop them turning?', 'Get closer: about three big steps from them.'] },
     run(position, frame, { thresholds }) {
       const attacker = opponent(frame, frame.mark)
       if (distance(frame.ball, attacker) > thresholds.tightBallRange) return result(null)
@@ -43,7 +57,7 @@ export const CHECKS = {
   DISTANCE_DROP: {
     priority: 3,
     label: 'Too tight',
-    messages: { too_close: 'The ball is far away. Drop off so you can see ball and attacker.' },
+    clues: { too_close: ['The ball is far away. Can you see it and the attacker together?', 'Drop off a few steps, so a ball over the top can\'t beat you.'] },
     run(position, frame, { thresholds }) {
       const attacker = opponent(frame, frame.mark)
       if (distance(frame.ball, attacker) < thresholds.dropBallRange) return result(null)
@@ -53,10 +67,10 @@ export const CHECKS = {
   BEHIND_PRESSER: {
     priority: 4,
     label: 'Not covering the presser',
-    messages: {
-      not_behind: 'Stay behind your partner, between the ball and the goal.',
-      too_close: 'Give your partner a little room. Drop a few steps behind.',
-      too_far: 'Come closer behind your partner, so you can help.',
+    clues: {
+      not_behind: ['If your partner gets beaten, who stops the attacker next?', 'Stand behind your partner, between them and the goal.'],
+      too_close: ['If you\'re right next to your partner, could one dribble beat you both?', 'Drop a few steps behind your partner.'],
+      too_far: ['If your partner gets beaten, could you get there in time?', 'Come closer: a few steps behind your partner.'],
     },
     run(position, frame, { pitch, thresholds }) {
       const partner = presser(frame), goal = goalOf(pitch), gap = distance(position, partner)
@@ -66,14 +80,7 @@ export const CHECKS = {
       return result(true)
     },
   },
-  NEAREST_THREAT: {
-    priority: 5,
-    label: 'Marking the wrong attacker',
-    messages: { wrong_player: 'Pick up the most dangerous attacker nobody is marking.' },
-    run(position, frame) {
-      const threat = opponent(frame, frame.mark)
-      const others = frame.opponents.filter(p => p.id !== frame.mark)
-      return result(others.every(p => distance(position, threat) < distance(position, p)), 'wrong_player')
-    },
-  },
 }
+
+// Checks that are about the line from the attacker to goal: the lines to goal help with these.
+export const LINE_CHECKS = new Set(['GOAL_SIDE', 'BALL_SIDE'])

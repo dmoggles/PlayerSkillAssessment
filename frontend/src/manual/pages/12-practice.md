@@ -26,10 +26,15 @@ Open the player in **Player Data → Practice**.
 
 ## What the player sees
 
-Their first name and the practice you set, with how many they've done. In each scenario they drag their player (or tap where they'd stand) and press **Check**:
+Their first name and the practice you set, with how many they've done. In each scenario they drag their player (or tap where they'd stand) and press **Check**. They aren't told which attacker is theirs: working that out is part of it.
 
-- **Great position**, **Good** or **Not quite**, the points (up to 100) and one short reason, such as *Get between your attacker and the goal*;
-- when it isn't the best spot, a ghost shows where that is, and they can **Try again** or go on;
+- They see **Great position**, **Good** or **Not quite**, and the points (up to 100).
+- When it isn't the best spot, they get a clue and **Try again**:
+  - the first clue is a question about the idea, such as *If they got the ball now, could they run straight at goal?*;
+  - the second is a plainer pointer, such as *Stand on the line from the attacker to the middle of your goal*. For goal-side and ball-side, the lines to goal come on too;
+  - after a third miss, a ghost shows the best spot and why it's best.
+
+  A player who's stuck can skip a step.
 - in scenarios with more than one step, the ball and players move and they position themselves again;
 - **Show lines to goal** draws lines from the ball and each attacker to the goal, to make goal-side easier to see. It starts on in stage 1.
 

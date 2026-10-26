@@ -28,6 +28,7 @@ test('every scenario\'s best spot scores 100 and passes its checks, and no playe
       assert.equal(best.points, 100, `${s.id} ${f.id}: the best spot scores 100`)
       assert.deepEqual(best.failed, [], `${s.id} ${f.id}: the best spot passes ${best.failed.join(', ')}`)
       assert.equal(best.message, f.target.reasonCorrect)
+      assert.ok(!/your attacker/i.test(f.prompt), `${s.id} ${f.id}: the prompt doesn't say which attacker is theirs`)
       assert.ok(scoreFrame(s, f, startPosition(s, f)).points < 100, `${s.id} ${f.id}: the player has to move`)
       assert.ok(f.prompt.split(' ').length <= 15 && f.target.reasonCorrect.split(' ').length <= 15, `${s.id} ${f.id}: short words for players`)
     }
@@ -82,21 +83,27 @@ test('nearest threat: closer to the marked attacker than to any other', async ()
 })
 
 test('scoring: the innermost zone the position is in, and the hint from the first failing check', async () => {
-  const { headline, idealPosition, scoreFrame, stars } = await loadJsx('src/practice/practiceModel.js')
+  const { feedbackFor, headline, idealPosition, scoreFrame, stars } = await loadJsx('src/practice/practiceModel.js')
   const f = frame({ ball: { x: 26, y: 18.3 }, target: {
     zones: [{ type: 'ellipse', cx: 18, cy: 18.3, rx: 1, ry: 1, points: 100 }, { type: 'ellipse', cx: 18, cy: 18.3, rx: 1.5, ry: 1.5, points: 60 }],
-    reasonCorrect: 'Tight and goal-side.', checks: [{ check: 'DISTANCE_TIGHT' }, { check: 'GOAL_SIDE', message: 'Goal-side first!' }] } })
+    reasonCorrect: 'Tight and goal-side.', checks: [{ check: 'DISTANCE_TIGHT' }, { check: 'GOAL_SIDE', clues: ['Goal-side first?'] }] } })
   const s = scenario(f)
   assert.deepEqual(idealPosition(f), { x: 18, y: 18.3 })
   const best = scoreFrame(s, f, { x: 18.9, y: 18.3 })
   assert.deepEqual([best.points, best.zoneHit, best.message, best.headline], [100, 0, 'Tight and goal-side.', 'Great position'])
   const edge = scoreFrame(s, f, { x: 18, y: 19.8 })  // on the outer zone's edge
   assert.deepEqual([edge.points, edge.zoneHit], [60, 1])
-  // Behind the attacker and too far: goal-side comes first, with the frame's own words for it.
+  // Behind the attacker and too far: goal-side comes first, with the frame's own question, then the usual pointer.
   const behind = scoreFrame(s, f, { x: 24, y: 18.3 })
   assert.deepEqual([behind.points, behind.zoneHit, behind.failed, behind.message, behind.headline],
-    [0, null, ['GOAL_SIDE', 'DISTANCE_TIGHT'], 'Goal-side first!', 'Not quite'])
-  assert.equal(scoreFrame(s, f, { x: 17.6, y: 19.8 }).message, 'Look at the ghost to see a better spot.', 'every check passes but no zone')
+    [0, null, ['GOAL_SIDE', 'DISTANCE_TIGHT'], 'Goal-side first?', 'Not quite'])
+  // A question first, a plainer pointer (with the lines to goal) next, and the best spot only on the third miss.
+  assert.deepEqual(feedbackFor(f, behind, 1), { message: 'Goal-side first?', ghost: false, lines: false })
+  assert.deepEqual(feedbackFor(f, behind, 2), { message: 'Stand on the line from the attacker to the middle of your goal.', ghost: false, lines: true })
+  assert.deepEqual(feedbackFor(f, behind, 3), { message: 'Here\'s the best spot. Tight and goal-side.', ghost: true, lines: false })
+  assert.deepEqual(feedbackFor(f, best, 1), { message: 'Tight and goal-side.', ghost: false, lines: false })
+  const near = scoreFrame(s, f, { x: 17.6, y: 19.8 })  // every check passes, but it isn't the best spot
+  assert.deepEqual([feedbackFor(f, near, 1).message, feedbackFor(f, near, 2).lines], ['Close! Small changes make the difference.', false])
   assert.equal(headline(60), 'Good')
   assert.deepEqual([stars([]), stars([100, 80]), stars([60, 60]), stars([0, 100])], [0, 3, 2, 1])
 })
@@ -122,7 +129,7 @@ test('a scenario opens on its first step, with Check disabled until your player 
   assert.match(html, new RegExp(`Step 1 of ${s.frames.length}`))
   assert.ok(html.includes(s.frames[0].prompt.replace(/'/g, '&#x27;')))
   assert.match(html, /<button type="button" class="primary-btn" disabled="">Check<\/button>/)
-  assert.match(html, /Your attacker/)
+  assert.doesNotMatch(html, /Your attacker/, 'which attacker is theirs is for the player to work out')
   assert.match(html, /role="button" aria-label="Your player, [\d.]+ metres from your goal line/)
   assert.match(html, /<svg class="practice-pitch"/)
 })

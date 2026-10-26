@@ -1388,3 +1388,4 @@ a.public-brand { text-decoration: none; }
 .practice-week-average { font-size: .75rem; font-weight: 700; color: var(--heading); }
 .practice-week small { font-size: .68rem; color: var(--muted); white-space: nowrap; }
 .practice-missed { margin: 0 0 12px; padding-left: 18px; }
+.practice-actions .link-btn { padding: 8px 4px; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .95rem; }
