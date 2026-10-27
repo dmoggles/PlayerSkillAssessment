@@ -69,10 +69,10 @@
      ]
     },
     {
-     "id": "spare-man-box-edge",
+     "id": "three-v-two-box-edge",
      "format": "7v7",
-     "title": "Three of us, two of them, at the box",
-     "prompt": "Three of us against two. The ball's at the edge of our box, facing goal. Press or cover? Go where you'd go.",
+     "title": "Three against two, at the box",
+     "prompt": "Three attackers against two of us. The ball's at the edge of our box, facing goal. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
       "x": 15,
@@ -89,6 +89,11 @@
        "id": "a2",
        "x": 13,
        "y": 26
+      },
+      {
+       "id": "a3",
+       "x": 16,
+       "y": 5
       }
      ],
      "team": [
@@ -106,11 +111,6 @@
        "id": "p",
        "x": 10,
        "y": 24
-      },
-      {
-       "id": "t1",
-       "x": 8,
-       "y": 12
       }
      ],
      "references": [
@@ -191,10 +191,10 @@
      ]
     },
     {
-     "id": "wide-own-half",
+     "id": "wide-three-v-two",
      "format": "7v7",
      "title": "Out wide, three against two",
-     "prompt": "Three of us against two. The ball's out wide in our half, facing forward. Press or cover? Go where you'd go.",
+     "prompt": "Three attackers against two of us. The ball's out wide in our half, facing forward. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
       "x": 21,
@@ -211,6 +211,11 @@
        "id": "a2",
        "x": 17,
        "y": 16
+      },
+      {
+       "id": "a3",
+       "x": 20,
+       "y": 5
       }
      ],
      "team": [
@@ -228,11 +233,6 @@
        "id": "p",
        "x": 13,
        "y": 18
-      },
-      {
-       "id": "t1",
-       "x": 9,
-       "y": 10
       }
      ],
      "references": [
@@ -304,7 +304,7 @@
     {
      "id": "outnumbered",
      "format": "7v7",
-     "title": "Two of us, three of them",
+     "title": "Three against two, in the middle",
      "prompt": "Three attackers, two of you. The ball is in the middle, facing goal. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
@@ -416,10 +416,10 @@
      }
     },
     {
-     "id": "just-lost-it",
+     "id": "just-lost-it-three-v-two",
      "format": "7v7",
-     "title": "We've just lost it",
-     "prompt": "We've just lost the ball, and you're on the wrong side of the attacker who won it. Press or cover? Go where you'd go.",
+     "title": "We've just lost it, three against two",
+     "prompt": "We've just lost the ball: three of them, two of us, and you're on the wrong side of the one who won it. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
       "x": 32,
@@ -436,6 +436,11 @@
        "id": "a2",
        "x": 31,
        "y": 9
+      },
+      {
+       "id": "a3",
+       "x": 28,
+       "y": 31
       }
      ],
      "team": [
@@ -453,11 +458,6 @@
        "id": "p",
        "x": 23,
        "y": 20
-      },
-      {
-       "id": "t1",
-       "x": 26,
-       "y": 11
       }
      ],
      "references": [
