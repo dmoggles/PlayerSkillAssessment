@@ -1393,3 +1393,5 @@ a.public-brand { text-decoration: none; }
 .practice-stage-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; margin: 12px 0 6px; }
 .practice-stage-head h4 { margin: 0; }
 .practice-stage-head .secondary-btn { padding: 6px 12px; border-radius: 8px; font-weight: 600; }
+.practice-assign .practice-small { flex: 0 1 110px; }
+.practice-random { justify-self: start; min-height: 44px; padding: 8px 18px; border-radius: 8px; font-weight: 700; }

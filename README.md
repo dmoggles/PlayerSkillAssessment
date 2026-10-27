@@ -105,6 +105,15 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 
 **A new topic** adds its roles, concepts, checks and stages to `practice.TOPICS`, and its checks to `checks.js`. A new kind of task, other than dragging into position, adds its name to `practice.TASKS`. Attempts already have room for a chosen option (`choice`) as well as a position.
 
+**Random situations.** `backend/app/practice_generator.py` makes new situations from stages 1–4, on any format's pitch.
+- **Ordinary scenarios:** each comes out in the scenario format, so it scores like a hand-made one.
+- **Seeds:** a situation is fixed by its seed, and its id says how it was made (`gen1-def-s2-9v9-48213`). The server makes it again from the id to check an attempt. Change how situations are made and bump `VERSION`, so old attempts keep their meaning.
+- **Best spots:** they come from the coaching rules the checks test (`goal_side_spot`, `cover_spot`). A try that comes out cramped or ambiguous is thrown away for the next, still from the same seed.
+- **Tests:**
+  - the backend tests check 300 seeds per stage and format;
+  - `frontend/tests/fixtures/generated_scenarios.json` holds 30 per stage and format, and the frontend tests score them with the app's own code;
+  - after changing the generator, rewrite that fixture with `python -m app.practice_generator --samples`. A backend test fails until it's up to date.
+
 **Players** have no accounts. A coach gives each a link from Player Data → Practice: a random token, stored only as its hash, working for 30 days, and replaced or revoked by the coach. It opens only that player's practice. An attempt is refused unless it's for a scenario the player was set and fits its frame. A player can save at most 300 attempts an hour.
 
 ### Site admin review

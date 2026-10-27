@@ -60,10 +60,10 @@ export default function PracticePanel({ teamId, player, onMessage }) {
         : <p className="muted">Restore {player.name} to set them practice.</p>}
       {state.assignments.length === 0 ? <p className="muted">Nothing set yet.</p>
         : <ul className="practice-scenarios">{state.assignments.map(a => {
-          const done = a.scenario_ids.filter(id => state.progress[id]?.done).length
+          const counted = a.random_count ? state.random_progress[a.id] : { done: a.scenario_ids.filter(id => state.progress[id]?.done).length, of: a.scenario_ids.length }
           return <li key={a.id}>
             <div><strong>{a.label}</strong>
-              <small className="muted">{done} of {a.scenario_ids.length} done{a.due_on ? ` · by ${day(a.due_on)}` : ''}</small>
+              <small className="muted">{counted.done} of {counted.of} done{a.due_on ? ` · by ${day(a.due_on)}` : ''}</small>
               <small>{a.scenario_ids.map(id => byId[id] && <button key={id} type="button" className="link-btn" onClick={() => setPreview(byId[id])}>
                 {byId[id].title}{state.progress[id]?.done ? ` ${'★'.repeat(state.progress[id].stars)}` : ''}</button>)}</small>
             </div>
@@ -80,10 +80,13 @@ export default function PracticePanel({ teamId, player, onMessage }) {
 export function AssignForm({ library, onAssign }) {
   const [choice, setChoice] = useState('')
   const [due, setDue] = useState('')
+  const [count, setCount] = useState('5')
+  const [format, setFormat] = useState(library.formats?.[0] ?? '7v7')
+  const [kind, a, b] = choice.split(':')
   const submit = event => {
     event.preventDefault()
-    const [kind, a, b] = choice.split(':')
-    onAssign({ ...(kind === 'stage' ? { topic: a, stage: Number(b) } : { scenario_id: a }), due_on: due || null })
+    const target = kind === 'scenario' ? { scenario_id: a } : { topic: a, stage: Number(b), ...(kind === 'random' ? { random_count: Number(count), format } : {}) }
+    onAssign({ ...target, due_on: due || null })
     setChoice(''); setDue('')
   }
   return <form className="practice-assign" onSubmit={submit}>
@@ -92,9 +95,14 @@ export function AssignForm({ library, onAssign }) {
         <option value="">Choose a stage or a scenario</option>
         {library.topics.map(topic => <optgroup key={topic.id} label={topic.label}>
           {topic.stages.filter(st => library.scenarios.some(s => s.topic === topic.id && s.stage === st.stage)).map(st => <option key={st.stage} value={`stage:${topic.id}:${st.stage}`}>Stage {st.stage}: {st.label} (all)</option>)}
+          {topic.stages.filter(st => st.random).map(st => <option key={`r${st.stage}`} value={`random:${topic.id}:${st.stage}`}>Stage {st.stage}: {st.label} (random situations)</option>)}
           {library.scenarios.filter(s => s.topic === topic.id).map(s => <option key={s.id} value={`scenario:${s.id}`}>{`  Stage ${s.stage} · ${s.title}`}</option>)}
         </optgroup>)}
       </select></label>
+    {kind === 'random' && <>
+      <label className="field practice-small">How many<select value={count} onChange={e => setCount(e.target.value)}>{['3', '5', '10'].map(n => <option key={n} value={n}>{n}</option>)}</select></label>
+      <label className="field practice-small">Pitch<select value={format} onChange={e => setFormat(e.target.value)}>{(library.formats ?? ['7v7']).map(f => <option key={f} value={f}>{f}</option>)}</select></label>
+    </>}
     <label className="field">Do by (optional)<input type="date" value={due} onChange={e => setDue(e.target.value)} /></label>
     <button type="submit" className="primary-btn" disabled={!choice}>Set</button>
   </form>

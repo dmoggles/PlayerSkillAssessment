@@ -18,16 +18,25 @@ Each scenario is for a format (7v7 to start with) and a range of age groups. Mor
 
 **Settings → Practice scenarios → Browse scenarios** lists every scenario, for your team's age group or all of them. **Preview** plays one as a player would; nothing is saved.
 
+## Random situations
+
+Stages 1 to 4 can also make new situations at random, so there's always more to practise:
+- they're built from the stage's ideas, such as goal-side of the free attacker, or covering a teammate who presses;
+- each is scored and gives clues like the hand-made ones;
+- they can be on a 7v7, 9v9 or 11v11 pitch. The distances stay the same; only the pitch changes.
+
+**Random situation** on a stage plays one; **Another one** at the end makes the next. Choose the pitch under **Random situations on**. Stage 5's situations come from real games, so they're never random.
+
 ## Setting a player practice
 
 Open the player in **Player Data → Practice**.
 
 - **Give a link** makes the player's practice link. Send it to the player or a parent: anyone with it can practise as that player, so don't share it more widely. It works for 30 days. **New link** replaces it, and **Stop the link** stops it at once. The link is shown only when you make it.
-- **Set practice:** choose a whole stage, or one scenario, and a date to do it by if you like. **Remove** takes it off their list; what they've already done is kept.
+- **Set practice:** choose a whole stage, one scenario, or **random situations** from a stage (how many, and on which pitch), and a date to do it by if you like. **Remove** takes it off their list; what they've already done is kept.
 
 ## What the player sees
 
-Their first name and the practice you set, with how many they've done. In each scenario they drag their player (or tap where they'd stand) and press **Check**. They aren't told which attacker is theirs: working that out is part of it.
+Their first name and the practice you set, with how many they've done. Random practice has a **Start** button that makes each situation as they go. A stage you've set also has **New situation**, so they can keep going after its scenarios. In each scenario they drag their player (or tap where they'd stand) and press **Check**. They aren't told which attacker is theirs: working that out is part of it.
 
 - They see **Great position**, **Good** or **Not quite**, and the points (up to 100).
 - When it isn't the best spot, they get a clue and **Try again**:

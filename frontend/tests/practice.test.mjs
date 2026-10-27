@@ -169,7 +169,8 @@ test('a player sees what their coach set, with progress and stars; a coach sees 
   const { PracticeList } = await loadJsx('src/practice/PracticePage.jsx')
   const { AssignForm, PracticeResults } = await loadJsx('src/practice/PracticePanel.jsx')
   const [one, two] = SCENARIOS
-  const practice = { name: 'Isla', assignments: [{ id: 1, label: 'Off-ball defending, stage 1: Goal-side basics', due_on: '2026-11-01',
+  const practice = { name: 'Isla', assignments: [{ id: 2, label: '5 random situations: Off-ball defending, stage 2 (9v9)', random: true, random_count: 5,
+    random_progress: { done: 2, of: 5 }, scenarios: [] }, { id: 1, label: 'Off-ball defending, stage 1: Goal-side basics', due_on: '2026-11-01', random: true,
     scenarios: [{ ...one, progress: { done: true, stars: 2, frames_done: 1, frames: 1 } }, { ...two, progress: { done: false, stars: 0, frames_done: 0, frames: 1 } }] }] }
   const page = renderToStaticMarkup(React.createElement(PracticeList, { practice }))
   assert.match(page, /Hi Isla/)
@@ -177,9 +178,13 @@ test('a player sees what their coach set, with progress and stars; a coach sees 
   assert.match(page, /aria-label="2 of 3 stars">★★<span>★<\/span>/)
   assert.match(page, />Play again<\/button>/)
   assert.match(page, />Start<\/button>/)
+  assert.match(page, /2 of 5 done<\/p><progress max="5" value="2"/)
+  assert.match(page, />Next situation<\/button>/)
+  assert.match(page, /class="secondary-btn practice-random">New situation<\/button>/)
 
-  const library = { topics: [{ id: 'defending_off_ball', label: 'Off-ball defending', stages: [{ stage: 1, label: 'Goal-side basics' }] }], scenarios: [one] }
+  const library = { topics: [{ id: 'defending_off_ball', label: 'Off-ball defending', stages: [{ stage: 1, label: 'Goal-side basics', random: true }] }], scenarios: [one], formats: ['7v7', '9v9'] }
   const form = renderToStaticMarkup(React.createElement(AssignForm, { library }))
+  assert.match(form, /value="random:defending_off_ball:1">Stage 1: Goal-side basics \(random situations\)/)
   assert.match(form, /value="stage:defending_off_ball:1">Stage 1: Goal-side basics \(all\)/)
   assert.match(form, new RegExp(`value="scenario:${one.id}"`))
   const summary = { attempts: 6, weeks: [{ week_of: '2026-10-19', attempts: 2, average: 60 }, { week_of: '2026-10-26', attempts: 4, average: 80 }],
