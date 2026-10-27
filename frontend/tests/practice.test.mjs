@@ -115,6 +115,13 @@ test('covering a pressing teammate: behind them towards goal, 3 to 7 m back', as
   assert.equal((await run('BEHIND_PRESSER', { x: 18, y: 25 }, f)).reason, 'not_behind', 'off to the side')
 })
 
+test('keeping attackers in front: goal-side of each threat, but near enough to step out', async () => {
+  const f = frame({ threats: ['a1', 'a2'], opponents: [{ id: 'a1', x: 22, y: 16 }, { id: 'a2', x: 14, y: 30 }] })
+  assert.equal((await run('KEEP_IN_FRONT', { x: 9.2, y: 17 }, f)).pass, true)
+  assert.equal((await run('KEEP_IN_FRONT', { x: 13.7, y: 16 }, f)).reason, 'behind_you', 'the far attacker can get in behind')
+  assert.equal((await run('KEEP_IN_FRONT', { x: 2, y: 18 }, f)).reason, 'too_deep')
+})
+
 test('nearest threat: closer to the marked attacker than to any other', async () => {
   const f = frame({ opponents: [{ id: 'a1', x: 20, y: 18.3 }, { id: 'a2', x: 20, y: 28 }] })
   assert.equal((await run('NEAREST_THREAT', { x: 16, y: 19 }, f)).pass, true)

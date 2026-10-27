@@ -16,6 +16,9 @@ export const THRESHOLDS = {
   coverBackMin: 3,
   coverBackMax: 7,
   coverAngle: 60,
+  // Outnumbered and keeping several attackers in front of you: no further than this from the nearest of them, so you
+  // can still get out to whoever gets the ball.
+  keepInFrontReach: 15,
 }
 
 export const thresholdsFor = scenario => ({ ...THRESHOLDS, ...(scenario?.thresholds ?? {}) })

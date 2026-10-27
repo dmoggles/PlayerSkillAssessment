@@ -25,7 +25,7 @@ TOPICS = {
         "label": "Off-ball defending",
         "roles": {"MARK", "PRESS", "COVER", "SCAN"},
         "concepts": {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "PRESS", "COVER", "SCAN_MARKER", "NEAREST_THREAT", "COMMUNICATE"},
-        "checks": {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "BEHIND_PRESSER", "NEAREST_THREAT"},
+        "checks": {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "BEHIND_PRESSER", "NEAREST_THREAT", "KEEP_IN_FRONT"},
         "stages": {1: "Goal-side basics", 2: "The ball moves", 3: "Press or cover", 4: "Two attackers", 5: "Just lost the ball"},
     },
 }
@@ -34,7 +34,7 @@ NEEDS_MARK = {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "NEAR
 NEEDS_PRESSER = {"BEHIND_PRESSER"}
 # Thresholds a scenario may override, for bigger or smaller spaces than the defaults in src/practice/thresholds.js.
 THRESHOLDS = {"goalSideAngle", "lineTolerance", "tightBallRange", "tightDistance", "dropBallRange", "dropDistance",
-              "coverBackMin", "coverBackMax", "coverAngle"}
+              "coverBackMin", "coverBackMax", "coverAngle", "keepInFrontReach"}
 TASKS = {"position"}  # what the player does in a frame: drag their player into position
 ACTIONS = {"PRESS", "COVER", "MARK"}  # a teammate's action, drawn as an arrow or a label
 MAX_FRAMES, MAX_PLAYERS, MAX_ZONES = 6, 22, 4
@@ -202,6 +202,9 @@ def _frame_problems(frame: dict, where: str, topic: dict, pitch: dict, controlle
             say(f"{where}: {cid} needs the frame's mark")
         if cid in NEEDS_PRESSER and not any(side == "team" and p.get("action") == "PRESS" for side, p in people.values()):
             say(f"{where}: {cid} needs a teammate pressing")
+        threats = frame.get("threats")
+        if cid == "KEEP_IN_FRONT" and not (isinstance(threats, list) and len(threats) >= 2 and all(people.get(t, ("",))[0] == "opponents" for t in threats)):
+            say(f"{where}: KEEP_IN_FRONT needs the frame's threats: two or more opponents' ids")
     nxt = frame.get("next")
     if nxt is not None and (not isinstance(nxt, dict) or nxt.get("frame") != following):
         say(f"{where}: next must name the frame that follows it")

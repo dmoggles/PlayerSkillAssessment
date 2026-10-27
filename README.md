@@ -93,7 +93,7 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 
 **Writing a scenario.** Each scenario has:
 - **About it:** an `id` that never changes, since attempts and assignments refer to it; a `topic` (`defending_off_ball` so far) and its `stage`; a `format`; the `ages` it suits; the `role`, `concepts` and skill tags it trains; and the `controlled` player's id.
-- **Frames:** each frame has a `prompt` of 15 words or fewer, the `ball` (with whoever has it), `team` and `opponents` (teammates may have an `action` of PRESS, COVER or MARK, and anyone a shirt-number `label`), and the `mark`, the opponent the player is responsible for. The player is never shown which opponent that is. Marking frames include the `NEAREST_THREAT` check, so going to the wrong attacker gets a clue about it.
+- **Frames:** each frame has a `prompt` of 15 words or fewer, the `ball` (with whoever has it), `team` and `opponents` (teammates may have an `action` of PRESS, COVER or MARK, and anyone a shirt-number `label`), and the `mark`, the opponent the player is responsible for. The player is never shown which opponent that is. Marking frames include the `NEAREST_THREAT` check, so going to the wrong attacker gets a clue about it. When the player is outnumbered, a frame can name its `threats` instead, two or more opponents' ids. The `KEEP_IN_FRONT` check then wants them goal-side of every one, but no further than `keepInFrontReach` from the nearest.
 - **A target for each frame:** nested ellipse or polygon `zones` (the best scores 100, outer ones less), `reasonCorrect`, and the `checks` that apply. A check can have its own `clues` for this frame: a question first, then a plainer pointer.
 - **Optional settings:** `lines` turns the lines to goal on or off. A frame's own `controlled` hands the player another teammate for that step, such as each defender in turn. A new player starts where they're drawn, which in a scenario from a real game is where that player actually was. `next` names the following frame. `thresholds` overrides the defaults for that scenario.
 
@@ -107,7 +107,7 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 
 **Random situations.** `backend/app/practice_generator.py` makes new situations from stages 1–4, on any format's pitch.
 - **Ordinary scenarios:** each comes out in the scenario format, so it scores like a hand-made one.
-- **Seeds:** a situation is fixed by its seed, and its id says how it was made (`gen2-def-s2-9v9-48213`). The server makes it again from the id to check an attempt. Change how situations are made and bump `VERSION`, so old attempts keep their meaning.
+- **Seeds:** a situation is fixed by its seed, and its id says how it was made (`gen3-def-s2-9v9-48213`). The server makes it again from the id to check an attempt. Change how situations are made and bump `VERSION`, so old attempts keep their meaning.
 - **Best spots:** they come from the coaching rules the checks test (`goal_side_spot`, `cover_spot`). A try that comes out cramped or ambiguous is thrown away for the next, still from the same seed.
 - **Tests:**
   - the backend tests check 300 seeds per stage and format;

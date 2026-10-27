@@ -61,7 +61,7 @@ export const startPosition = (scenario, frame, previous = null, previousFrame = 
 }
 
 // Plain words for the concepts scenarios teach and the checks a position can miss.
-export const CONCEPT_LABELS = { GOAL_SIDE: 'Goal-side', BALL_SIDE: 'Ball-side', DISTANCE_TIGHT: 'Getting tight', DISTANCE_DROP: 'Dropping off',
+export const CONCEPT_LABELS = { GOAL_SIDE: 'Goal-side', BALL_SIDE: 'Ball-side', KEEP_IN_FRONT: 'Keeping them in front', DISTANCE_TIGHT: 'Getting tight', DISTANCE_DROP: 'Dropping off',
   PRESS: 'Pressing', COVER: 'Covering', SCAN_MARKER: 'Scanning', NEAREST_THREAT: 'Picking the danger', COMMUNICATE: 'Talking' }
 
 // Scenarios grouped for the library: each topic's stages in order, each with its scenarios.

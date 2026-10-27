@@ -23,6 +23,21 @@ export const CHECKS = {
       return result(others.every(p => distance(position, threat) < distance(position, p)), 'wrong_player')
     },
   },
+  KEEP_IN_FRONT: {
+    // Outnumbered: goal-side of every attacker who matters (the frame's threats), so none can get in behind.
+    priority: 0.5,
+    label: 'Let an attacker get behind',
+    clues: {
+      behind_you: ['Can you see both attackers without turning your head?', 'Drop back until both attackers are in front of you.'],
+      too_deep: ['If they get the ball, could you get out to them in time?', 'Step up a little: stay close enough to reach either attacker.'],
+    },
+    run(position, frame, { pitch, thresholds }) {
+      const goal = goalOf(pitch), threats = frame.threats.map(id => opponent(frame, id))
+      const inFront = threats.every(a => distance(position, goal) < distance(a, goal) && angleAt(a, goal, position) <= thresholds.goalSideAngle)
+      if (!inFront) return result(false, 'behind_you')
+      return result(Math.min(...threats.map(a => distance(position, a))) <= thresholds.keepInFrontReach, 'too_deep')
+    },
+  },
   GOAL_SIDE: {
     priority: 1,
     label: 'Not goal-side',

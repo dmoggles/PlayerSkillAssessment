@@ -2,7 +2,7 @@
 app/data/practice_scenarios.json), so scoring, clues, attempts and summaries work as for hand-made ones.
 
 A situation is fixed by its seed: the same topic, stage, format and seed always make the same scenario, and its id
-says all four (gen2-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
+says all four (gen3-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
 are made and the version goes up (gen2), so old attempts keep their meaning.
 
 Best spots come from the coaching rules the checks test: goal-side on the attacker's line to goal, shifted towards
@@ -21,7 +21,7 @@ from functools import lru_cache
 from pathlib import Path
 from . import practice
 
-VERSION = "gen2"  # gen2: in stage 4, a free attacker who isn't ahead of the ball means covering, not marking
+VERSION = "gen3"  # gen2: covering in stage 4; gen3: every other attacker marked in stage 2
 TOPIC_CODES = {"def": "defending_off_ball"}
 STAGES = {"defending_off_ball": (1, 2, 3, 4)}  # stage 5 is real games, written by hand
 AGES = {"7v7": [9, 12], "9v9": [11, 13], "11v11": [12, 18]}
@@ -225,7 +225,8 @@ def _frame(fid, body, opponents, team, holder, actions):
 
 def _stage_two(b: Builder):
     """The ball moves: the same attacker to mark while the ball is passed between the others, so how close to be
-    changes each time. The teammate on the ball moves with it."""
+    changes each time. A teammate presses whoever has the ball, and the others are marked, so the attacker to mark is
+    always the only free one (a free attacker nearer the ball would be the danger instead)."""
     a1 = b.point((0.3, 0.55), (0.25, 0.75))
     near, far = b.around(a1, (4, 6.5), towards_goal=1), b.around(a1, (21.5, 28), towards_goal=0)
     mid = b.around(a1, (10, 17), towards_goal=0)
@@ -237,20 +238,19 @@ def _stage_two(b: Builder):
         others = [(opponents[k], None) for k in opponents if k != "a1"]
         ideal, _, body = _mark_frame(b, a1, opponents[holder], holder, others, prompt=None if n == 0 else b.rng.choice(PROMPTS["moved"]))
         team = {"gk": (1.5, b.width / 2), "d1": b.goal_side(opponents[holder], 1.8)}
+        markers = {f"m{k[1:]}": b.goal_side(opponents[k], 1.5) for k in opponents if k not in ("a1", holder)}
+        team.update(markers)
         if start is None:
             start = b.start(ideal, list(opponents.values()) + list(team.values()))
         team["you"] = start if n == 0 else ideals[-1]
-        b.spaced({**opponents, **{k: v for k, v in team.items() if k != "you" or n == 0}}, [(holder, "d1")])
+        b.spaced({**opponents, **{k: v for k, v in team.items() if k != "you" or n == 0}}, [(holder, "d1"), *((f"a{m[1:]}", m) for m in markers)])
         if n and _dist(ideals[-1], ideal) < 3:
             raise Unfit("too little to change")
-        frame = _frame(f"f{n + 1}", body, opponents, team, holder, {"d1": "PRESS"})
+        frame = _frame(f"f{n + 1}", body, opponents, team, holder, {"d1": "PRESS", **{m: "MARK" for m in markers}})
         frames.append(frame)
         ideals.append(ideal)
     for this, following in zip(frames, frames[1:]):
         this["next"] = {"frame": following["id"]}
-    # NEAREST_THREAT isn't fair here: the other attackers aren't all marked, so the best spot is simply goal-side.
-    for frame in frames:
-        frame["target"]["checks"] = [c for c in frame["target"]["checks"] if c["check"] != "NEAREST_THREAT"]
     return "MARK", frames, ideals[0]
 
 

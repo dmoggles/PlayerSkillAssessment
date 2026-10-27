@@ -240,7 +240,7 @@
    ],
    "controlled": "you",
    "id": "def-far-wing-001",
-   "title": "Ball on the far wing",
+   "title": "Outnumbered, ball on the wing",
    "stage": 1,
    "role": "MARK",
    "concepts": [
@@ -255,7 +255,7 @@
     {
      "id": "f1",
      "prompt": "The ball is on the far wing. Where do you stand?",
-     "mark": "a1",
+     "mark": "a3",
      "ball": {
       "x": 20,
       "y": 3,
@@ -300,37 +300,38 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 11.8,
-        "cy": 25.6,
-        "rx": 1.8,
-        "ry": 1.8,
+        "cx": 9.2,
+        "cy": 17.0,
+        "rx": 1.5,
+        "ry": 1.5,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 11.8,
-        "cy": 25.6,
-        "rx": 3.5,
-        "ry": 3.5,
+        "cx": 9.2,
+        "cy": 17.0,
+        "rx": 3,
+        "ry": 3,
         "points": 60
        }
       ],
-      "reasonCorrect": "Goal-side, and shifted towards the ball to cover the space inside.",
+      "reasonCorrect": "Two against three: drop back and keep both attackers in front of you.",
       "checks": [
        {
-        "check": "NEAREST_THREAT"
+        "check": "KEEP_IN_FRONT"
        },
        {
         "check": "GOAL_SIDE"
        },
        {
         "check": "BALL_SIDE"
-       },
-       {
-        "check": "DISTANCE_DROP"
        }
       ]
-     }
+     },
+     "threats": [
+      "a1",
+      "a3"
+     ]
     }
    ]
   },
@@ -1131,6 +1132,12 @@
        "id": "you",
        "x": 14,
        "y": 30
+      },
+      {
+       "id": "d3",
+       "x": 25.5,
+       "y": 18.0,
+       "action": "MARK"
       }
      ],
      "target": {
