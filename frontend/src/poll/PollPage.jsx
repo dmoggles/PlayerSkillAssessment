@@ -22,10 +22,14 @@ export default function PollPage() {
   const [lines, setLines] = useState(false)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [averages, setAverages] = useState(null)  // everyone's average answers, once this respondent has answered all
 
   useEffect(() => {
-    getPoll(pollId, respondent).then(value => { setPoll(value); setAnswers(value.answers); setName(value.name ?? '') })
-      .catch(e => setError(errorMessage(e, 'This poll isn\'t available.')))
+    getPoll(pollId, respondent).then(value => {
+      setPoll(value); setAnswers(value.answers); setName(value.name ?? ''); setAverages(value.averages)
+      // Coming back after finishing: straight to how everyone's answered so far.
+      if (value.averages) setIndex(value.scenarios.length)
+    }).catch(e => setError(errorMessage(e, 'This poll isn\'t available.')))
   }, [pollId, respondent])
 
   const open = i => {
@@ -39,6 +43,11 @@ export default function PollPage() {
     try {
       await savePollAnswer(pollId, s.id, { respondent, name: name.trim() || null, x: round(position.x), y: round(position.y) })
       setAnswers(previous => ({ ...previous, [s.id]: position }))
+      // Every situation answered now: fetch the averages so far, to show at the end.
+      if (poll.scenarios.every(other => other.id === s.id || answers[other.id])) {
+        const fresh = await getPoll(pollId, respondent).catch(() => null)
+        if (fresh) setAverages(fresh.averages)
+      }
       open(index + 1)
     } catch (e) { setNotice(errorMessage(e, 'That answer couldn\'t be saved. Check your connection and try again.')) } finally { setSaving(false) }
   }
@@ -65,6 +74,22 @@ export default function PollPage() {
     <h1>Thank you</h1>
     <p>{done === total ? `All ${total} answers are saved.` : `${done} of ${total} answers are saved. Tap a number to answer the rest.`} You can come back to this link and change any of them.</p>
     {steps}
+    {averages && <>
+      <h2 className="poll-so-far">How everyone's answered so far</h2>
+      <p className="muted">The average position from everyone's answers, next to yours. Come back to this link to see it update.</p>
+      {poll.scenarios.map((s, i) => {
+        const average = averages[s.id], mine = answers[s.id]
+        return <div key={s.id} className="poll-average">
+          <h3>{i + 1}. {s.title}</h3>
+          <PracticePitch scenario={s} shown={frameOf(s)} position={null} disabled
+            marks={mine ? [{ key: 'mine', x: mine.x, y: mine.y, r: 1.1, className: 'poll-mine', title: 'Your answer' }] : []}
+            spots={average ? [{ label: 'Average', x: average.x, y: average.y, className: 'poll-average-spot' }] : []} />
+          <p className="poll-legend"><span className="poll-swatch poll-mine" aria-hidden="true" /> Your answer
+            <span className="poll-ring" aria-hidden="true" /> Average of {average?.count ?? 0} {average?.count === 1 ? 'answer' : 'answers'}
+            <button type="button" className="link-btn" onClick={() => open(i)}>Change mine</button></p>
+        </div>
+      })}
+    </>}
   </section></Shell>
 
   const s = poll.scenarios[index]

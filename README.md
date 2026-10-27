@@ -121,7 +121,7 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 A poll is a set of situations where coaches put the player where they'd coach them to go, with no scoring: for gathering opinions before settling a scenario's best spot. Polls are content in `backend/app/data/polls.json` (situations in the practice scenario layout, plus `references`: labelled spots the admin's view groups answers by, never shown to respondents).
 
 - **Development only.** The routes answer 404 unless `POLLS_ENABLED` is true, which `compose.dev.yaml` and `compose.local.yaml` set and production never does. The `poll_answers` table exists everywhere but stays empty outside development.
-- **Answering:** `/poll/<id>`, public, no account. The browser keeps a random respondent id, so people can come back and change answers; a name is optional. One answer per respondent per situation (a new one replaces it); saves are limited per address.
+- **Answering:** `/poll/<id>`, public, no account. The browser keeps a random respondent id, so people can come back and change answers; a name is optional. One answer per respondent per situation (a new one replaces it); saves are limited per address. Once someone has answered every situation, the end screen (and the link, when they come back) shows the average answer so far and how many answers it is from, next to theirs; not before, so it cannot steer them.
 - **Results:** `/poll/<id>/results`, site admins only: every answer on each pitch, coloured by the nearest reference spot (within 6 m, else "Somewhere else"), with counts. Pick out one respondent, take out their answers (such as a test run), or clear every answer to start afresh.
 
 ### Site admin review

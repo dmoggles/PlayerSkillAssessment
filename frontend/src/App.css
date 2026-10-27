@@ -1420,3 +1420,11 @@ a.public-brand { text-decoration: none; }
 .poll-result .practice-pitch { width: 100%; margin: 0; max-height: none; touch-action: auto; }
 .poll-tally { display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; padding: 0; margin: 8px 0 0; font-size: .9rem; }
 .poll-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--group); border: 1px solid #102018; vertical-align: -1px; }
+.poll-so-far { margin: 18px 0 4px; font-size: 1.15rem; }
+.poll-average { margin: 14px 0 0; }
+.poll-average h3 { margin: 0 0 6px; font-size: 1rem; }
+.practice-mark.poll-mine { fill: #ffd84d; stroke: #102018; }
+.poll-swatch.poll-mine { background: #ffd84d; }
+.practice-spot-ring.poll-average-spot circle { stroke: #fff; stroke-width: .3; fill: #ffffff30; }
+.poll-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 6px 0 0; font-size: .9rem; }
+.poll-ring { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px dashed #2f7d4f; margin-left: 6px; }

@@ -67,3 +67,17 @@ def test_polls_are_off_unless_switched_on(monkeypatch):
     client = TestClient(app)
     assert client.get(POLL).status_code == 404
     assert client.put(f"{POLL}/answers/byline-in-box", json={"respondent": ME, "x": 1, "y": 1}).status_code == 404
+
+
+def test_averages_show_once_a_respondent_has_answered_everything():
+    clean_database()
+    client = TestClient(app)
+    ids = [s["id"] for s in client.get(POLL).json()["scenarios"]]
+    for sid in ids[:-1]:
+        client.put(f"{POLL}/answers/{sid}", json={"respondent": ME, "x": 10, "y": 10})
+    client.put(f"{POLL}/answers/{ids[0]}", json={"respondent": YOU, "x": 20, "y": 14})
+    assert client.get(POLL, params={"respondent": ME}).json()["averages"] is None
+    client.put(f"{POLL}/answers/{ids[-1]}", json={"respondent": ME, "x": 5, "y": 6})
+    averages = client.get(POLL, params={"respondent": ME}).json()["averages"]
+    assert averages[ids[0]] == {"count": 2, "x": 15, "y": 12} and averages[ids[-1]] == {"count": 1, "x": 5, "y": 6}
+    assert client.get(POLL, params={"respondent": YOU}).json()["averages"] is None

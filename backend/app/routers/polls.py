@@ -7,6 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
 from ..config import settings
 from ..database import get_db
@@ -74,15 +75,25 @@ def respondent_ok(value: str) -> str:
     return value
 
 
+def averages(db: DbSession, poll: dict) -> dict:
+    """Each situation's average answer so far, and how many answers it's from."""
+    rows = db.query(PollAnswer.scenario_id, func.count(), func.avg(PollAnswer.x), func.avg(PollAnswer.y)) \
+        .filter(PollAnswer.poll_id == poll["id"]).group_by(PollAnswer.scenario_id).all()
+    return {sid: {"count": n, "x": round(x, 2), "y": round(y, 2)} for sid, n, x, y in rows if any(s["id"] == sid for s in poll["scenarios"])}
+
+
 @router.get("/{poll_id}")
 def get_poll(poll_id: str, respondent: str | None = None, db: DbSession = Depends(get_db)):
-    """A poll to answer, without the reference spots (they'd hint at answers), and this respondent's answers so far."""
+    """A poll to answer, without the reference spots (they'd hint at answers), and this respondent's answers so far.
+    Once they've answered every situation, the average answers so far too: not before, so they can't steer anyone."""
     poll = poll_for(poll_id)
     mine = db.query(PollAnswer).filter_by(poll_id=poll_id, respondent=respondent_ok(respondent)).all() if respondent else []
+    finished = {s["id"] for s in poll["scenarios"]} <= {a.scenario_id for a in mine}
     return {"id": poll["id"], "title": poll["title"], "intro": poll["intro"], "question": poll["question"],
             "scenarios": [{k: v for k, v in s.items() if k != "references"} for s in poll["scenarios"]],
             "name": next((a.name for a in mine if a.name), None),
-            "answers": {a.scenario_id: {"x": a.x, "y": a.y} for a in mine}}
+            "answers": {a.scenario_id: {"x": a.x, "y": a.y} for a in mine},
+            "averages": averages(db, poll) if finished else None}
 
 
 class AnswerIn(BaseModel):
