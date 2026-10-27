@@ -193,7 +193,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": drill_slug,
            "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0, "report_id": 0,
-           "assignment_id": practice["assignments"][0]["id"], "poll_id": "press-or-cover", "scenario_id": "nearest-central", "respondent": "r" * 20}
+           "assignment_id": practice["assignments"][0]["id"], "poll_id": "press-or-cover", "scenario_id": "byline-in-box", "respondent": "r" * 20}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

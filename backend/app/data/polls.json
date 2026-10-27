@@ -6,127 +6,6 @@
    "intro": "Ten situations where a defender has to choose: go and press the ball, or stay back and cover. For each one, drag the player marked You to where you think they should go. There are no right answers here: we want to know what you'd coach.",
    "scenarios": [
     {
-     "id": "nearest-central",
-     "format": "7v7",
-     "title": "You're nearest, in the middle",
-     "prompt": "The ball's just been played into this attacker, facing goal. Press or cover? Go where you'd go.",
-     "controlled": "you",
-     "ball": {
-      "x": 21,
-      "y": 16,
-      "with": "a1"
-     },
-     "opponents": [
-      {
-       "id": "a1",
-       "x": 21,
-       "y": 16
-      },
-      {
-       "id": "a2",
-       "x": 19,
-       "y": 28
-      },
-      {
-       "id": "a3",
-       "x": 27,
-       "y": 8
-      }
-     ],
-     "team": [
-      {
-       "id": "gk",
-       "x": 1.5,
-       "y": 18.3
-      },
-      {
-       "id": "you",
-       "x": 17,
-       "y": 19.5
-      },
-      {
-       "id": "p",
-       "x": 14,
-       "y": 11
-      }
-     ],
-     "references": [
-      {
-       "label": "Press",
-       "x": 18.0,
-       "y": 16.3
-      },
-      {
-       "label": "Cover",
-       "x": 14.0,
-       "y": 19.3
-      }
-     ]
-    },
-    {
-     "id": "partner-nearest",
-     "format": "7v7",
-     "title": "Your partner is nearest",
-     "prompt": "The ball's just been played into this attacker, facing goal. Press or cover? Go where you'd go.",
-     "controlled": "you",
-     "ball": {
-      "x": 21,
-      "y": 17,
-      "with": "a1"
-     },
-     "opponents": [
-      {
-       "id": "a1",
-       "x": 21,
-       "y": 17
-      },
-      {
-       "id": "a2",
-       "x": 17,
-       "y": 29
-      },
-      {
-       "id": "a3",
-       "x": 26,
-       "y": 7
-      }
-     ],
-     "team": [
-      {
-       "id": "gk",
-       "x": 1.5,
-       "y": 18.3
-      },
-      {
-       "id": "you",
-       "x": 13,
-       "y": 23
-      },
-      {
-       "id": "p",
-       "x": 18,
-       "y": 15
-      }
-     ],
-     "references": [
-      {
-       "label": "Press",
-       "x": 18.0,
-       "y": 17.2
-      },
-      {
-       "label": "Cover",
-       "x": 13.8,
-       "y": 19.9
-      },
-      {
-       "label": "Mark",
-       "x": 14.6,
-       "y": 26.3
-      }
-     ]
-    },
-    {
      "id": "byline-in-box",
      "format": "7v7",
      "title": "On the byline, in our box",
@@ -190,31 +69,26 @@
      ]
     },
     {
-     "id": "wide-halfway",
+     "id": "spare-man-box-edge",
      "format": "7v7",
-     "title": "On the wing, near halfway",
-     "prompt": "The ball's gone out wide to this attacker, facing forward. Press or cover? Go where you'd go.",
+     "title": "Three of us, two of them, at the box",
+     "prompt": "Three of us against two. The ball's at the edge of our box, facing goal. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
-      "x": 28,
-      "y": 31,
+      "x": 15,
+      "y": 15,
       "with": "a1"
      },
      "opponents": [
       {
        "id": "a1",
-       "x": 28,
-       "y": 31
+       "x": 15,
+       "y": 15
       },
       {
        "id": "a2",
-       "x": 24,
-       "y": 18
-      },
-      {
-       "id": "a3",
-       "x": 26,
-       "y": 6
+       "x": 13,
+       "y": 26
       }
      ],
      "team": [
@@ -225,83 +99,30 @@
       },
       {
        "id": "you",
-       "x": 20,
-       "y": 27
+       "x": 10.5,
+       "y": 18.5
       },
       {
        "id": "p",
-       "x": 17,
-       "y": 16
+       "x": 10,
+       "y": 24
+      },
+      {
+       "id": "t1",
+       "x": 8,
+       "y": 12
       }
      ],
      "references": [
       {
        "label": "Press",
-       "x": 25.3,
-       "y": 29.8
+       "x": 12.1,
+       "y": 15.6
       },
       {
-       "label": "Hold",
-       "x": 19.8,
-       "y": 27.3
-      }
-     ]
-    },
-    {
-     "id": "back-to-goal",
-     "format": "7v7",
-     "title": "Back to goal, far from our goal",
-     "prompt": "This attacker has the ball with their back to our goal. Press or cover? Go where you'd go.",
-     "controlled": "you",
-     "ball": {
-      "x": 30,
-      "y": 17,
-      "with": "a1"
-     },
-     "opponents": [
-      {
-       "id": "a1",
-       "x": 30,
-       "y": 17
-      },
-      {
-       "id": "a2",
-       "x": 27,
-       "y": 27
-      },
-      {
-       "id": "a3",
-       "x": 24,
-       "y": 6
-      }
-     ],
-     "team": [
-      {
-       "id": "gk",
-       "x": 1.5,
-       "y": 18.3
-      },
-      {
-       "id": "you",
-       "x": 24,
-       "y": 18
-      },
-      {
-       "id": "p",
-       "x": 22,
-       "y": 10
-      }
-     ],
-     "references": [
-      {
-       "label": "Press",
-       "x": 27.5,
-       "y": 17.1
-      },
-      {
-       "label": "Hold",
-       "x": 23.0,
-       "y": 17.3
+       "label": "Cover",
+       "x": 8.4,
+       "y": 19.0
       }
      ]
     },
@@ -349,6 +170,11 @@
        "x": 14.5,
        "y": 20.5,
        "action": "PRESS"
+      },
+      {
+       "id": "t1",
+       "x": 20,
+       "y": 10.5
       }
      ],
      "references": [
@@ -365,9 +191,120 @@
      ]
     },
     {
+     "id": "wide-own-half",
+     "format": "7v7",
+     "title": "Out wide, three against two",
+     "prompt": "Three of us against two. The ball's out wide in our half, facing forward. Press or cover? Go where you'd go.",
+     "controlled": "you",
+     "ball": {
+      "x": 21,
+      "y": 32,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 21,
+       "y": 32
+      },
+      {
+       "id": "a2",
+       "x": 17,
+       "y": 16
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 14,
+       "y": 27
+      },
+      {
+       "id": "p",
+       "x": 13,
+       "y": 18
+      },
+      {
+       "id": "t1",
+       "x": 9,
+       "y": 10
+      }
+     ],
+     "references": [
+      {
+       "label": "Press",
+       "x": 18.5,
+       "y": 30.4
+      },
+      {
+       "label": "Hold",
+       "x": 13.5,
+       "y": 27.1
+      }
+     ]
+    },
+    {
+     "id": "two-v-two-central",
+     "format": "7v7",
+     "title": "Two against two, in the middle",
+     "prompt": "Two against two in our half. The ball's just been played into this attacker, facing goal. Press or cover? Go where you'd go.",
+     "controlled": "you",
+     "ball": {
+      "x": 21,
+      "y": 16,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 21,
+       "y": 16
+      },
+      {
+       "id": "a2",
+       "x": 19,
+       "y": 28
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 17,
+       "y": 19.5
+      },
+      {
+       "id": "p",
+       "x": 15,
+       "y": 26
+      }
+     ],
+     "references": [
+      {
+       "label": "Press",
+       "x": 18.0,
+       "y": 16.3
+      },
+      {
+       "label": "Hold",
+       "x": 14.0,
+       "y": 16.8
+      }
+     ]
+    },
+    {
      "id": "outnumbered",
      "format": "7v7",
-     "title": "Two of you, three of them",
+     "title": "Two of us, three of them",
      "prompt": "Three attackers, two of you. The ball is in the middle, facing goal. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
@@ -423,198 +360,259 @@
      ]
     },
     {
-     "id": "step-into-midfield",
-     "format": "9v9",
-     "title": "Step into midfield?",
-     "prompt": "Your midfielder is behind the ball, which is with this attacker, back to goal. Press or cover? Go where you'd go.",
+     "id": "back-to-goal",
+     "format": "7v7",
+     "title": "Back to goal, at halfway",
+     "prompt": "Two against two. This attacker has the ball at halfway, with their back to our goal. Press or cover? Go where you'd go.",
+     "controlled": "you",
+     "ball": {
+      "x": 30,
+      "y": 17,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 30,
+       "y": 17
+      },
+      {
+       "id": "a2",
+       "x": 27,
+       "y": 27
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 24,
+       "y": 18
+      },
+      {
+       "id": "p",
+       "x": 22,
+       "y": 25
+      }
+     ],
+     "references": [
+      {
+       "label": "Press",
+       "x": 27.5,
+       "y": 17.1
+      },
+      {
+       "label": "Hold",
+       "x": 23.0,
+       "y": 17.3
+      }
+     ],
+     "view": {
+      "depth": 38
+     }
+    },
+    {
+     "id": "just-lost-it",
+     "format": "7v7",
+     "title": "We've just lost it",
+     "prompt": "We've just lost the ball, and you're on the wrong side of the attacker who won it. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
       "x": 32,
-      "y": 20,
+      "y": 21,
       "with": "a1"
      },
      "opponents": [
       {
        "id": "a1",
        "x": 32,
+       "y": 21
+      },
+      {
+       "id": "a2",
+       "x": 31,
+       "y": 9
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3
+      },
+      {
+       "id": "you",
+       "x": 35,
        "y": 20
       },
       {
+       "id": "p",
+       "x": 23,
+       "y": 20
+      },
+      {
+       "id": "t1",
+       "x": 26,
+       "y": 11
+      }
+     ],
+     "references": [
+      {
+       "label": "Press",
+       "x": 34,
+       "y": 21.3
+      },
+      {
+       "label": "Recover",
+       "x": 27,
+       "y": 22.5
+      }
+     ],
+     "view": {
+      "depth": 40
+     }
+    },
+    {
+     "id": "their-half-midfield",
+     "format": "7v7",
+     "title": "Their midfielder, in their half",
+     "prompt": "Three against three. Their midfielder has the ball in their half, facing our goal. Press or cover? Go where you'd go.",
+     "controlled": "you",
+     "ball": {
+      "x": 36,
+      "y": 22,
+      "with": "a1"
+     },
+     "opponents": [
+      {
+       "id": "a1",
+       "x": 36,
+       "y": 22
+      },
+      {
        "id": "a2",
-       "x": 25,
-       "y": 30
+       "x": 35,
+       "y": 9
       },
       {
        "id": "a3",
-       "x": 29,
-       "y": 8
+       "x": 22,
+       "y": 15
       }
      ],
      "team": [
       {
        "id": "gk",
        "x": 1.5,
-       "y": 22.85
+       "y": 18.3
       },
       {
        "id": "you",
-       "x": 22,
-       "y": 18
+       "x": 31,
+       "y": 21
       },
       {
        "id": "p",
-       "x": 35,
-       "y": 26
+       "x": 31,
+       "y": 11
       },
       {
        "id": "t1",
-       "x": 21,
-       "y": 29
+       "x": 19,
+       "y": 16
       }
      ],
      "references": [
       {
        "label": "Press",
-       "x": 29.5,
-       "y": 20.2
+       "x": 33.0,
+       "y": 21.7
       },
       {
        "label": "Hold",
-       "x": 21.9,
-       "y": 18.9
+       "x": 28.0,
+       "y": 21.2
       }
-     ]
+     ],
+     "view": {
+      "depth": 44
+     }
     },
     {
-     "id": "wide-final-third",
-     "format": "11v11",
-     "title": "Wide, in our third",
-     "prompt": "The ball's out wide with this attacker, facing goal. Press or cover? Go where you'd go.",
+     "id": "high-press",
+     "format": "7v7",
+     "title": "Their defender has it",
+     "prompt": "Their defender has the ball near their own box. You're up front. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
-      "x": 28,
-      "y": 56,
+      "x": 45,
+      "y": 13,
       "with": "a1"
      },
      "opponents": [
       {
        "id": "a1",
-       "x": 28,
-       "y": 56
+       "x": 45,
+       "y": 13
       },
       {
        "id": "a2",
-       "x": 19,
-       "y": 37
+       "x": 45,
+       "y": 25
       },
       {
        "id": "a3",
-       "x": 18,
-       "y": 24
+       "x": 37,
+       "y": 19
+      },
+      {
+       "id": "agk",
+       "x": 53.4,
+       "y": 18.3,
+       "label": "GK"
       }
      ],
      "team": [
       {
        "id": "gk",
        "x": 1.5,
-       "y": 32.0
+       "y": 18.3
       },
       {
        "id": "you",
-       "x": 16,
-       "y": 42
-      },
-      {
-       "id": "p",
-       "x": 22,
-       "y": 52
-      },
-      {
-       "id": "t1",
-       "x": 16,
-       "y": 28
-      }
-     ],
-     "references": [
-      {
-       "label": "Press",
-       "x": 25.7,
-       "y": 54.0
-      },
-      {
-       "label": "Cover",
-       "x": 20,
-       "y": 46
-      },
-      {
-       "label": "Mark",
-       "x": 15.4,
-       "y": 37.1
-      }
-     ]
-    },
-    {
-     "id": "central-thirty",
-     "format": "11v11",
-     "title": "Facing goal, 30 metres out",
-     "prompt": "Your midfielder is behind the ball. This attacker is facing goal, 30 metres out. Press or cover? Go where you'd go.",
-     "controlled": "you",
-     "ball": {
-      "x": 31,
-      "y": 30,
-      "with": "a1"
-     },
-     "opponents": [
-      {
-       "id": "a1",
-       "x": 31,
-       "y": 30
-      },
-      {
-       "id": "a2",
-       "x": 22,
-       "y": 37
-      },
-      {
-       "id": "a3",
-       "x": 23,
-       "y": 24
-      }
-     ],
-     "team": [
-      {
-       "id": "gk",
-       "x": 1.5,
-       "y": 32.0
-      },
-      {
-       "id": "you",
-       "x": 17,
-       "y": 36
+       "x": 39,
+       "y": 11
       },
       {
        "id": "p",
        "x": 34,
-       "y": 26
+       "y": 20
       },
       {
        "id": "t1",
-       "x": 17,
-       "y": 26
+       "x": 38,
+       "y": 27
       }
      ],
      "references": [
       {
        "label": "Press",
-       "x": 28.0,
-       "y": 30.2
+       "x": 42.0,
+       "y": 13.4
       },
       {
-       "label": "Hold",
-       "x": 18.8,
-       "y": 35.2
+       "label": "Screen",
+       "x": 40,
+       "y": 18
       }
-     ]
+     ],
+     "view": {
+      "depth": 54.9
+     }
     }
    ]
   }

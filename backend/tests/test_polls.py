@@ -45,7 +45,7 @@ def test_admins_see_everyone_and_can_take_out_a_test_run(monkeypatch):
     clean_database()
     public = TestClient(app)
     for who, x in ((ME, 15), (YOU, 20)):
-        public.put(f"{POLL}/answers/nearest-central", json={"respondent": who, "name": "Sam" if who == ME else None, "x": x, "y": 18})
+        public.put(f"{POLL}/answers/byline-in-box", json={"respondent": who, "name": "Sam" if who == ME else None, "x": x, "y": 18})
     coach, _ = signed_in("poll-coach@example.com", monkeypatch)
     assert coach.get(f"{POLL}/results").status_code == 403
     admin, csrf = signed_in("poll-admin@example.com", monkeypatch)
@@ -63,4 +63,4 @@ def test_polls_are_off_unless_switched_on(monkeypatch):
     monkeypatch.setattr(settings, "polls_enabled", False)
     client = TestClient(app)
     assert client.get(POLL).status_code == 404
-    assert client.put(f"{POLL}/answers/nearest-central", json={"respondent": ME, "x": 1, "y": 1}).status_code == 404
+    assert client.put(f"{POLL}/answers/byline-in-box", json={"respondent": ME, "x": 1, "y": 1}).status_code == 404

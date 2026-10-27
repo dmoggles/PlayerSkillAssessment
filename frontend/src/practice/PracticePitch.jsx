@@ -56,7 +56,12 @@ export default function PracticePitch({ scenario, controlled = scenario.controll
     <line x1={0} y1={depth} x2={pitch.width} y2={depth} className="practice-line" />
     <line x1={0} y1={0} x2={0} y2={depth} className="practice-line" />
     <line x1={pitch.width} y1={0} x2={pitch.width} y2={depth} className="practice-line" />
-    {depth < pitch.length && <line x1={0} y1={0} x2={pitch.width} y2={0} className="practice-line practice-cut" />}
+    {depth < pitch.length ? <line x1={0} y1={0} x2={pitch.width} y2={0} className="practice-line practice-cut" />
+      : <g aria-hidden="true">{/* The whole pitch: their goal line, box and goal too. */}
+        <line x1={0} y1={0} x2={pitch.width} y2={0} className="practice-line" />
+        <rect x={gx - area.width / 2} y={0} width={area.width} height={area.depth} className="practice-line" fill="none" />
+        <circle cx={gx} cy={pitch.penaltySpot} r={0.25} className="practice-spot" />
+        <rect x={gx - pitch.goalWidth / 2} y={-1} width={pitch.goalWidth} height={1} className="practice-goal" /></g>}
     {pitch.length / 2 <= depth && <line x1={0} y1={depth - pitch.length / 2} x2={pitch.width} y2={depth - pitch.length / 2} className="practice-line" />}
     <rect x={gx - area.width / 2} y={depth - area.depth} width={area.width} height={area.depth} className="practice-line" fill="none" />
     <circle cx={gx} cy={depth - pitch.penaltySpot} r={0.25} className="practice-spot" />
