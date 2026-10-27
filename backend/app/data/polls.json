@@ -127,31 +127,31 @@
      ]
     },
     {
-     "id": "equal-distance",
+     "id": "byline-in-box",
      "format": "7v7",
-     "title": "Both the same distance away",
-     "prompt": "The ball's just been played into this attacker, facing goal. Press or cover? Go where you'd go.",
+     "title": "On the byline, in our box",
+     "prompt": "The attacker has the ball on the byline, inside our box. Press or cover? Go where you'd go.",
      "controlled": "you",
      "ball": {
-      "x": 22,
-      "y": 18.3,
+      "x": 4,
+      "y": 25,
       "with": "a1"
      },
      "opponents": [
       {
        "id": "a1",
-       "x": 22,
-       "y": 18.3
+       "x": 4,
+       "y": 25
       },
       {
        "id": "a2",
-       "x": 20,
-       "y": 30
+       "x": 12,
+       "y": 17
       },
       {
        "id": "a3",
-       "x": 20,
-       "y": 6
+       "x": 8,
+       "y": 9
       }
      ],
      "team": [
@@ -162,30 +162,30 @@
       },
       {
        "id": "you",
-       "x": 16,
-       "y": 23
+       "x": 10,
+       "y": 21
       },
       {
        "id": "p",
-       "x": 16,
-       "y": 13.6
+       "x": 6.5,
+       "y": 22.5
       }
      ],
      "references": [
       {
        "label": "Press",
-       "x": 19.0,
-       "y": 18.3
+       "x": 2.7,
+       "y": 22.9
       },
       {
        "label": "Cover",
-       "x": 14.7,
-       "y": 20.8
+       "x": 5,
+       "y": 19.8
       },
       {
        "label": "Mark",
-       "x": 17.5,
-       "y": 27.4
+       "x": 9.1,
+       "y": 18.3
       }
      ]
     },

@@ -126,7 +126,9 @@ def save_answer(poll_id: str, scenario_id: str, body: AnswerIn, request: Request
 def results(poll_id: str, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
     """Every situation with its reference spots (for grouping answers) and everyone's answers."""
     poll = poll_for(poll_id)
-    answers = db.query(PollAnswer).filter_by(poll_id=poll_id).order_by(PollAnswer.created_at).all()
+    # Answers to situations since taken out of the poll aren't shown or counted.
+    current = {s["id"] for s in poll["scenarios"]}
+    answers = [a for a in db.query(PollAnswer).filter_by(poll_id=poll_id).order_by(PollAnswer.created_at) if a.scenario_id in current]
     people, names = [], {}
     for a in answers:
         if a.respondent not in names:
