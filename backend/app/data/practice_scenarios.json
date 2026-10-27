@@ -817,7 +817,8 @@
    "role": "COVER",
    "concepts": [
     "COVER",
-    "PRESS"
+    "PRESS",
+    "GOAL_SIDE"
    ],
    "skills": [
     "pressing",
@@ -872,28 +873,37 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 15.0,
-        "cy": 17.4,
+        "cx": 13.0,
+        "cy": 19.5,
         "rx": 1.5,
         "ry": 1.5,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 15.0,
-        "cy": 17.4,
+        "cx": 13.0,
+        "cy": 19.5,
         "rx": 3,
         "ry": 3,
         "points": 60
        }
       ],
-      "reasonCorrect": "Behind your partner, ready to help, and covering the next pass.",
+      "reasonCorrect": "Behind your partner and goal-side of the free attacker: you cover both.",
       "checks": [
        {
-        "check": "BEHIND_PRESSER"
+        "check": "KEEP_IN_FRONT",
+        "clues": [
+         "If the attacker on the right runs, can you still see them?",
+         "Drop back until the ball and the free attacker are both in front of you."
+        ]
        }
       ]
-     }
+     },
+     "threats": [
+      "a1",
+      "a2",
+      "a3"
+     ]
     }
    ]
   },
@@ -967,31 +977,40 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 17.4,
-        "cy": 22.0,
+        "cx": 13.0,
+        "cy": 19.0,
         "rx": 1.5,
         "ry": 1.5,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 17.4,
-        "cy": 22.0,
+        "cx": 13.0,
+        "cy": 19.0,
         "rx": 3,
         "ry": 3,
         "points": 60
        }
       ],
-      "reasonCorrect": "Behind your partner, between the ball and the goal.",
+      "reasonCorrect": "Deep enough to keep both attackers in front, ready to step in.",
       "checks": [
        {
-        "check": "BEHIND_PRESSER"
+        "check": "KEEP_IN_FRONT",
+        "clues": [
+         "If the attacker on the left runs, can you still see them?",
+         "Drop back until the ball and the free attacker are both in front of you."
+        ]
        }
       ]
      },
      "next": {
       "frame": "f2"
-     }
+     },
+     "threats": [
+      "a1",
+      "a2",
+      "a3"
+     ]
     },
     {
      "id": "f2",
@@ -1032,8 +1051,8 @@
       },
       {
        "id": "you",
-       "x": 17.4,
-       "y": 22
+       "x": 13.0,
+       "y": 19.0
       }
      ],
      "target": {

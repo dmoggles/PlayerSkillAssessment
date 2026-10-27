@@ -2,7 +2,7 @@
 app/data/practice_scenarios.json), so scoring, clues, attempts and summaries work as for hand-made ones.
 
 A situation is fixed by its seed: the same topic, stage, format and seed always make the same scenario, and its id
-says all four (gen3-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
+says all four (gen4-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
 are made and the version goes up (gen2), so old attempts keep their meaning.
 
 Best spots come from the coaching rules the checks test: goal-side on the attacker's line to goal, shifted towards
@@ -21,7 +21,7 @@ from functools import lru_cache
 from pathlib import Path
 from . import practice
 
-VERSION = "gen3"  # gen2: covering in stage 4; gen3: every other attacker marked in stage 2
+VERSION = "gen4"  # gen2: covering in stage 4; gen3: every other attacker marked in stage 2; gen4: balanced cover in stage 3
 TOPIC_CODES = {"def": "defending_off_ball"}
 STAGES = {"defending_off_ball": (1, 2, 3, 4)}  # stage 5 is real games, written by hand
 AGES = {"7v7": [9, 12], "9v9": [11, 13], "11v11": [12, 18]}
@@ -51,7 +51,7 @@ REASONS = {
     "near_carrier": "Close and goal-side: you can block the shot without diving in.",
     "mid": "Goal-side, a few steps off, and on the ball's side.",
     "far": "Dropped off and goal-side: you see the ball and the attacker.",
-    "cover": "Behind your partner, ready if they're beaten, and covering the next pass.",
+    "cover": "Behind your partner and goal-side of the free attacker: you cover both.",
     "nearest": "You're nearest, so you press: close and goal-side.",
     "two": "The free attacker is nearer goal than the ball: they're the danger.",
     "two_cover": "The free attacker isn't ahead of the ball: cover your partner first.",
@@ -97,6 +97,36 @@ def cover_spot(presser, threat, goal, back, turn):
     side = 1 if _cross(presser, goal, threat) > 0 else -1
     a = angle + side * math.radians(turn)
     return (presser[0] + back * math.cos(a), presser[1] + back * math.sin(a))
+
+
+def _angle_at(at, a, b):
+    """Degrees between the lines from `at` to `a` and from `at` to `b`."""
+    u, v = _sub(a, at), _sub(b, at)
+    lengths = math.hypot(*u) * math.hypot(*v)
+    return math.degrees(math.acos(max(-1, min(1, (u[0] * v[0] + u[1] * v[1]) / lengths)))) if lengths else 0
+
+
+def keeps_in_front(p, attackers, goal, angle=29, reach=13.5):
+    """Goal-side of every attacker, with room to spare under the check's 35 degrees, and near enough the nearest to
+    step out (the check allows 15 m)."""
+    return all(_dist(p, goal) < _dist(a, goal) - 1 and _angle_at(a, goal, p) <= angle for a in attackers) \
+        and min(_dist(p, a) for a in attackers) <= reach
+
+
+def balanced_cover(presser, carrier, threat, goal, depth):
+    """Where to cover when a teammate presses and another attacker is free: as near as possible to halfway between
+    a few metres behind the presser and a few metres goal-side of the free attacker, keeping both attackers (the
+    ball carrier and the free one) in front of you. None if there's no such spot on the pitch shown."""
+    behind = cover_spot(presser, threat, goal, 5.0, 15)
+    goal_side = goal_side_spot(threat, carrier, goal, 4.0, 0)
+    aim = ((behind[0] + goal_side[0]) / 2, (behind[1] + goal_side[1]) / 2)
+    best = None
+    for i in range(-24, 25):
+        for j in range(-24, 25):
+            p = (round(aim[0] + i * 0.25, 2), round(aim[1] + j * 0.25, 2))
+            if 1 <= p[0] <= depth - 1 and keeps_in_front(p, (carrier, threat), goal) and (best is None or _dist(p, aim) < _dist(best, aim)):
+                best = p
+    return best
 
 
 class Builder:
@@ -260,20 +290,21 @@ def _stage_three(b: Builder):
     carrier = b.point((0.45, 0.75), (0.2, 0.8))
     opponents = {"a1": carrier}
     if b.rng.random() < 0.65:
+        # Cover: a teammate presses the carrier and another attacker is free. Cover both: deep enough to keep them in
+        # front of you, near enough to step in if your partner is beaten.
         presser = b.goal_side(carrier, b.rng.uniform(1.6, 2.0))
         threat = b.around(carrier, (7, 12), towards_goal=4)
         if _line_distance(presser, b.goal, threat) < 2:
             raise Unfit("threat behind the presser")
         opponents["a2"] = threat
-        ideal = cover_spot(presser, threat, b.goal, b.rng.uniform(4.4, 5.0), b.rng.uniform(10, 20))
-        ideal = (round(ideal[0], 2), round(ideal[1], 2))
+        ideal = balanced_cover(presser, carrier, threat, b.goal, b.depth)
         team = {"gk": (1.5, b.width / 2), "d1": presser}
-        if not b.on_view(ideal) or _dist(ideal, threat) < SPACING:
+        if ideal is None or not b.on_view(ideal) or min(_dist(ideal, q) for q in (threat, presser)) < SPACING:
             raise Unfit("no room to cover")
         team["you"] = b.start(ideal, list(opponents.values()) + list(team.values()))
         b.spaced({**opponents, **team}, [("a1", "d1")])
-        body = {"prompt": b.rng.choice(PROMPTS["cover"]), "mark": "a2",
-                "target": {"zones": _zones(ideal, (1.5, 3.0)), "reasonCorrect": REASONS["cover"], "checks": [{"check": "BEHIND_PRESSER"}]}}
+        body = {"prompt": b.rng.choice(PROMPTS["cover"]), "mark": "a2", "threats": ["a1", "a2"],
+                "target": {"zones": _zones(ideal, (1.5, 3.0)), "reasonCorrect": REASONS["cover"], "checks": [{"check": "KEEP_IN_FRONT"}]}}
         return "COVER", _frame("f1", body, opponents, team, "a1", {"d1": "PRESS"}), ideal
     # You're nearest: your partner is marking someone further away.
     other = b.around(carrier, (13, 20), towards_goal=6)

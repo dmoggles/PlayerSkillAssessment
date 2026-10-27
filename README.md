@@ -107,7 +107,7 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 
 **Random situations.** `backend/app/practice_generator.py` makes new situations from stages 1–4, on any format's pitch.
 - **Ordinary scenarios:** each comes out in the scenario format, so it scores like a hand-made one.
-- **Seeds:** a situation is fixed by its seed, and its id says how it was made (`gen3-def-s2-9v9-48213`). The server makes it again from the id to check an attempt. Change how situations are made and bump `VERSION`, so old attempts keep their meaning.
+- **Seeds:** a situation is fixed by its seed, and its id says how it was made (`gen4-def-s2-9v9-48213`). The server makes it again from the id to check an attempt. Change how situations are made and bump `VERSION`, so old attempts keep their meaning.
 - **Best spots:** they come from the coaching rules the checks test (`goal_side_spot`, `cover_spot`). A try that comes out cramped or ambiguous is thrown away for the next, still from the same seed.
 - **Tests:**
   - the backend tests check 300 seeds per stage and format;
