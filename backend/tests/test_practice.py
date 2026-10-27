@@ -157,7 +157,7 @@ def test_generated_situations_are_well_formed_repeatable_and_fair():
     one = gen.generate("defending_off_ball", 3, "9v9", 77)
     gen.generate.cache_clear()
     assert gen.generate("defending_off_ball", 3, "9v9", 77) == one != gen.generate("defending_off_ball", 3, "9v9", 78)
-    assert gen.parse_id("gen1-def-s5-7v7-1") is None and gen.parse_id("gen9-def-s1-7v7-1") is None and gen.parse_id("../etc") is None
+    assert gen.parse_id("gen2-def-s5-7v7-1") is None and gen.parse_id("gen1-def-s1-7v7-1") is None and gen.parse_id("gen9-def-s1-7v7-1") is None and gen.parse_id("../etc") is None
     assert practice.resolve(one["id"]) == one and practice.resolve(DATA["scenarios"][0]["id"])["id"] == DATA["scenarios"][0]["id"]
 
 
@@ -185,7 +185,7 @@ def test_random_situations_as_homework_and_extra_practice(monkeypatch):
     assert library["formats"] == ["7v7", "9v9", "11v11"]
     assert [s["random"] for s in library["topics"][0]["stages"]] == [True, True, True, True, False]
     preview = coach.get("/practice/generate", params={"topic": "defending_off_ball", "stage": 2, "format": "11v11", "seed": 5}).json()
-    assert preview["id"] == "gen1-def-s2-11v11-5" and preview["pitch"]["length"] == 100
+    assert preview["id"] == "gen2-def-s2-11v11-5" and preview["pitch"]["length"] == 100
     assert coach.get("/practice/generate", params={"topic": "defending_off_ball", "stage": 5}).status_code == 422, "real games aren't generated"
 
     # Random homework: five situations from stage 1 on a 9v9 pitch.

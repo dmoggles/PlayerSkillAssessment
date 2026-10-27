@@ -9,7 +9,7 @@ The first topic is **off-ball defending**, in five stages:
 1. **Goal-side basics:** between your attacker and the goal, close when the ball is near them and dropped off when it's far.
 2. **The ball moves:** the ball is passed, and the player moves again.
 3. **Press or cover:** one defender presses the ball, the other covers behind.
-4. **Two attackers:** pick up the free attacker, and stay goal-side when they run.
+4. **Two attackers:** read who the danger is. A free attacker nearer goal than the ball is yours to pick up; one level with the ball or further away isn't yet, so stay goal-side and cover the teammate pressing the ball.
 5. **Just lost the ball:** situations from real games, with shirt numbers. The player solves the same moment as each defender in turn, starting from where that player actually was, so they learn their partners' jobs as well as their own.
 
 Each scenario is for a format (7v7 to start with) and a range of age groups. More topics will follow, such as moving to receive the ball.

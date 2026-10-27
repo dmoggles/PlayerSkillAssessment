@@ -2,7 +2,7 @@
 app/data/practice_scenarios.json), so scoring, clues, attempts and summaries work as for hand-made ones.
 
 A situation is fixed by its seed: the same topic, stage, format and seed always make the same scenario, and its id
-says all four (gen1-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
+says all four (gen2-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
 are made and the version goes up (gen2), so old attempts keep their meaning.
 
 Best spots come from the coaching rules the checks test: goal-side on the attacker's line to goal, shifted towards
@@ -21,7 +21,7 @@ from functools import lru_cache
 from pathlib import Path
 from . import practice
 
-VERSION = "gen1"
+VERSION = "gen2"  # gen2: in stage 4, a free attacker who isn't ahead of the ball means covering, not marking
 TOPIC_CODES = {"def": "defending_off_ball"}
 STAGES = {"defending_off_ball": (1, 2, 3, 4)}  # stage 5 is real games, written by hand
 AGES = {"7v7": [9, 12], "9v9": [11, 13], "11v11": [12, 18]}
@@ -53,7 +53,8 @@ REASONS = {
     "far": "Dropped off and goal-side: you see the ball and the attacker.",
     "cover": "Behind your partner, ready if they're beaten, and covering the next pass.",
     "nearest": "You're nearest, so you press: close and goal-side.",
-    "two": "The free attacker is the danger: goal-side of them, on the ball's side.",
+    "two": "The free attacker is nearer goal than the ball: they're the danger.",
+    "two_cover": "The free attacker isn't ahead of the ball: cover your partner first.",
 }
 
 
@@ -194,7 +195,8 @@ def _stage_one(b: Builder):
     a1 = b.point((0.3, 0.6), (0.2, 0.8))
     kind = b.rng.choice(list(CLASSES))
     with_a1 = kind == "near" and b.rng.random() < 0.4
-    holder_at = a1 if with_a1 else b.around(a1, CLASSES[kind]["ball"] if kind != "near" else (3.5, 6.5), towards_goal=2)
+    # The ball is never nearer our goal than the attacker to mark: one behind the ball is a job for covering (stage 4).
+    holder_at = a1 if with_a1 else b.around(a1, CLASSES[kind]["ball"] if kind != "near" else (3.5, 6.5), towards_goal=0)
     opponents = {"a1": a1}
     team = {"gk": (1.5, b.width / 2)}
     pairs, others = [], []
@@ -291,29 +293,46 @@ def _stage_three(b: Builder):
 
 
 def _stage_four(b: Builder):
-    """Two attackers: one is marked by a teammate, the other is free and yours to pick up. The ball is with a third,
-    who is pressed. You start between the two, so you have to choose."""
+    """Two attackers: one is marked by a teammate, the other is free. The ball is with a third, who is pressed. Who's
+    the danger depends on where the free one is: nearer our goal than the ball, they are, so pick them up; level with
+    the ball or further away, they aren't yet, so stay goal-side and cover the presser, turned towards them. You start
+    between the two attackers, so you have to read it."""
     holder = b.point((0.5, 0.75), (0.2, 0.8))
-    free = b.around(holder, (9.5, 15), towards_goal=8)
+    cover = b.rng.random() < 0.45
+    for _ in range(40):
+        free = b.around(holder, (9.5, 15))
+        if (free[0] >= holder[0] - 1) if cover else (free[0] <= holder[0] - 3):
+            break
+    else:
+        raise Unfit("no free attacker where wanted")
     marked = b.around(free, (8, 13), towards_goal=4)
     opponents = {"a1": free, "a2": marked, "a3": holder}
-    team = {"gk": (1.5, b.width / 2), "d1": b.goal_side(holder, 1.8), "d2": b.goal_side(marked, 1.5)}
-    ideal, _, body = _mark_frame(b, free, holder, "a3", [(marked, "d2"), (holder, "d1")], reason_key="two")
-    body["prompt"] = b.rng.choice(PROMPTS["two"])
-    # Start roughly as near the marked attacker as the free one, so picking is the question.
+    presser = b.goal_side(holder, 1.8)
+    team = {"gk": (1.5, b.width / 2), "d1": presser, "d2": b.goal_side(marked, 1.5)}
+    if cover:
+        ideal = cover_spot(presser, free, b.goal, b.rng.uniform(4.4, 5.0), b.rng.uniform(10, 20))
+        ideal = (round(ideal[0], 2), round(ideal[1], 2))
+        if not b.on_view(ideal) or min(_dist(ideal, p) for p in (*opponents.values(), team["d2"])) < SPACING:
+            raise Unfit("no room to cover")
+        body = {"prompt": b.rng.choice(PROMPTS["two"]), "mark": "a1",
+                "target": {"zones": _zones(ideal, (1.5, 3.0)), "reasonCorrect": REASONS["two_cover"], "checks": [{"check": "BEHIND_PRESSER"}]}}
+    else:
+        ideal, _, body = _mark_frame(b, free, holder, "a3", [(marked, "d2"), (holder, "d1")], reason_key="two")
+        body["prompt"] = b.rng.choice(PROMPTS["two"])
+    # Start roughly as near the marked attacker as the free one, so reading the situation is the question.
     mid = ((free[0] + marked[0]) / 2 - 3, (free[1] + marked[1]) / 2)
     start = (round(mid[0] + b.rng.uniform(-1.5, 1.5), 1), round(mid[1] + b.rng.uniform(-1.5, 1.5), 1))
     if not b.on_view(start) or _dist(start, ideal) < 5:
         raise Unfit("no fair start")
     team["you"] = start
     b.spaced({**opponents, **team}, [("a2", "d2"), ("a3", "d1")])
-    return "MARK", _frame("f1", body, opponents, team, "a3", {"d1": "PRESS", "d2": "MARK"}), ideal
+    return ("COVER" if cover else "MARK"), _frame("f1", body, opponents, team, "a3", {"d1": "PRESS", "d2": "MARK"}), ideal
 
 
 TEMPLATES = {("defending_off_ball", 1): _stage_one, ("defending_off_ball", 2): _stage_two,
              ("defending_off_ball", 3): _stage_three, ("defending_off_ball", 4): _stage_four}
 CONCEPTS = {1: ["GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP"], 2: ["GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP"],
-            3: ["PRESS", "COVER"], 4: ["NEAREST_THREAT", "GOAL_SIDE", "SCAN_MARKER"]}
+            3: ["PRESS", "COVER"], 4: ["NEAREST_THREAT", "COVER", "SCAN_MARKER"]}
 SKILLS = {1: ["team_shape"], 2: ["team_shape"], 3: ["pressing", "team_shape"], 4: ["scanning", "team_shape"]}
 
 

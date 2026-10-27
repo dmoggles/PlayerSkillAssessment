@@ -53,14 +53,24 @@ test('every generated situation\'s best spot scores 100 and passes its checks, a
   assert.deepEqual(problems, [])
 })
 
-test('in generated two-attacker situations, standing with the marked attacker gets the clue to find the free one', async () => {
+test('in generated two-attacker situations, the player has to read who the danger is', async () => {
   const { scoreFrame } = await loadJsx('src/practice/practiceModel.js')
-  for (const s of GENERATED.filter(x => x.stage === 4)) {
-    const f = s.frames[0]
-    const marked = f.opponents.find(p => p.id === 'a2'), goal = { x: 0, y: s.pitch.width / 2 }
-    const length = Math.hypot(marked.x - goal.x, marked.y - goal.y)
-    const wrong = { x: marked.x + (goal.x - marked.x) * 2 / length, y: marked.y + (goal.y - marked.y) * 2 / length }
-    assert.equal(scoreFrame(s, f, wrong).failed[0], 'NEAREST_THREAT', s.id)
+  const twos = GENERATED.filter(x => x.stage === 4)
+  const goalSideOf = (s, p) => { const g = { x: 0, y: s.pitch.width / 2 }, l = Math.hypot(p.x - g.x, p.y - g.y); return { x: p.x + (g.x - p.x) * 2 / l, y: p.y + (g.y - p.y) * 2 / l } }
+  const marking = twos.filter(s => s.role === 'MARK'), covering = twos.filter(s => s.role === 'COVER')
+  assert.ok(marking.length >= 10 && covering.length >= 10, 'both kinds of situation')
+  for (const s of marking) {
+    // The free attacker is nearer goal than the ball: standing with the marked one gets the clue to find them.
+    const f = s.frames[0], free = f.opponents.find(p => p.id === 'a1'), ball = f.ball
+    assert.ok(free.x <= ball.x - 3, s.id)
+    assert.equal(scoreFrame(s, f, goalSideOf(s, f.opponents.find(p => p.id === 'a2'))).failed[0], 'NEAREST_THREAT', s.id)
+  }
+  for (const s of covering) {
+    // The free attacker isn't ahead of the ball: chasing them gets the clue to cover the presser instead.
+    const f = s.frames[0], free = f.opponents.find(p => p.id === 'a1')
+    assert.ok(free.x >= f.ball.x - 1, s.id)
+    const chased = scoreFrame(s, f, goalSideOf(s, free))
+    assert.deepEqual([chased.points, chased.failed[0]], [0, 'BEHIND_PRESSER'], s.id)
   }
 })
 
