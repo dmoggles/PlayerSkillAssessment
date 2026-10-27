@@ -30,6 +30,7 @@ ACCESS = {
     ("PUT", "/polls/{poll_id}/answers/{scenario_id}"): (PUBLIC, None, None),
     ("GET", "/polls/{poll_id}/results"): (ADMIN, None, None),
     ("DELETE", "/polls/{poll_id}/respondents/{respondent}"): (ADMIN, None, None),
+    ("DELETE", "/polls/{poll_id}/answers"): (ADMIN, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/practice/assignments"): (MEMBER, {"topic": "defending_off_ball", "stage": 1}, None),
     ("DELETE", "/teams/{team_id}/players/{player_id}/practice/assignments/{assignment_id}"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/practice/link"): (MEMBER, None, None),

@@ -93,6 +93,7 @@ export const getMyPractice = token => data(api.get(`/practice/${encodeURICompone
 export const getPoll = (pollId, respondent) => data(api.get(`/polls/${encodeURIComponent(pollId)}`, { params: respondent ? { respondent } : {} }))
 export const savePollAnswer = (pollId, scenarioId, answer) => data(api.put(`/polls/${encodeURIComponent(pollId)}/answers/${encodeURIComponent(scenarioId)}`, answer))
 export const getPollResults = pollId => data(api.get(`/polls/${encodeURIComponent(pollId)}/results`))
+export const clearPollAnswers = pollId => data(api.delete(`/polls/${encodeURIComponent(pollId)}/answers`))
 export const removePollRespondent = (pollId, respondent) => data(api.delete(`/polls/${encodeURIComponent(pollId)}/respondents/${encodeURIComponent(respondent)}`))
 export const savePracticeAttempt = (token, attempt) => data(api.post(`/practice/${encodeURIComponent(token)}/attempts`, attempt))
 export const getSessions = (id, periodId) => data(api.get(`${team(id)}/sessions`, { params: periodId ? { period_id: periodId } : {} }))

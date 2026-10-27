@@ -145,3 +145,11 @@ def remove_respondent(poll_id: str, respondent: str, db: DbSession = Depends(get
     poll_for(poll_id)
     db.query(PollAnswer).filter_by(poll_id=poll_id, respondent=respondent_ok(respondent)).delete()
     db.commit()
+
+
+@router.delete("/{poll_id}/answers", status_code=204)
+def clear_answers(poll_id: str, db: DbSession = Depends(get_db), admin: User = Depends(require_admin)):
+    """Start the poll afresh: everyone's answers go."""
+    poll_for(poll_id)
+    db.query(PollAnswer).filter_by(poll_id=poll_id).delete()
+    db.commit()

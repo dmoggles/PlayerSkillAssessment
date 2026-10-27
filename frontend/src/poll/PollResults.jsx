@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { errorMessage, getPollResults, removePollRespondent, restoreSession } from '../api'
+import { clearPollAnswers, errorMessage, getPollResults, removePollRespondent, restoreSession } from '../api'
 import PracticePitch from '../practice/PracticePitch'
 import { ELSEWHERE, groupOf, respondentName, tally } from './pollModel'
 
@@ -27,6 +27,11 @@ export default function PollResults() {
     try { await removePollRespondent(pollId, who); setWho(''); load() } catch (e) { setError(errorMessage(e, 'Could not take those answers out.')) }
   }
 
+  const clearAll = async () => {
+    if (!window.confirm(`Clear all ${results.answers.length} answers from everyone? This can't be undone.`)) return
+    try { await clearPollAnswers(pollId); setWho(''); load() } catch (e) { setError(errorMessage(e, 'Could not clear the answers.')) }
+  }
+
   if (signedOut) return <div className="page public-page"><section className="public-card"><h1>Poll results</h1>
     <p>Sign in as a site admin, then open this link again.</p><Link className="primary-btn" to="/sign-in">Sign in</Link></section></div>
   if (error) return <div className="page public-page"><section className="public-card"><h1>Poll results</h1><p role="alert">{error}</p></section></div>
@@ -46,6 +51,7 @@ export default function PollResults() {
         <label className="checkbox"><input type="checkbox" checked={showSpots} onChange={e => setShowSpots(e.target.checked)} /> Show the spots answers are grouped by</label>
         <button type="button" className="secondary-btn" onClick={load}>Refresh</button>
         {who && <button type="button" className="danger-btn" onClick={remove}>Take out their answers</button>}
+        {!who && results.answers.length > 0 && <button type="button" className="danger-btn" onClick={clearAll}>Clear all answers</button>}
       </div>
     </header>
     <div className="poll-results-grid">

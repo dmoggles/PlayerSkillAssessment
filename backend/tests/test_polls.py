@@ -46,7 +46,7 @@ def test_admins_see_everyone_and_can_take_out_a_test_run(monkeypatch):
     public = TestClient(app)
     for who, x in ((ME, 15), (YOU, 20)):
         public.put(f"{POLL}/answers/byline-in-box", json={"respondent": who, "name": "Sam" if who == ME else None, "x": x, "y": 18})
-    coach, _ = signed_in("poll-coach@example.com", monkeypatch)
+    coach, coach_csrf = signed_in("poll-coach@example.com", monkeypatch)
     assert coach.get(f"{POLL}/results").status_code == 403
     admin, csrf = signed_in("poll-admin@example.com", monkeypatch)
     with SessionLocal() as db:
@@ -57,6 +57,9 @@ def test_admins_see_everyone_and_can_take_out_a_test_run(monkeypatch):
     assert {a["x"] for a in results["answers"]} == {15, 20} and results["scenarios"][0]["references"]
     assert admin.delete(f"{POLL}/respondents/{YOU}", headers={"x-csrf-token": csrf}).status_code == 204
     assert [r["id"] for r in admin.get(f"{POLL}/results").json()["respondents"]] == [ME]
+    assert coach.delete(f"{POLL}/answers", headers={"x-csrf-token": coach_csrf}).status_code == 403
+    assert admin.delete(f"{POLL}/answers", headers={"x-csrf-token": csrf}).status_code == 204
+    assert admin.get(f"{POLL}/results").json()["answers"] == []
 
 
 def test_polls_are_off_unless_switched_on(monkeypatch):
