@@ -116,6 +116,14 @@ Practice scenarios are game situations a player solves on a pitch: they drag the
 
 **Players** have no accounts. A coach gives each a link from Player Data → Practice: a random token, stored only as its hash, working for 30 days, and replaced or revoked by the coach. It opens only that player's practice. An attempt is refused unless it's for a scenario the player was set and fits its frame. A player can save at most 300 attempts an hour.
 
+### Coaching polls (development site only)
+
+A poll is a set of situations where coaches put the player where they'd coach them to go, with no scoring: for gathering opinions before settling a scenario's best spot. Polls are content in `backend/app/data/polls.json` (situations in the practice scenario layout, plus `references`: labelled spots the admin's view groups answers by, never shown to respondents).
+
+- **Development only.** The routes answer 404 unless `POLLS_ENABLED` is true, which `compose.dev.yaml` and `compose.local.yaml` set and production never does. The `poll_answers` table exists everywhere but stays empty outside development.
+- **Answering:** `/poll/<id>`, public, no account. The browser keeps a random respondent id, so people can come back and change answers; a name is optional. One answer per respondent per situation (a new one replaces it); saves are limited per address.
+- **Results:** `/poll/<id>/results`, site admins only: every answer on each pitch, coloured by the nearest reference spot (within 6 m, else "Somewhere else"), with counts. Pick out one respondent, or take out their answers (such as a test run).
+
 ### Site admin review
 
 Every site admin gets an email, with a link to Settings, when something is waiting for them. Sending is best effort: the item is saved and waits in Settings even if the email fails.

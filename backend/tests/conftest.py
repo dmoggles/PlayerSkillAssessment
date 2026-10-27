@@ -15,3 +15,9 @@ def admin_emails(monkeypatch):
     sent = []
     monkeypatch.setattr(notify, "send_email", lambda to, subject, body: sent.append((to, subject, body)))
     return sent
+
+
+@pytest.fixture(autouse=True)
+def polls_on(monkeypatch):
+    """Polls run on the development site only; tests of that switch turn it off."""
+    monkeypatch.setattr(settings, "polls_enabled", True)

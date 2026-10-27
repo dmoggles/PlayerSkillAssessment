@@ -1,4 +1,8 @@
 services:
+  api:
+    environment:
+      # Coaching polls are for the development site only; production leaves them off.
+      POLLS_ENABLED: "true"
   web:
     ports:
       - "127.0.0.1:8083:80"

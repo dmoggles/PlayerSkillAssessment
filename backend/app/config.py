@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     app_version: str = "local"
     cleanup_interval_hours: float = 6
     api_docs_enabled: bool = False
+    # Coaching polls (/poll/...): development only. Production never sets this, so the routes there answer 404.
+    polls_enabled: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

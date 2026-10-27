@@ -26,6 +26,10 @@ ACCESS = {
     ("GET", "/practice/{token}/generate"): (PUBLIC, None, None),
     ("POST", "/practice/{token}/attempts"): (PUBLIC, None, None),
     ("GET", "/teams/{team_id}/players/{player_id}/practice"): (MEMBER, None, None),
+    ("GET", "/polls/{poll_id}"): (PUBLIC, None, None),
+    ("PUT", "/polls/{poll_id}/answers/{scenario_id}"): (PUBLIC, None, None),
+    ("GET", "/polls/{poll_id}/results"): (ADMIN, None, None),
+    ("DELETE", "/polls/{poll_id}/respondents/{respondent}"): (ADMIN, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/practice/assignments"): (MEMBER, {"topic": "defending_off_ball", "stage": 1}, None),
     ("DELETE", "/teams/{team_id}/players/{player_id}/practice/assignments/{assignment_id}"): (MEMBER, None, None),
     ("POST", "/teams/{team_id}/players/{player_id}/practice/link"): (MEMBER, None, None),
@@ -189,7 +193,7 @@ def test_routes_reject_callers_below_their_access_level(monkeypatch):
            "assessment_id": assessment_id, "member_user_id": owner_id,
            "version_id": owner.get(f"/teams/{team_id}/periods").json()[0]["matrix_version_id"], "slug": drill_slug,
            "invite_id": 0, "suggestion_id": 0, "request_id": 0, "submission_id": 0, "report_id": 0,
-           "assignment_id": practice["assignments"][0]["id"]}
+           "assignment_id": practice["assignments"][0]["id"], "poll_id": "press-or-cover", "scenario_id": "nearest-central", "respondent": "r" * 20}
 
     def call(client, csrf, method, path, body, query):
         url = path.format(**ids)

@@ -633,3 +633,20 @@ class PracticeAttempt(Base):
     failed_checks: Mapped[list] = mapped_column(JSONB, default=list)
     duration_ms: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class PollAnswer(Base):
+    """One person's answer to one situation in a coaching poll (app/data/polls.json): where they'd put the player.
+    Polls run on the development site only. Anyone with the link answers, with no account: a random id their browser
+    keeps groups their answers, and changing an answer replaces it. The name is whatever they chose to give."""
+    __tablename__ = "poll_answers"
+    __table_args__ = (UniqueConstraint("poll_id", "respondent", "scenario_id", name="uq_poll_answers_one_each"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    poll_id: Mapped[str] = mapped_column(String(40), index=True)
+    respondent: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str | None] = mapped_column(String(60))
+    scenario_id: Mapped[str] = mapped_column(String(40))
+    x: Mapped[float] = mapped_column(Float)
+    y: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -5,6 +5,8 @@ const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
 const PracticePage = lazy(() => import('./practice/PracticePage'))
+const PollPage = lazy(() => import('./poll/PollPage'))
+const PollResults = lazy(() => import('./poll/PollResults'))
 import UpdateBanner from './UpdateBanner'
 import Landing from './site/Landing'
 import { LegalPage, ManualPage } from './site/lazyPages'
@@ -134,6 +136,9 @@ function Shell() {
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
     <Route path="/practice/:token" element={<PracticePage />} />
+    {/* Coaching polls run on the development site only: elsewhere the API answers that they aren't available. */}
+    <Route path="/poll/:pollId" element={<PollPage />} />
+    <Route path="/poll/:pollId/results" element={<PollResults />} />
     <Route path="/manual" element={<ManualPage user={loading ? undefined : user} />} />
     <Route path="/manual/:slug" element={<ManualPage user={loading ? undefined : user} />} />
     <Route path="/privacy" element={<LegalPage page="privacy" />} />

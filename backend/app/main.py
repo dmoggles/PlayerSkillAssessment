@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine
 from .maintenance import cleanup_loop
-from .routers import access_requests, accounts, admin, assessments, drills, link_reports, matrices, plans, practice, priorities, reports, self_assessment, session_templates, sessions, squad, team_drills, teams, video_suggestions
+from .routers import access_requests, accounts, admin, assessments, drills, link_reports, matrices, plans, polls, practice, priorities, reports, self_assessment, session_templates, sessions, squad, team_drills, teams, video_suggestions
 
 
 @asynccontextmanager
@@ -38,6 +38,7 @@ app.include_router(team_drills.router)
 app.include_router(link_reports.router)
 app.include_router(plans.router)
 app.include_router(practice.router)
+app.include_router(polls.router)
 
 
 @app.middleware("http")

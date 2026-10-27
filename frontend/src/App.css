@@ -1395,3 +1395,28 @@ a.public-brand { text-decoration: none; }
 .practice-stage-head .secondary-btn { padding: 6px 12px; border-radius: 8px; font-weight: 600; }
 .practice-assign .practice-small { flex: 0 1 110px; }
 .practice-random { justify-self: start; min-height: 44px; padding: 8px 18px; border-radius: 8px; font-weight: 700; }
+
+/* Coaching polls (development site only): answering, and the admin's results. */
+.practice-mark { stroke: #102018; stroke-width: .18; fill: #e8ecef; fill-opacity: .9; }
+.practice-mark.faded { fill-opacity: .25; stroke-opacity: .3; }
+.practice-mark.picked { stroke: #fff; stroke-width: .35; }
+.practice-mark.poll-start { fill: none; stroke: #fff; stroke-width: .2; stroke-dasharray: .45 .35; }
+.practice-spot-ring circle { fill: none; stroke-width: .22; stroke-dasharray: .7 .4; }
+.group-0 { --group: #ffd84d; } .group-1 { --group: #5ee0ff; } .group-2 { --group: #ff7fdc; } .group-other { --group: #e8ecef; }
+.practice-mark[class*="group-"] { fill: var(--group); }
+.practice-spot-ring circle { stroke: var(--group, #fff); }
+.poll-steps { display: flex; flex-wrap: wrap; gap: 3px; list-style: none; padding: 0; margin: 0 0 10px; }
+.poll-step { width: 28px; height: 28px; padding: 0; font-size: .85rem; border-radius: 50%; border: 1px solid var(--border); background: #fff; font-weight: 700; cursor: pointer; }
+.poll-step.answered { background: #e6f0fb; border-color: #9cc0ea; }
+.poll-step.current { outline: 2px solid #0f4fa3; outline-offset: 1px; }
+.poll-results { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.poll-results-head h1 { margin: 0 0 4px; font-size: 1.4rem; }
+.poll-results-head a { overflow-wrap: anywhere; }
+.poll-results-controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin: 10px 0 16px; }
+.poll-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.poll-result { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 0; }
+.poll-result h2 { margin: 0 0 4px; font-size: 1rem; }
+.poll-result > p { margin: 0 0 8px; font-size: .85rem; }
+.poll-result .practice-pitch { width: 100%; margin: 0; max-height: none; touch-action: auto; }
+.poll-tally { display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; padding: 0; margin: 8px 0 0; font-size: .9rem; }
+.poll-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--group); border: 1px solid #102018; vertical-align: -1px; }

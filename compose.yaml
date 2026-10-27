@@ -42,6 +42,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-assessment@localhost}
       SMTP_REPLY_TO: ${SMTP_REPLY_TO:-}
       API_DOCS_ENABLED: ${API_DOCS_ENABLED:-false}
+      POLLS_ENABLED: ${POLLS_ENABLED:-false}
       OPEN_SIGNUP: ${OPEN_SIGNUP:-false}
     depends_on:
       db:

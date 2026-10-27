@@ -8,8 +8,10 @@ const STEP = 0.5, BIG_STEP = 2  // metres an arrow key moves your player, withou
 // The pitch for a practice frame, upright with our goal at the bottom, drawn in metres. Your player can be dragged,
 // placed with a tap, or moved with the arrow keys; everything else shows where it is. Which attacker is theirs to
 // mark isn't shown: working that out is part of it. `shown` holds the positions
-// to draw (they move between frames), `position` is your player's.
-export default function PracticePitch({ scenario, controlled = scenario.controlled, shown, position, onMove, disabled = false, ghost = null, lines = false }) {
+// to draw (they move between frames), `position` is your player's (none, to only look). `marks` are extra dots
+// drawn on top, such as everyone's answers to a poll, and `spots` labelled rings, such as the spots answers are
+// grouped by.
+export default function PracticePitch({ scenario, controlled = scenario.controlled, shown, position, onMove, disabled = false, ghost = null, lines = false, marks = [], spots = [] }) {
   const svg = useRef(null)
   const dragging = useRef(false)
   const { pitch } = scenario
@@ -25,14 +27,14 @@ export default function PracticePitch({ scenario, controlled = scenario.controll
     return clampToView(toPitch([p.x, p.y], depth), pitch, depth)
   }
   const down = event => {
-    if (disabled) return
+    if (disabled || !onMove) return
     const point = pointFrom(event)
     if (!point) return
     dragging.current = true
     svg.current.setPointerCapture?.(event.pointerId)
     onMove(point)
   }
-  const move = event => { if (dragging.current && !disabled) { const point = pointFrom(event); if (point) onMove(point) } }
+  const move = event => { if (dragging.current && !disabled && onMove) { const point = pointFrom(event); if (point) onMove(point) } }
   const up = event => { dragging.current = false; svg.current.releasePointerCapture?.(event.pointerId) }
   const key = event => {
     if (disabled) return
@@ -87,7 +89,10 @@ export default function PracticePitch({ scenario, controlled = scenario.controll
     {ghost && (() => { const [x, y] = at(ghost); return <g className="practice-ghost"><circle cx={x} cy={y} r={R * 1.2} />
       <text x={x} y={y + R + 1.8} textAnchor="middle" className="practice-tag">Best spot</text></g> })()}
     <circle cx={ball[0] + 0.7} cy={ball[1] - 0.5} r={0.6} className="practice-ball" />
-    {(() => {
+    {spots.map(s => { const [x, y] = at(s); return <g key={s.label} className={`practice-spot-ring ${s.className ?? ''}`}><circle cx={x} cy={y} r={R * 1.3} />
+      <text x={x} y={y - R * 1.3 - 0.5} textAnchor="middle" className="practice-tag">{s.label}</text></g> })}
+    {marks.map(m => { const [x, y] = at(m); return <circle key={m.key} cx={x} cy={y} r={m.r ?? 0.75} className={`practice-mark ${m.className ?? ''}`}>{m.title && <title>{m.title}</title>}</circle> })}
+    {position && (() => {
       const [x, y] = at(position)
       return <g className={`practice-you${disabled ? '' : ' movable'}`} tabIndex={disabled ? -1 : 0} role="button" onKeyDown={key}
         aria-label={`Your player, ${position.x.toFixed(1)} metres from your goal line. Arrow keys move them.`}>
