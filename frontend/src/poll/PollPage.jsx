@@ -97,7 +97,7 @@ export default function PollPage() {
     <button type="button" className="link-btn back-link" onClick={() => setIndex(null)}>← {poll.title}</button>
     {steps}
     <div className="practice-head">
-      <p className="practice-step">Situation {index + 1} of {total} · {s.format}</p>
+      <p className="practice-step">Situation {index + 1} of {total} · {poll.context}</p>
       <p>{s.prompt}</p>
       <p className="practice-prompt">{poll.question}</p>
     </div>

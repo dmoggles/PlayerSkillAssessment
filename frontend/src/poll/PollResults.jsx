@@ -41,6 +41,7 @@ export default function PollResults() {
   return <div className="page poll-results">
     <header className="poll-results-head">
       <h1>Results: {results.title}</h1>
+      <p className="muted">{results.context}.</p>
       <p className="muted">{results.respondents.length} {results.respondents.length === 1 ? 'person has' : 'people have'} answered. Link to share: <a href={link}>{link}</a></p>
       <div className="poll-results-controls">
         <label className="field">Pick out
@@ -70,7 +71,7 @@ export default function PollResults() {
         // Picked-out answers go last, so they're drawn on top.
         marks.sort((a, b) => (a.className?.includes('picked') ? 1 : 0) - (b.className?.includes('picked') ? 1 : 0))
         return <section key={s.id} className="poll-result">
-          <h2>{i + 1}. {s.title} <small className="muted">{s.format}</small></h2>
+          <h2>{i + 1}. {s.title}</h2>
           <p className="muted">{s.prompt} {results.question}</p>
           <PracticePitch scenario={s} controlled={s.controlled} shown={frameOf(s)} position={null} disabled marks={marks}
             spots={showSpots ? s.references.map((r, n) => ({ ...r, className: `group-${n}` })) : []} />

@@ -89,7 +89,7 @@ def get_poll(poll_id: str, respondent: str | None = None, db: DbSession = Depend
     poll = poll_for(poll_id)
     mine = db.query(PollAnswer).filter_by(poll_id=poll_id, respondent=respondent_ok(respondent)).all() if respondent else []
     finished = {s["id"] for s in poll["scenarios"]} <= {a.scenario_id for a in mine}
-    return {"id": poll["id"], "title": poll["title"], "intro": poll["intro"], "question": poll["question"],
+    return {"id": poll["id"], "title": poll["title"], "intro": poll["intro"], "context": poll["context"], "question": poll["question"],
             "scenarios": [{k: v for k, v in s.items() if k != "references"} for s in poll["scenarios"]],
             "name": next((a.name for a in mine if a.name), None),
             "answers": {a.scenario_id: {"x": a.x, "y": a.y} for a in mine},
@@ -145,7 +145,7 @@ def results(poll_id: str, db: DbSession = Depends(get_db), admin: User = Depends
         if a.respondent not in names:
             people.append(a.respondent)
         names[a.respondent] = names.get(a.respondent) or a.name
-    return {"id": poll["id"], "title": poll["title"], "question": poll["question"], "scenarios": poll["scenarios"],
+    return {"id": poll["id"], "title": poll["title"], "context": poll["context"], "question": poll["question"], "scenarios": poll["scenarios"],
             "respondents": [{"id": r, "name": names[r], "answered": sum(a.respondent == r for a in answers)} for r in people],
             "answers": [{"respondent": a.respondent, "scenario_id": a.scenario_id, "x": a.x, "y": a.y, "updated_at": a.updated_at} for a in answers]}
 

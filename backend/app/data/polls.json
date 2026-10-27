@@ -3,7 +3,8 @@
   {
    "id": "press-or-cover",
    "title": "Press or cover?",
-   "intro": "Ten situations where a player has to choose between pressing the ball and covering. Each one is frozen in time: for each, show us the ideal position for the highlighted player (marked ?) at that moment. Don't think about how far they'd have to run to get there; we want the spot itself. There are no right answers: we want to know what you'd coach.",
+   "context": "7-a-side kids' grassroots football, no offside",
+   "intro": "Ten situations from 7-a-side kids' grassroots football, played without offside, where a player has to choose between pressing the ball and covering. Each one is frozen in time: for each, show us the ideal position for the highlighted player (marked ?) at that moment. Don't think about how far they'd have to run to get there; we want the spot itself. There are no right answers: we want to know what you'd coach.",
    "question": "Where is the ideal position for the highlighted player, right now?",
    "scenarios": [
     {
