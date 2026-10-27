@@ -597,8 +597,9 @@ class PracticeLink(Base):
 
 
 class PracticeAssignment(Base):
-    """Practice a coach sets a player: one scenario, or a whole stage of a topic. Scenarios are content in
-    app/data/practice_scenarios.json, so they're named by their stable ids."""
+    """Practice a coach sets a player: one scenario, a whole stage of a topic, or a number of random situations from a
+    stage (on a format's pitch). Scenarios are content in app/data/practice_scenarios.json, so they're named by their
+    stable ids; random ones are made from their stage by app/practice_generator.py."""
     __tablename__ = "practice_assignments"
     __table_args__ = (CheckConstraint("(scenario_id IS NULL) <> (stage IS NULL)", name="ck_practice_assignments_one_target"),)
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -610,6 +611,8 @@ class PracticeAssignment(Base):
     assigned_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     due_on: Mapped[date_type | None] = mapped_column(Date)
+    random_count: Mapped[int | None] = mapped_column(SmallInteger)
+    format: Mapped[str | None] = mapped_column(String(10))
 
 
 class PracticeAttempt(Base):

@@ -70,6 +70,6 @@ export function libraryStages(library, ageGroup = null) {
   return library.topics.map(topic => ({
     ...topic,
     stages: topic.stages.map(stage => ({ ...stage, scenarios: library.scenarios.filter(s => s.topic === topic.id && s.stage === stage.stage && fits(s)) }))
-      .filter(stage => stage.scenarios.length),
+      .filter(stage => stage.scenarios.length || stage.random),
   })).filter(topic => topic.stages.length)
 }

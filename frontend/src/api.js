@@ -81,6 +81,8 @@ export const generateSquadPlans = (id, periodId, onlyMissing) => data(api.post(`
 export const getDrill = slug => data(api.get(`/drills/${encodeURIComponent(slug)}`))
 export const getSkillTags = () => data(api.get('/skill-tags'))
 export const getPracticeLibrary = () => data(api.get('/practice/scenarios'))
+export const generatePractice = (topic, stage, format, seed) => data(api.get('/practice/generate', { params: { topic, stage, format, ...(seed ? { seed } : {}) } }))
+export const generateMyPractice = (token, assignmentId) => data(api.get(`/practice/${encodeURIComponent(token)}/generate`, { params: { assignment_id: assignmentId } }))
 export const getPlayerPractice = (id, playerId) => data(api.get(`${team(id)}/players/${playerId}/practice`))
 export const assignPractice = (id, playerId, body) => data(api.post(`${team(id)}/players/${playerId}/practice/assignments`, body))
 export const unassignPractice = (id, playerId, assignmentId) => data(api.delete(`${team(id)}/players/${playerId}/practice/assignments/${assignmentId}`))

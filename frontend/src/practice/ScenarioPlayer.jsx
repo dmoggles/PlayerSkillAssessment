@@ -15,7 +15,7 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
 
 // One scenario, frame by frame: place your player, check, see why, then try again or go on. `onAttempt`, when given,
 // hears every check (a coach's preview doesn't save them).
-export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit }) {
+export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit, onAnother }) {
   const [index, setIndex] = useState(0)
   const frame = scenario.frames[index]
   const [position, setPosition] = useState(() => startPosition(scenario, scenario.frames[0]))
@@ -73,8 +73,9 @@ export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit }) 
       <p className="practice-stars" aria-label={`${earned} of 3 stars`}>{[1, 2, 3].map(n => <span key={n} className={n <= earned ? 'earned' : ''} aria-hidden="true">★</span>)}</p>
       <p>{earned === 3 ? 'Great positions all the way through.' : earned === 2 ? 'Good work. Try it again to get all three stars.' : 'Well done for finishing. Have another go!'}</p>
       <div className="practice-actions">
+        {onAnother && <button type="button" className="primary-btn" onClick={onAnother}>Another one</button>}
         <button type="button" className="secondary-btn" onClick={() => restart()}>Play again</button>
-        {onExit && <button type="button" className="primary-btn" onClick={onExit}>Done</button>}
+        {onExit && <button type="button" className={onAnother ? 'secondary-btn' : 'primary-btn'} onClick={onExit}>Done</button>}
       </div>
     </div>
   }

@@ -237,6 +237,15 @@ def by_id() -> dict[str, dict]:
     return {s["id"]: s for s in scenarios()}
 
 
+def resolve(scenario_id: str) -> dict | None:
+    """A scenario by its id: a hand-made one, or a generated one made again from its seed."""
+    from . import practice_generator
+    found = by_id().get(scenario_id)
+    if found or not (parsed := practice_generator.parse_id(scenario_id)):
+        return found
+    return practice_generator.generate(*parsed)
+
+
 def library() -> dict:
     """What the app needs to list and play scenarios: topics with their stages, and every scenario."""
     return {"topics": [{"id": tid, "label": t["label"], "stages": [{"stage": n, "label": label} for n, label in t["stages"].items()]}

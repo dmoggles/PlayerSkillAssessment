@@ -35,6 +35,35 @@ test('every scenario\'s best spot scores 100 and passes its checks, and no playe
   }
 })
 
+// Situations the generator makes (backend/app/practice_generator.py), from fixed seeds, for every stage and format.
+const GENERATED = JSON.parse(readFileSync(new URL('./fixtures/generated_scenarios.json', import.meta.url)))
+
+test('every generated situation\'s best spot scores 100 and passes its checks, and nobody starts there', async () => {
+  const { idealPosition, scoreFrame, startPosition } = await loadJsx('src/practice/practiceModel.js')
+  assert.ok(GENERATED.length >= 300)
+  const problems = []
+  for (const s of GENERATED) {
+    for (const f of s.frames) {
+      const best = scoreFrame(s, f, idealPosition(f))
+      if (best.points !== 100 || best.failed.length) problems.push(`${s.id} ${f.id}: best spot scores ${best.points}, misses ${best.failed.join(', ')}`)
+      if (scoreFrame(s, f, startPosition(s, f)).points === 100) problems.push(`${s.id} ${f.id}: starts on the best spot`)
+      if (f.prompt.split(' ').length > 15 || /your attacker/i.test(f.prompt)) problems.push(`${s.id} ${f.id}: prompt`)
+    }
+  }
+  assert.deepEqual(problems, [])
+})
+
+test('in generated two-attacker situations, standing with the marked attacker gets the clue to find the free one', async () => {
+  const { scoreFrame } = await loadJsx('src/practice/practiceModel.js')
+  for (const s of GENERATED.filter(x => x.stage === 4)) {
+    const f = s.frames[0]
+    const marked = f.opponents.find(p => p.id === 'a2'), goal = { x: 0, y: s.pitch.width / 2 }
+    const length = Math.hypot(marked.x - goal.x, marked.y - goal.y)
+    const wrong = { x: marked.x + (goal.x - marked.x) * 2 / length, y: marked.y + (goal.y - marked.y) * 2 / length }
+    assert.equal(scoreFrame(s, f, wrong).failed[0], 'NEAREST_THREAT', s.id)
+  }
+})
+
 test('goal-side: closer to goal than the attacker, within the angle of their line to goal', async () => {
   const f = frame()
   assert.equal((await run('GOAL_SIDE', { x: 15, y: 18.3 }, f)).pass, true)

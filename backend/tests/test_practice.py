@@ -53,7 +53,7 @@ def test_coaches_get_the_library(monkeypatch):
     coach, _ = signed_in("practice-coach@example.com", monkeypatch)
     library = coach.get("/practice/scenarios").json()
     topic = library["topics"][0]
-    assert topic["id"] == "defending_off_ball" and topic["stages"][0] == {"stage": 1, "label": "Goal-side basics"}
+    assert topic["id"] == "defending_off_ball" and topic["stages"][0] == {"stage": 1, "label": "Goal-side basics", "random": True}
     assert len(library["scenarios"]) == len(DATA["scenarios"]) and all("length" in s["pitch"] for s in library["scenarios"])
 
 
@@ -135,3 +135,85 @@ def test_a_coach_sets_practice_and_a_player_does_it_through_their_link(monkeypat
     from app.models import PracticeAttempt
     with SessionLocal() as db:
         assert db.query(PracticeAttempt).filter_by(player_id=player_id).count() == 0
+
+
+def test_generated_situations_are_well_formed_repeatable_and_fair():
+    from app import practice_generator as gen
+    formats = gen.formats()
+    for (topic, stage) in gen.TEMPLATES:
+        for fmt in formats:
+            for seed in range(1, 301):
+                s = gen.generate(topic, stage, fmt, seed)
+                assert practice.scenario_problems({k: v for k, v in s.items() if k not in ("generated", "pitch")}, formats) == [], s["id"]
+                assert gen.parse_id(s["id"]) == (topic, stage, fmt, seed)
+                for f in s["frames"]:
+                    best = max(f["target"]["zones"], key=lambda z: z["points"])
+                    people = [p for p in f["team"] + f["opponents"] if p["id"] != "you"]
+                    you = next(p for p in f["team"] if p["id"] == "you")
+                    assert ((you["x"] - best["cx"]) ** 2 + (you["y"] - best["cy"]) ** 2) ** 0.5 > best["rx"], f"{s['id']} starts on the best spot"
+                    assert all(0 <= p["x"] <= s["pitch"]["length"] / 2 + 5 and 0 <= p["y"] <= s["pitch"]["width"] for p in people + [you])
+    # The same seed always makes the same situation; another seed, another.
+    gen.generate.cache_clear()
+    one = gen.generate("defending_off_ball", 3, "9v9", 77)
+    gen.generate.cache_clear()
+    assert gen.generate("defending_off_ball", 3, "9v9", 77) == one != gen.generate("defending_off_ball", 3, "9v9", 78)
+    assert gen.parse_id("gen1-def-s5-7v7-1") is None and gen.parse_id("gen9-def-s1-7v7-1") is None and gen.parse_id("../etc") is None
+    assert practice.resolve(one["id"]) == one and practice.resolve(DATA["scenarios"][0]["id"])["id"] == DATA["scenarios"][0]["id"]
+
+
+def test_the_frontends_sample_of_generated_situations_is_up_to_date():
+    """frontend/tests/fixtures/generated_scenarios.json is what the app's own scoring is tested against; rewrite it
+    with `python -m app.practice_generator --samples` after changing the generator."""
+    from app import practice_generator as gen
+    assert json.loads(gen.FIXTURE.read_text()) == json.loads(json.dumps(gen.samples(30))), "run python -m app.practice_generator --samples"
+
+
+def test_random_situations_as_homework_and_extra_practice(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app import practice_generator as gen
+    from test_flows import clean_database
+    clean_database()
+    coach, csrf = signed_in("random-owner@example.com", monkeypatch)
+    headers = {"x-csrf-token": csrf}
+    team_id = coach.post("/teams", json={"name": "Randoms"}, headers=headers).json()["id"]
+    player_id = coach.post(f"/teams/{team_id}/players", json={"name": "Kit"}, headers=headers).json()["id"]
+    url = f"/teams/{team_id}/players/{player_id}/practice"
+
+    # Coaches preview any stage with a template, in any format; a seed repeats a situation.
+    library = coach.get("/practice/scenarios").json()
+    assert library["formats"] == ["7v7", "9v9", "11v11"]
+    assert [s["random"] for s in library["topics"][0]["stages"]] == [True, True, True, True, False]
+    preview = coach.get("/practice/generate", params={"topic": "defending_off_ball", "stage": 2, "format": "11v11", "seed": 5}).json()
+    assert preview["id"] == "gen1-def-s2-11v11-5" and preview["pitch"]["length"] == 100
+    assert coach.get("/practice/generate", params={"topic": "defending_off_ball", "stage": 5}).status_code == 422, "real games aren't generated"
+
+    # Random homework: five situations from stage 1 on a 9v9 pitch.
+    assert coach.post(f"{url}/assignments", json={"topic": "defending_off_ball", "stage": 5, "random_count": 3}, headers=headers).status_code == 422
+    state = coach.post(f"{url}/assignments", json={"topic": "defending_off_ball", "stage": 1, "random_count": 5, "format": "9v9"}, headers=headers).json()
+    homework = state["assignments"][0]
+    assert homework["label"] == "5 random situations: Off-ball defending, stage 1 (9v9)" and homework["scenario_ids"] == []
+    assert state["random_progress"][str(homework["id"])] == {"done": 0, "of": 5}
+
+    token = coach.post(f"{url}/link", headers=headers).json()["url"].rsplit("/", 1)[1]
+    player = TestClient(app)
+    mine = player.get(f"/practice/{token}").json()
+    assert mine["assignments"][0]["random_progress"] == {"done": 0, "of": 5} and mine["assignments"][0]["scenarios"] == []
+    situation = player.get(f"/practice/{token}/generate", params={"assignment_id": homework["id"]}).json()
+    assert gen.parse_id(situation["id"])[:3] == ("defending_off_ball", 1, "9v9")
+
+    # Finishing it counts; answers are checked against the situation made again from its seed.
+    frame = situation["frames"][0]
+    best = max(frame["target"]["zones"], key=lambda z: z["points"])
+    answer = {"scenario_id": situation["id"], "frame_id": frame["id"], "attempt_no": 1, "x": best["cx"], "y": best["cy"], "points": 100,
+              "zone_hit": frame["target"]["zones"].index(best), "failed_checks": [], "duration_ms": 3000}
+    assert player.post(f"/practice/{token}/attempts", json={**answer, "points": 60}).status_code == 422
+    assert player.post(f"/practice/{token}/attempts", json=answer).status_code == 201
+    other_stage = gen.scenario_id("defending_off_ball", 3, "9v9", 4)
+    assert player.post(f"/practice/{token}/attempts", json={**answer, "scenario_id": other_stage}).status_code == 404, "only stages they've been set"
+    state = coach.get(url).json()
+    assert state["random_progress"][str(homework["id"])] == {"done": 1, "of": 5}
+    assert {c["concept"] for c in state["summary"]["concepts"]} >= {"GOAL_SIDE"}
+
+    # Another player's assignment can't be used to make situations.
+    assert player.get(f"/practice/{token}/generate", params={"assignment_id": homework["id"] + 999}).status_code == 404

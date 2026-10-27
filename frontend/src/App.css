@@ -1389,3 +1389,7 @@ a.public-brand { text-decoration: none; }
 .practice-week small { font-size: .68rem; color: var(--muted); white-space: nowrap; }
 .practice-missed { margin: 0 0 12px; padding-left: 18px; }
 .practice-actions .link-btn { padding: 8px 4px; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .95rem; }
+.practice-filters { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+.practice-stage-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; margin: 12px 0 6px; }
+.practice-stage-head h4 { margin: 0; }
+.practice-stage-head .secondary-btn { padding: 6px 12px; border-radius: 8px; font-weight: 600; }
