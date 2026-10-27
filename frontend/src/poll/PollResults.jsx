@@ -71,7 +71,7 @@ export default function PollResults() {
         marks.sort((a, b) => (a.className?.includes('picked') ? 1 : 0) - (b.className?.includes('picked') ? 1 : 0))
         return <section key={s.id} className="poll-result">
           <h2>{i + 1}. {s.title} <small className="muted">{s.format}</small></h2>
-          <p className="muted">{s.prompt}</p>
+          <p className="muted">{s.prompt} {results.question}</p>
           <PracticePitch scenario={s} controlled={s.controlled} shown={frameOf(s)} position={null} disabled marks={marks}
             spots={showSpots ? s.references.map((r, n) => ({ ...r, className: `group-${n}` })) : []} />
           <ul className="poll-tally">{tally(answers, s.references).map(({ label, n }) => <li key={label}>

@@ -10,8 +10,8 @@ const STEP = 0.5, BIG_STEP = 2  // metres an arrow key moves your player, withou
 // mark isn't shown: working that out is part of it. `shown` holds the positions
 // to draw (they move between frames), `position` is your player's (none, to only look). `marks` are extra dots
 // drawn on top, such as everyone's answers to a poll, and `spots` labelled rings, such as the spots answers are
-// grouped by.
-export default function PracticePitch({ scenario, controlled = scenario.controlled, shown, position, onMove, disabled = false, ghost = null, lines = false, marks = [], spots = [] }) {
+// grouped by. `youText` marks your player (a poll marks them ? instead: they're someone to place, not you).
+export default function PracticePitch({ scenario, controlled = scenario.controlled, shown, position, onMove, disabled = false, ghost = null, lines = false, marks = [], spots = [], youText = 'You' }) {
   const svg = useRef(null)
   const dragging = useRef(false)
   const { pitch } = scenario
@@ -104,8 +104,8 @@ export default function PracticePitch({ scenario, controlled = scenario.controll
         {/* A bigger, invisible circle makes an easy target for a finger. */}
         <circle cx={x} cy={y} r={R * 2.6} className="practice-target" />
         <circle cx={x} cy={y} r={R * 1.25} className="practice-you-dot" />
-        <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">{label ?? 'You'}</text>
-        {label && <text x={x} y={y + R * 1.25 + 1.5} textAnchor="middle" className="practice-tag">You</text>}
+        <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">{label ?? youText}</text>
+        {label && <text x={x} y={y + R * 1.25 + 1.5} textAnchor="middle" className="practice-tag">{youText}</text>}
       </g>
     })()}
   </svg>

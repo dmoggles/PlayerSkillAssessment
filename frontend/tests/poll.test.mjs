@@ -39,8 +39,10 @@ test('every poll situation draws, with answers and spots on the admin\'s pitch',
     const shown = { ball: s.ball, team: s.team, opponents: s.opponents }
     const you = s.team.find(p => p.id === s.controlled)
     assert.ok(you && s.references.length >= 2, s.id)
-    const answering = renderToStaticMarkup(createElement(PracticePitch, { scenario: s, shown, position: you, onMove: () => {} }))
+    const answering = renderToStaticMarkup(createElement(PracticePitch, { scenario: s, shown, position: you, onMove: () => {}, youText: '?' }))
     assert.match(answering, /practice-you/)
+    assert.match(answering, />\?</)
+    assert.doesNotMatch(answering, />You</)
     const results = renderToStaticMarkup(createElement(PracticePitch, { scenario: s, shown, position: null, disabled: true,
       marks: [{ key: 'a', x: 10, y: 10, className: 'group-0' }], spots: s.references }))
     assert.doesNotMatch(results, /practice-you/)

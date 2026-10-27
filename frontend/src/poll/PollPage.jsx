@@ -8,8 +8,8 @@ import { respondentFor } from './pollModel'
 
 const frameOf = s => ({ ball: s.ball, team: s.team, opponents: s.opponents })
 
-// A coaching poll, opened from its link: no account and no scoring. Each situation, the respondent drags the player
-// to where they'd coach them to go; every answer saves as they go, and coming back shows them again to change.
+// A coaching poll, opened from its link: no account and no scoring. Each situation is frozen in time, and the
+// respondent puts the highlighted player in the ideal position for that moment (not where they'd run to from there); every answer saves as they go, and coming back shows them again to change.
 export default function PollPage() {
   const { pollId } = useParams()
   const respondent = useMemo(() => respondentFor(pollId), [pollId])
@@ -73,11 +73,12 @@ export default function PollPage() {
     {steps}
     <div className="practice-head">
       <p className="practice-step">Situation {index + 1} of {total} · {s.format}</p>
-      <p className="practice-prompt">{s.prompt}</p>
+      <p>{s.prompt}</p>
+      <p className="practice-prompt">{poll.question}</p>
     </div>
-    <PracticePitch scenario={s} shown={frameOf(s)} position={position} onMove={setPosition} lines={lines} />
+    <PracticePitch scenario={s} shown={frameOf(s)} position={position} onMove={setPosition} lines={lines} youText="?" />
     <label className="checkbox practice-lines"><input type="checkbox" checked={lines} onChange={e => setLines(e.target.checked)} /> Show lines to goal</label>
-    <p className="muted hint">Drag the player marked You to where you'd go. If you'd stay where they are, just save.</p>
+    <p className="muted hint">Drag the player marked ? to the ideal spot. How far it is from where they're standing doesn't matter. If they're already there, just save.</p>
     <div className="practice-actions">
       <button type="button" className="primary-btn" disabled={saving} onClick={save}>{index === total - 1 ? 'Save and finish' : 'Save and next'}</button>
       {index > 0 && <button type="button" className="secondary-btn" onClick={() => open(index - 1)}>Back</button>}

@@ -3,13 +3,14 @@
   {
    "id": "press-or-cover",
    "title": "Press or cover?",
-   "intro": "Ten situations where a defender has to choose: go and press the ball, or stay back and cover. For each one, drag the player marked You to where you think they should go. There are no right answers here: we want to know what you'd coach.",
+   "intro": "Ten situations where a player has to choose between pressing the ball and covering. Each one is frozen in time: for each, show us the ideal position for the highlighted player (marked ?) at that moment. Don't think about how far they'd have to run to get there; we want the spot itself. There are no right answers: we want to know what you'd coach.",
+   "question": "Where is the ideal position for the highlighted player, right now?",
    "scenarios": [
     {
      "id": "byline-in-box",
      "format": "7v7",
      "title": "On the byline, in our box",
-     "prompt": "The attacker has the ball on the byline, inside our box. Press or cover? Go where you'd go.",
+     "prompt": "An attacker has the ball on the byline, inside our box.",
      "controlled": "you",
      "ball": {
       "x": 4,
@@ -72,7 +73,7 @@
      "id": "three-v-two-box-edge",
      "format": "7v7",
      "title": "Three against two, at the box",
-     "prompt": "Three attackers against two of us. The ball's at the edge of our box, facing goal. Press or cover? Go where you'd go.",
+     "prompt": "Three attackers against two defenders. The ball's at the edge of our box, with the attacker facing goal.",
      "controlled": "you",
      "ball": {
       "x": 15,
@@ -129,8 +130,8 @@
     {
      "id": "partner-engaged",
      "format": "7v7",
-     "title": "Your partner is already there",
-     "prompt": "Your partner is in front of the ball, at the edge of the box. Press or cover? Go where you'd go.",
+     "title": "The other defender is already there",
+     "prompt": "The other defender is already in front of the ball, at the edge of our box.",
      "controlled": "you",
      "ball": {
       "x": 17,
@@ -194,7 +195,7 @@
      "id": "wide-three-v-two",
      "format": "7v7",
      "title": "Out wide, three against two",
-     "prompt": "Three attackers against two of us. The ball's out wide in our half, facing forward. Press or cover? Go where you'd go.",
+     "prompt": "Three attackers against two defenders. The ball's out wide in our half, with the attacker facing forward.",
      "controlled": "you",
      "ball": {
       "x": 21,
@@ -252,7 +253,7 @@
      "id": "two-v-two-central",
      "format": "7v7",
      "title": "Two against two, in the middle",
-     "prompt": "Two against two in our half. The ball's just been played into this attacker, facing goal. Press or cover? Go where you'd go.",
+     "prompt": "Two attackers against two defenders in our half. The attacker on the ball is facing goal.",
      "controlled": "you",
      "ball": {
       "x": 21,
@@ -305,7 +306,7 @@
      "id": "outnumbered",
      "format": "7v7",
      "title": "Three against two, in the middle",
-     "prompt": "Three attackers, two of you. The ball is in the middle, facing goal. Press or cover? Go where you'd go.",
+     "prompt": "Three attackers against two defenders. The ball's in the middle, with the attacker facing goal.",
      "controlled": "you",
      "ball": {
       "x": 24,
@@ -363,7 +364,7 @@
      "id": "back-to-goal",
      "format": "7v7",
      "title": "Back to goal, at halfway",
-     "prompt": "Two against two. This attacker has the ball at halfway, with their back to our goal. Press or cover? Go where you'd go.",
+     "prompt": "Two attackers against two defenders. The attacker has the ball at halfway, with their back to our goal.",
      "controlled": "you",
      "ball": {
       "x": 30,
@@ -419,7 +420,7 @@
      "id": "just-lost-it-three-v-two",
      "format": "7v7",
      "title": "We've just lost it, three against two",
-     "prompt": "We've just lost the ball: three of them, two of us, and you're on the wrong side of the one who won it. Press or cover? Go where you'd go.",
+     "prompt": "We've just lost the ball: three attackers against two defenders. The highlighted player is on the wrong side of the attacker who won it.",
      "controlled": "you",
      "ball": {
       "x": 32,
@@ -480,7 +481,7 @@
      "id": "their-half-midfield",
      "format": "7v7",
      "title": "Their midfielder, in their half",
-     "prompt": "Three against three. Their midfielder has the ball in their half, facing our goal. Press or cover? Go where you'd go.",
+     "prompt": "Three against three. Their midfielder has the ball in their half, facing our goal.",
      "controlled": "you",
      "ball": {
       "x": 36,
@@ -546,7 +547,7 @@
      "id": "high-press",
      "format": "7v7",
      "title": "Their defender has it",
-     "prompt": "Their defender has the ball near their own box. You're up front. Press or cover? Go where you'd go.",
+     "prompt": "Their defender has the ball near their own box. The highlighted player is our striker.",
      "controlled": "you",
      "ball": {
       "x": 45,
