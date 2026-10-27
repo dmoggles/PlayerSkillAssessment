@@ -9,7 +9,7 @@ const STEP = 0.5, BIG_STEP = 2  // metres an arrow key moves your player, withou
 // placed with a tap, or moved with the arrow keys; everything else shows where it is. Which attacker is theirs to
 // mark isn't shown: working that out is part of it. `shown` holds the positions
 // to draw (they move between frames), `position` is your player's.
-export default function PracticePitch({ scenario, shown, position, onMove, disabled = false, ghost = null, lines = false }) {
+export default function PracticePitch({ scenario, controlled = scenario.controlled, shown, position, onMove, disabled = false, ghost = null, lines = false }) {
   const svg = useRef(null)
   const dragging = useRef(false)
   const { pitch } = scenario
@@ -45,8 +45,9 @@ export default function PracticePitch({ scenario, shown, position, onMove, disab
   }
 
   const ball = at(shown.ball)
+  const label = shown.team.find(p => p.id === controlled)?.label
   const presser = shown.team.find(p => p.action === 'PRESS')
-  return <svg ref={svg} className="practice-pitch" viewBox={`${-PAD} ${-PAD} ${pitch.width + 2 * PAD} ${depth + 2 * PAD + 1}`}
+  return <svg ref={svg} className="practice-pitch" viewBox={`${-PAD} ${-PAD} ${pitch.width + 2 * PAD} ${depth + 2 * PAD + 2.5}`}
     role="application" aria-label="Pitch with your goal at the bottom. Drag your player, tap where they should stand, or use the arrow keys."
     onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
     <rect x={0} y={0} width={pitch.width} height={depth} className="practice-grass" />
@@ -68,19 +69,20 @@ export default function PracticePitch({ scenario, shown, position, onMove, disab
       if (length < 2) return null
       const end = [x + (dx * (length - 1.4)) / length, y + (dy * (length - 1.4)) / length]
       return <g className="practice-press" aria-hidden="true"><line x1={x} y1={y} x2={end[0]} y2={end[1]} markerEnd="url(#practice-arrow)" />
-        <text x={x} y={y + R + 1.6} textAnchor="middle" className="practice-tag">Press</text></g>
+        {!presser.label && <text x={x} y={y + R + 1.6} textAnchor="middle" className="practice-tag">Press</text>}</g>
     })()}
     <defs><marker id="practice-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" className="practice-arrowhead" /></marker></defs>
 
     {shown.opponents.map(p => {
       const [x, y] = at(p)
-      return <path key={p.id} d={`M${x},${y - R * 1.2} L${x + R * 1.1},${y + R * 0.8} L${x - R * 1.1},${y + R * 0.8} Z`} className="practice-opponent" />
+      return <g key={p.id}><path d={`M${x},${y - R * 1.2} L${x + R * 1.1},${y + R * 0.8} L${x - R * 1.1},${y + R * 0.8} Z`} className="practice-opponent" />
+        {p.label && <text x={x} y={y + 0.55} textAnchor="middle" className="practice-label">{p.label}</text>}</g>
     })}
-    {shown.team.filter(p => p.id !== scenario.controlled).map(p => {
+    {shown.team.filter(p => p.id !== controlled).map(p => {
       const [x, y] = at(p)
       return <g key={p.id}><circle cx={x} cy={y} r={R} className="practice-teammate" />
-        {p.id === 'gk' && <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">GK</text>}</g>
+        {(p.label ?? (p.id === 'gk' ? 'GK' : null)) && <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">{p.label ?? 'GK'}</text>}</g>
     })}
     {ghost && (() => { const [x, y] = at(ghost); return <g className="practice-ghost"><circle cx={x} cy={y} r={R * 1.2} />
       <text x={x} y={y + R + 1.8} textAnchor="middle" className="practice-tag">Best spot</text></g> })()}
@@ -92,7 +94,8 @@ export default function PracticePitch({ scenario, shown, position, onMove, disab
         {/* A bigger, invisible circle makes an easy target for a finger. */}
         <circle cx={x} cy={y} r={R * 2.6} className="practice-target" />
         <circle cx={x} cy={y} r={R * 1.25} className="practice-you-dot" />
-        <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">You</text>
+        <text x={x} y={y + 0.45} textAnchor="middle" className="practice-label">{label ?? 'You'}</text>
+        {label && <text x={x} y={y + R * 1.25 + 1.5} textAnchor="middle" className="practice-tag">You</text>}
       </g>
     })()}
   </svg>

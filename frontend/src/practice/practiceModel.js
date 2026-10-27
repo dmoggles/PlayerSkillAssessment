@@ -49,10 +49,14 @@ export function stars(firstTries) {
   return average >= 90 ? 3 : average >= 60 ? 2 : 1
 }
 
-// Where the player's own player starts in a frame: where they left it in the frame before, or where it's drawn.
-export const startPosition = (scenario, frame, previous) => {
-  if (previous) return previous
-  const own = frame.team.find(p => p.id === scenario.controlled)
+// Which player you are in a frame: the scenario's, unless the frame hands you another (such as each defender in turn).
+export const controlledIn = (scenario, frame) => frame.controlled ?? scenario.controlled
+
+// Where your player starts in a frame: where you left them in the frame before, if you're the same player, or where
+// they're drawn (in a scenario from a real game, where that player actually was).
+export const startPosition = (scenario, frame, previous = null, previousFrame = null) => {
+  if (previous && previousFrame && controlledIn(scenario, previousFrame) === controlledIn(scenario, frame)) return previous
+  const own = frame.team.find(p => p.id === controlledIn(scenario, frame))
   return { x: own.x, y: own.y }
 }
 

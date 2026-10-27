@@ -1765,6 +1765,522 @@
      }
     }
    ]
+  },
+  {
+   "id": "def-lost-in-midfield-001",
+   "topic": "defending_off_ball",
+   "title": "We lose it in midfield",
+   "stage": 5,
+   "format": "7v7",
+   "ages": [
+    10,
+    13
+   ],
+   "role": "COVER",
+   "controlled": "b4",
+   "view": {
+    "depth": 34
+   },
+   "concepts": [
+    "COVER",
+    "PRESS",
+    "GOAL_SIDE",
+    "NEAREST_THREAT"
+   ],
+   "skills": [
+    "transition_defence",
+    "team_shape",
+    "pressing"
+   ],
+   "frames": [
+    {
+     "id": "f1",
+     "prompt": "We've just lost the ball. You're 4, a centre-back. Where do you go?",
+     "mark": "r8",
+     "ball": {
+      "x": 25.0,
+      "y": 12.2,
+      "with": "r25"
+     },
+     "opponents": [
+      {
+       "id": "r25",
+       "x": 25.0,
+       "y": 12.2,
+       "label": "25"
+      },
+      {
+       "id": "r3",
+       "x": 23.1,
+       "y": 13.4,
+       "label": "3"
+      },
+      {
+       "id": "r8",
+       "x": 20.6,
+       "y": 13.8,
+       "label": "8"
+      },
+      {
+       "id": "r21",
+       "x": 23.8,
+       "y": 25.9,
+       "label": "21"
+      },
+      {
+       "id": "r11",
+       "x": 29.5,
+       "y": 14.6,
+       "label": "11"
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3,
+       "label": "1"
+      },
+      {
+       "id": "b4",
+       "x": 17.1,
+       "y": 9.1,
+       "label": "4"
+      },
+      {
+       "id": "b3",
+       "x": 19.7,
+       "y": 13.5,
+       "label": "3"
+      },
+      {
+       "id": "b12",
+       "x": 15.3,
+       "y": 27.2,
+       "label": "12"
+      },
+      {
+       "id": "b10",
+       "x": 19.3,
+       "y": 27.7,
+       "label": "10"
+      },
+      {
+       "id": "b9",
+       "x": 28.2,
+       "y": 15.0,
+       "label": "9"
+      },
+      {
+       "id": "b11",
+       "x": 30.9,
+       "y": 5.9,
+       "label": "11"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 16.2,
+        "cy": 14.8,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 16.2,
+        "cy": 14.8,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Inside, goal-side of red 8, and behind 3 to cover them.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
+       {
+        "check": "GOAL_SIDE"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f2"
+     }
+    },
+    {
+     "id": "f2",
+     "prompt": "3 steps up to press. Red 8 runs in behind them. Where now?",
+     "mark": "r8",
+     "ball": {
+      "x": 23.8,
+      "y": 14.8,
+      "with": "r25"
+     },
+     "opponents": [
+      {
+       "id": "r25",
+       "x": 23.8,
+       "y": 14.8,
+       "label": "25"
+      },
+      {
+       "id": "r3",
+       "x": 22.0,
+       "y": 12.0,
+       "label": "3"
+      },
+      {
+       "id": "r8",
+       "x": 18.9,
+       "y": 15.9,
+       "label": "8"
+      },
+      {
+       "id": "r21",
+       "x": 20.9,
+       "y": 23.5,
+       "label": "21"
+      },
+      {
+       "id": "r11",
+       "x": 31.6,
+       "y": 15.3,
+       "label": "11"
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3,
+       "label": "1"
+      },
+      {
+       "id": "b4",
+       "x": 16.9,
+       "y": 9.2,
+       "label": "4"
+      },
+      {
+       "id": "b3",
+       "x": 21.6,
+       "y": 13.9,
+       "label": "3",
+       "action": "PRESS"
+      },
+      {
+       "id": "b12",
+       "x": 15.9,
+       "y": 26.6,
+       "label": "12"
+      },
+      {
+       "id": "b10",
+       "x": 19.4,
+       "y": 26.0,
+       "label": "10"
+      },
+      {
+       "id": "b9",
+       "x": 31.4,
+       "y": 17.1,
+       "label": "9"
+      },
+      {
+       "id": "b11",
+       "x": 31.6,
+       "y": 5.2,
+       "label": "11"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 16.9,
+        "cy": 16.2,
+        "rx": 1.2,
+        "ry": 1.2,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 16.9,
+        "cy": 16.2,
+        "rx": 2.5,
+        "ry": 2.5,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Tight and goal-side of red 8: if 3 is beaten, you're there.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "DISTANCE_TIGHT"
+       },
+       {
+        "check": "BEHIND_PRESSER"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f3"
+     }
+    },
+    {
+     "id": "f3",
+     "controlled": "b12",
+     "prompt": "Now you're 12, the other centre-back. Where should you be?",
+     "mark": "r21",
+     "ball": {
+      "x": 23.8,
+      "y": 14.8,
+      "with": "r25"
+     },
+     "opponents": [
+      {
+       "id": "r25",
+       "x": 23.8,
+       "y": 14.8,
+       "label": "25"
+      },
+      {
+       "id": "r3",
+       "x": 22.0,
+       "y": 12.0,
+       "label": "3"
+      },
+      {
+       "id": "r8",
+       "x": 18.9,
+       "y": 15.9,
+       "label": "8"
+      },
+      {
+       "id": "r21",
+       "x": 20.9,
+       "y": 23.5,
+       "label": "21"
+      },
+      {
+       "id": "r11",
+       "x": 31.6,
+       "y": 15.3,
+       "label": "11"
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3,
+       "label": "1"
+      },
+      {
+       "id": "b4",
+       "x": 16.9,
+       "y": 16.2,
+       "label": "4"
+      },
+      {
+       "id": "b3",
+       "x": 21.6,
+       "y": 13.9,
+       "label": "3",
+       "action": "PRESS"
+      },
+      {
+       "id": "b12",
+       "x": 15.9,
+       "y": 26.6,
+       "label": "12"
+      },
+      {
+       "id": "b10",
+       "x": 19.4,
+       "y": 26.0,
+       "label": "10"
+      },
+      {
+       "id": "b9",
+       "x": 31.4,
+       "y": 17.1,
+       "label": "9"
+      },
+      {
+       "id": "b11",
+       "x": 31.6,
+       "y": 5.2,
+       "label": "11"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 13.5,
+        "cy": 19.5,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 13.5,
+        "cy": 19.5,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Tucked in behind 4, covering the middle, still goal-side of red 21.",
+      "checks": [
+       {
+        "check": "GOAL_SIDE",
+        "clues": [
+         "If red 8 gets past 4, who stops them?",
+         "Come inside, behind 4, between red 21 and the goal."
+        ]
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     },
+     "next": {
+      "frame": "f4"
+     }
+    },
+    {
+     "id": "f4",
+     "controlled": "b10",
+     "prompt": "And you're 10, a midfielder. Where do you go?",
+     "mark": "r21",
+     "ball": {
+      "x": 23.8,
+      "y": 14.8,
+      "with": "r25"
+     },
+     "opponents": [
+      {
+       "id": "r25",
+       "x": 23.8,
+       "y": 14.8,
+       "label": "25"
+      },
+      {
+       "id": "r3",
+       "x": 22.0,
+       "y": 12.0,
+       "label": "3"
+      },
+      {
+       "id": "r8",
+       "x": 18.9,
+       "y": 15.9,
+       "label": "8"
+      },
+      {
+       "id": "r21",
+       "x": 20.9,
+       "y": 23.5,
+       "label": "21"
+      },
+      {
+       "id": "r11",
+       "x": 31.6,
+       "y": 15.3,
+       "label": "11"
+      }
+     ],
+     "team": [
+      {
+       "id": "gk",
+       "x": 1.5,
+       "y": 18.3,
+       "label": "1"
+      },
+      {
+       "id": "b4",
+       "x": 16.9,
+       "y": 16.2,
+       "label": "4"
+      },
+      {
+       "id": "b3",
+       "x": 21.6,
+       "y": 13.9,
+       "label": "3",
+       "action": "PRESS"
+      },
+      {
+       "id": "b12",
+       "x": 13.5,
+       "y": 19.5,
+       "label": "12"
+      },
+      {
+       "id": "b10",
+       "x": 19.4,
+       "y": 26.0,
+       "label": "10"
+      },
+      {
+       "id": "b9",
+       "x": 31.4,
+       "y": 17.1,
+       "label": "9"
+      },
+      {
+       "id": "b11",
+       "x": 31.6,
+       "y": 5.2,
+       "label": "11"
+      }
+     ],
+     "target": {
+      "zones": [
+       {
+        "type": "ellipse",
+        "cx": 18.7,
+        "cy": 21.9,
+        "rx": 1.5,
+        "ry": 1.5,
+        "points": 100
+       },
+       {
+        "type": "ellipse",
+        "cx": 18.7,
+        "cy": 21.9,
+        "rx": 3,
+        "ry": 3,
+        "points": 60
+       }
+      ],
+      "reasonCorrect": "Inside red 21 and goal-side, so they can't run through the middle.",
+      "checks": [
+       {
+        "check": "NEAREST_THREAT"
+       },
+       {
+        "check": "GOAL_SIDE"
+       },
+       {
+        "check": "BALL_SIDE"
+       }
+      ]
+     }
+    }
+   ]
   }
  ]
 }

@@ -160,3 +160,15 @@ test('a player sees what their coach set, with progress and stars; a coach sees 
   assert.match(results, /<th scope="row">Goal-side<\/th><td class="num">4<\/td><td class="num">70<\/td>/)
   assert.match(renderToStaticMarkup(React.createElement(PracticeResults, { summary: { ...summary, attempts: 0 } })), /No practice yet/)
 })
+
+test('a scenario can hand you a different player each step, starting where that player actually was', async () => {
+  const { controlledIn, startPosition } = await loadJsx('src/practice/practiceModel.js')
+  const s = SCENARIOS.find(x => x.frames.some(f => f.controlled))
+  const [f1, f2, f3] = s.frames
+  assert.equal(controlledIn(s, f1), s.controlled)
+  assert.notEqual(controlledIn(s, f3), controlledIn(s, f2))
+  const placed = { x: 15, y: 15 }
+  assert.deepEqual(startPosition(s, f2, placed, f1), placed, 'the same player carries on from where you put them')
+  const own = f3.team.find(p => p.id === f3.controlled)
+  assert.deepEqual(startPosition(s, f3, placed, f2), { x: own.x, y: own.y }, 'a new player starts where they were')
+})

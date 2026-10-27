@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import PracticePitch from './PracticePitch'
-import { feedbackFor, idealPosition, scoreFrame, stars, startPosition } from './practiceModel'
+import { controlledIn, feedbackFor, idealPosition, scoreFrame, stars, startPosition } from './practiceModel'
 
 const MOVE_MS = 450
 
@@ -49,6 +49,7 @@ export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit }) 
     const following = scenario.frames[index + 1]
     if (!following) { setFinished(true); onDone?.({ stars: stars(firstTries), firstTries }); return }
     const from = positionsOf(frame), to = positionsOf(following)
+    setPosition(startPosition(scenario, following, position, frame))
     setIndex(index + 1)
     setResult(null)
     setFeedback(null)
@@ -88,7 +89,7 @@ export default function ScenarioPlayer({ scenario, onAttempt, onDone, onExit }) 
       {scenario.frames.length > 1 && <p className="practice-step">Step {index + 1} of {scenario.frames.length}</p>}
       <p className="practice-prompt">{frame.prompt}</p>
     </div>
-    <PracticePitch scenario={scenario} shown={shown} position={position} onMove={move} disabled={Boolean(result)}
+    <PracticePitch scenario={scenario} controlled={controlledIn(scenario, frame)} shown={shown} position={position} onMove={move} disabled={Boolean(result)}
       ghost={feedback?.ghost ? idealPosition(frame) : null} lines={lines} />
     <label className="checkbox practice-lines"><input type="checkbox" checked={lines} onChange={e => setLines(e.target.checked)} /> Show lines to goal</label>
     {result

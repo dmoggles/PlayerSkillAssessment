@@ -26,7 +26,7 @@ TOPICS = {
         "roles": {"MARK", "PRESS", "COVER", "SCAN"},
         "concepts": {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "PRESS", "COVER", "SCAN_MARKER", "NEAREST_THREAT", "COMMUNICATE"},
         "checks": {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "BEHIND_PRESSER", "NEAREST_THREAT"},
-        "stages": {1: "Goal-side basics", 2: "The ball moves", 3: "Press or cover", 4: "Two attackers"},
+        "stages": {1: "Goal-side basics", 2: "The ball moves", 3: "Press or cover", 4: "Two attackers", 5: "Just lost the ball"},
     },
 }
 # Checks that need the opponent the player is responsible for (the frame's `mark`), or a teammate pressing the ball.
@@ -146,12 +146,16 @@ def _frame_problems(frame: dict, where: str, topic: dict, pitch: dict, controlle
                 say(f"{where}: each of {side} needs an id and a position on the pitch")
             elif p["id"] in people:
                 say(f"{where}: {p['id']} appears twice")
+            elif p.get("label") is not None and not (isinstance(p["label"], str) and 1 <= len(p["label"]) <= 3):
+                say(f"{where}: {p['id']}'s label is a shirt number or up to three characters")
             else:
                 people[p["id"]] = (side, p)
                 if p.get("action") is not None and (side != "team" or p["action"] not in ACTIONS):
                     say(f"{where}: {p['id']}'s action must be one of {sorted(ACTIONS)}, for the team")
     if len(people) > MAX_PLAYERS:
         say(f"{where}: at most {MAX_PLAYERS} players")
+    # A frame can hand the player a different teammate to play, such as each defender in turn.
+    controlled = frame.get("controlled", controlled)
     if people.get(controlled, ("",))[0] != "team":
         say(f"{where}: the controlled player {controlled!r} must be in the team")
     ball = frame.get("ball")
