@@ -6,9 +6,11 @@ export const THRESHOLDS = {
   goalSideAngle: 35,
   // A ball or player this close to a line counts as on it, so neither side.
   lineTolerance: 1,
-  // When the ball is this close to your attacker, be within tightDistance of them.
+  // When the ball is this close to your attacker, be within tightDistance of them (to stop them turning), but no
+  // nearer than tightMin (or they can spin you and run in behind).
   tightBallRange: 8,
-  tightDistance: 3,
+  tightDistance: 4,
+  tightMin: 1.5,
   // When the ball is this far from your attacker, drop at least dropDistance off them, to see ball and attacker.
   dropBallRange: 20,
   dropDistance: 4,

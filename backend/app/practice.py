@@ -33,7 +33,7 @@ TOPICS = {
 NEEDS_MARK = {"GOAL_SIDE", "BALL_SIDE", "DISTANCE_TIGHT", "DISTANCE_DROP", "NEAREST_THREAT"}
 NEEDS_PRESSER = {"BEHIND_PRESSER"}
 # Thresholds a scenario may override, for bigger or smaller spaces than the defaults in src/practice/thresholds.js.
-THRESHOLDS = {"goalSideAngle", "lineTolerance", "tightBallRange", "tightDistance", "dropBallRange", "dropDistance",
+THRESHOLDS = {"goalSideAngle", "lineTolerance", "tightBallRange", "tightDistance", "tightMin", "dropBallRange", "dropDistance",
               "coverBackMin", "coverBackMax", "coverAngle", "keepInFrontReach"}
 TASKS = {"position"}  # what the player does in a frame: drag their player into position
 ACTIONS = {"PRESS", "COVER", "MARK"}  # a teammate's action, drawn as an arrow or a label

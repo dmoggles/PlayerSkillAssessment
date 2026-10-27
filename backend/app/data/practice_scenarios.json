@@ -203,22 +203,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 12,
-        "cy": 19.8,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 11.0,
+        "cy": 19.6,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 12,
-        "cy": 19.8,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 11.0,
+        "cy": 19.6,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "Close and goal-side: you can block the shot without diving in.",
+      "reasonCorrect": "Don't dive in: stay goal-side and make them go wide.",
       "checks": [
        {
         "check": "GOAL_SIDE"
@@ -583,22 +583,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 13.2,
-        "cy": 20.9,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 11.7,
+        "cy": 20.6,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 13.2,
-        "cy": 20.9,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 11.7,
+        "cy": 20.6,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "Tighter now the ball is close, and still goal-side.",
+      "reasonCorrect": "Close enough to stop them turning, not so close they can spin you.",
       "checks": [
        {
         "check": "NEAREST_THREAT"
@@ -686,22 +686,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 11.9,
-        "cy": 22.1,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 10.5,
+        "cy": 21.7,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 11.9,
-        "cy": 22.1,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 10.5,
+        "cy": 21.7,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "Tight and goal-side, on the ball's side.",
+      "reasonCorrect": "Close and goal-side, on the ball's side, but not so close they spin you.",
       "checks": [
        {
         "check": "NEAREST_THREAT"
@@ -1059,22 +1059,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 15.1,
-        "cy": 22.9,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 14.1,
+        "cy": 22.6,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 15.1,
-        "cy": 22.9,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 14.1,
+        "cy": 22.6,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "Step up and press: close and goal-side, so they can't shoot.",
+      "reasonCorrect": "Step up and press: goal-side, without diving in, so they can't shoot.",
       "checks": [
        {
         "check": "GOAL_SIDE"
@@ -1266,22 +1266,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 16.3,
-        "cy": 12.6,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 15.2,
+        "cy": 13.0,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 16.3,
-        "cy": 12.6,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 15.2,
+        "cy": 13.0,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "You're nearest, so you press: close and goal-side.",
+      "reasonCorrect": "You're nearest, so you press: goal-side, without diving in.",
       "checks": [
        {
         "check": "GOAL_SIDE"
@@ -2027,22 +2027,22 @@
       "zones": [
        {
         "type": "ellipse",
-        "cx": 16.9,
-        "cy": 16.2,
-        "rx": 1.2,
-        "ry": 1.2,
+        "cx": 15.4,
+        "cy": 16.3,
+        "rx": 1.0,
+        "ry": 1.0,
         "points": 100
        },
        {
         "type": "ellipse",
-        "cx": 16.9,
-        "cy": 16.2,
-        "rx": 2.5,
-        "ry": 2.5,
+        "cx": 15.4,
+        "cy": 16.3,
+        "rx": 2.2,
+        "ry": 2.2,
         "points": 60
        }
       ],
-      "reasonCorrect": "Tight and goal-side of red 8: if 3 is beaten, you're there.",
+      "reasonCorrect": "Goal-side of red 8, a few steps off: if 3 is beaten, you're there.",
       "checks": [
        {
         "check": "NEAREST_THREAT"
@@ -2113,8 +2113,8 @@
       },
       {
        "id": "b4",
-       "x": 16.9,
-       "y": 16.2,
+       "x": 15.4,
+       "y": 16.3,
        "label": "4"
       },
       {
@@ -2237,8 +2237,8 @@
       },
       {
        "id": "b4",
-       "x": 16.9,
-       "y": 16.2,
+       "x": 15.4,
+       "y": 16.3,
        "label": "4"
       },
       {

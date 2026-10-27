@@ -96,8 +96,9 @@ test('ball-side: the same side of the attacker\'s line to goal as the ball, unle
 
 test('tight and dropped distances apply only when the ball is near or far', async () => {
   const near = frame({ ball: { x: 26, y: 18.3 } })  // 6 m from the attacker
-  assert.equal((await run('DISTANCE_TIGHT', { x: 17, y: 18.3 }, near)).pass, true, '3 m off')
-  assert.equal((await run('DISTANCE_TIGHT', { x: 16.9, y: 18.3 }, near)).reason, 'too_far')
+  assert.equal((await run('DISTANCE_TIGHT', { x: 16, y: 18.3 }, near)).pass, true, '4 m off')
+  assert.equal((await run('DISTANCE_TIGHT', { x: 15.9, y: 18.3 }, near)).reason, 'too_far')
+  assert.equal((await run('DISTANCE_TIGHT', { x: 18.6, y: 18.3 }, near)).reason, 'too_close', 'close enough to be spun')
   assert.equal((await run('DISTANCE_DROP', { x: 19, y: 18.3 }, near)).pass, null)
   const far = frame({ ball: { x: 40.5, y: 18.3 } })  // 20.5 m away
   assert.equal((await run('DISTANCE_TIGHT', { x: 10, y: 18.3 }, far)).pass, null)
@@ -140,7 +141,7 @@ test('scoring: the innermost zone the position is in, and the hint from the firs
   const edge = scoreFrame(s, f, { x: 18, y: 19.8 })  // on the outer zone's edge
   assert.deepEqual([edge.points, edge.zoneHit], [60, 1])
   // Behind the attacker and too far: goal-side comes first, with the frame's own question, then the usual pointer.
-  const behind = scoreFrame(s, f, { x: 24, y: 18.3 })
+  const behind = scoreFrame(s, f, { x: 25, y: 18.3 })
   assert.deepEqual([behind.points, behind.zoneHit, behind.failed, behind.message, behind.headline],
     [0, null, ['GOAL_SIDE', 'DISTANCE_TIGHT'], 'Goal-side first?', 'Not quite'])
   // A question first, a plainer pointer (with the lines to goal) next, and the best spot only on the third miss.

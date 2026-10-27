@@ -61,12 +61,17 @@ export const CHECKS = {
   },
   DISTANCE_TIGHT: {
     priority: 3,
-    label: 'Too far off',
-    clues: { too_far: ['The ball is close to the attacker. Could you stop them turning?', 'Get closer: about three big steps from them.'] },
+    label: 'Wrong distance with the ball near',
+    clues: {
+      too_far: ['The ball is close to the attacker. Could you stop them turning?', 'Get closer: about three big steps from them.'],
+      too_close: ['Could they spin round you from there?', 'Give yourself room: about three big steps away, still goal-side.'],
+    },
     run(position, frame, { thresholds }) {
       const attacker = opponent(frame, frame.mark)
       if (distance(frame.ball, attacker) > thresholds.tightBallRange) return result(null)
-      return result(distance(position, attacker) <= thresholds.tightDistance, 'too_far')
+      const gap = distance(position, attacker)
+      if (gap < thresholds.tightMin) return result(false, 'too_close')
+      return result(gap <= thresholds.tightDistance, 'too_far')
     },
   },
   DISTANCE_DROP: {

@@ -2,7 +2,7 @@
 app/data/practice_scenarios.json), so scoring, clues, attempts and summaries work as for hand-made ones.
 
 A situation is fixed by its seed: the same topic, stage, format and seed always make the same scenario, and its id
-says all four (gen4-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
+says all four (gen5-def-s2-9v9-48213), so the server can make it again to check an attempt. Change how situations
 are made and the version goes up (gen2), so old attempts keep their meaning.
 
 Best spots come from the coaching rules the checks test: goal-side on the attacker's line to goal, shifted towards
@@ -21,7 +21,7 @@ from functools import lru_cache
 from pathlib import Path
 from . import practice
 
-VERSION = "gen4"  # gen2: covering in stage 4; gen3: every other attacker marked in stage 2; gen4: balanced cover in stage 3
+VERSION = "gen5"  # gen5: tight is about 3 m, not 2; gen2: covering in stage 4; gen3: every other attacker marked in stage 2; gen4: balanced cover in stage 3
 TOPIC_CODES = {"def": "defending_off_ball"}
 STAGES = {"defending_off_ball": (1, 2, 3, 4)}  # stage 5 is real games, written by hand
 AGES = {"7v7": [9, 12], "9v9": [11, 13], "11v11": [12, 18]}
@@ -32,9 +32,9 @@ FIXTURE = Path(__file__).resolve().parents[2] / "frontend" / "tests" / "fixtures
 # Distance classes, by how far the ball is from the attacker, kept clear of the checks' thresholds (8 m and 20 m):
 # how far off them the best spot is, and the radii of the zones worth 100 and 60.
 CLASSES = {
-    "near": {"ball": (0, 6.5), "off": 2.0, "zones": (1.2, 2.4)},
-    "mid": {"ball": (9.5, 18), "off": 3.0, "zones": (1.5, 3.0)},
-    "far": {"ball": (21.5, 30), "off": 5.0, "zones": (1.8, 3.0)},
+    "near": {"ball": (0, 6.5), "off": 3.0, "zones": (1.0, 2.2)},
+    "mid": {"ball": (9.5, 18), "off": 4.5, "zones": (1.5, 3.0)},
+    "far": {"ball": (21.5, 30), "off": 6.0, "zones": (1.8, 3.0)},
 }
 PROMPTS = {
     "near_carrier": ["An attacker has the ball near you. Where do you stand?", "They're on the ball and coming at you. Where do you stand?"],
@@ -47,12 +47,12 @@ PROMPTS = {
     "two": ["Two attackers are near you. Where do you stand?", "Who's the danger here? Where do you stand?"],
 }
 REASONS = {
-    "near": "Tight and goal-side: close enough to stop them turning.",
-    "near_carrier": "Close and goal-side: you can block the shot without diving in.",
+    "near": "Close enough to stop them turning, not so close they can spin you.",
+    "near_carrier": "Don't dive in: stay goal-side and make them go wide.",
     "mid": "Goal-side, a few steps off, and on the ball's side.",
     "far": "Dropped off and goal-side: you see the ball and the attacker.",
     "cover": "Behind your partner and goal-side of the free attacker: you cover both.",
-    "nearest": "You're nearest, so you press: close and goal-side.",
+    "nearest": "You're nearest, so you press: goal-side, without diving in.",
     "two": "The free attacker is nearer goal than the ball: they're the danger.",
     "two_cover": "The free attacker isn't ahead of the ball: cover your partner first.",
 }
@@ -192,11 +192,13 @@ def _mark_frame(b: Builder, mark, ball_at, holder, others, prompt=None, reason_k
     if kind is None:
         raise Unfit("ball between classes")
     c = CLASSES[kind]
+    # Tight, but not so tight they can spin you: and a touch deeper near goal, where being beaten means a shot.
+    off = c["off"] + (0.5 if kind == "near" and _dist(mark, b.goal) < 20 and holder != "a1" else 0)
     line = _line_distance(mark, b.goal, ball_at)
     if 0.8 <= line <= 1.4:
         raise Unfit("ball too near the line to say which side")
     ball_side = line > 1.4
-    ideal = goal_side_spot(mark, ball_at, b.goal, c["off"], b.rng.uniform(0.6, 1.0) if ball_side else 0)
+    ideal = goal_side_spot(mark, ball_at, b.goal, off, b.rng.uniform(0.6, 1.0) if ball_side else 0)
     ideal = (round(ideal[0], 2), round(ideal[1], 2))
     if not b.on_view(ideal):
         raise Unfit("best spot off the pitch shown")
@@ -274,7 +276,7 @@ def _stage_two(b: Builder):
             start = b.start(ideal, list(opponents.values()) + list(team.values()))
         team["you"] = start if n == 0 else ideals[-1]
         b.spaced({**opponents, **{k: v for k, v in team.items() if k != "you" or n == 0}}, [(holder, "d1"), *((f"a{m[1:]}", m) for m in markers)])
-        if n and _dist(ideals[-1], ideal) < 3:
+        if n and _dist(ideals[-1], ideal) < 2.2:
             raise Unfit("too little to change")
         frame = _frame(f"f{n + 1}", body, opponents, team, holder, {"d1": "PRESS", **{m: "MARK" for m in markers}})
         frames.append(frame)
@@ -310,7 +312,7 @@ def _stage_three(b: Builder):
     other = b.around(carrier, (13, 20), towards_goal=6)
     opponents["a2"] = other
     team = {"gk": (1.5, b.width / 2), "d1": b.goal_side(other, 1.5)}
-    ideal = goal_side_spot(carrier, carrier, b.goal, 1.8, 0)
+    ideal = goal_side_spot(carrier, carrier, b.goal, 3.0, 0)
     ideal = (round(ideal[0], 2), round(ideal[1], 2))
     start = b.around(carrier, (7, 10), towards_goal=None)
     if _dist(start, carrier) >= _dist(team["d1"], carrier) - 3 or _dist(start, ideal) < 5:
