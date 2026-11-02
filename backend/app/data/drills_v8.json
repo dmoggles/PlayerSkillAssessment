@@ -1,0 +1,1244 @@
+{
+ "source_version": "drills_v8",
+ "drills": [
+  {
+   "slug": "two-v-two-press-and-cover-target",
+   "title": "2v2 press and cover: keep them out of the target",
+   "summary": "Two defenders work as a pair, one pressing and one covering, to keep two attackers out of a target for eight seconds.",
+   "format": "small_group",
+   "players": [
+    5,
+    5,
+    15
+   ],
+   "ages": [
+    9,
+    14
+   ],
+   "duration": [
+    12,
+    15
+   ],
+   "session_phase": "opposed",
+   "intensity": "high",
+   "space": [
+    18,
+    15
+   ],
+   "home_friendly": false,
+   "equipment": [
+    {
+     "item": "cones",
+     "quantity": 8
+    },
+    {
+     "item": "bibs",
+     "quantity": 2
+    },
+    {
+     "item": "balls",
+     "quantity": 10
+    }
+   ],
+   "setup": "An area 18 m wide and 15 m deep, with a target 4 m wide and 2.5 m deep, marked with cones, in the middle of the end line. The target stands in for your penalty area. Two attackers start about 12 m from the target, two defenders between them and the target, and a server on the far line with the balls.",
+   "instructions": [
+    "The server plays the ball to either attacker to start.",
+    "The attackers score by dribbling the ball into the target under control.",
+    "The defenders score by keeping the ball out of the target for 8 seconds; the coach counts.",
+    "Defenders may not stand in the target: they have to stop the ball before it gets there.",
+    "Each rep lasts 20 to 30 seconds, then reset. Keep the same defending pair for 4 or 5 reps, then rotate roles."
+   ],
+   "coaching_points": [
+    "The nearer defender presses: close down while the ball travels, then arrive side-on and show the attacker wide, away from the target.",
+    "The other defender covers: stay between your own attacker and the target, close enough to step in if your partner is beaten.",
+    "When the ball is passed, swap jobs: the new nearest presses, the other drops in behind to cover.",
+    "Call \"press\" and \"cover\" out loud, so you both know who is doing what.",
+    "Be patient: keeping them out for the 8 seconds is the win, so don't lunge in.",
+    "Stop play now and then and ask: who's pressing, who's covering, and where should you be?"
+   ],
+   "tags": {
+    "pressing": 1.0,
+    "1v1_defending": 0.5,
+    "communication": 0.5
+   },
+   "ladder_tags": [
+    "pressing",
+    "1v1_defending",
+    "communication"
+   ],
+   "variations": [
+    {
+     "kind": "regression",
+     "title": "Attackers at jogging pace",
+     "levels": [
+      1,
+      2
+     ],
+     "change": "The attackers may only dribble at jogging pace, and the defenders need to hold out for 10 seconds, so the pair has time to set up who presses and who covers.",
+     "instructions": [
+      "The server plays the ball to either attacker to start.",
+      "The attackers dribble at jogging pace only, and score by dribbling into the target.",
+      "The defenders score by keeping the ball out of the target for 10 seconds.",
+      "Defenders may not stand in the target.",
+      "Keep the same defending pair for 4 or 5 reps, then rotate roles."
+     ]
+    },
+    {
+     "kind": "base",
+     "title": "2v2: hold them out for 8 seconds",
+     "levels": [
+      2,
+      3
+     ],
+     "diagram": 0,
+     "change": "Live 2v2: the defenders press and cover to keep the attackers out of a 4 m target for 8 seconds."
+    },
+    {
+     "kind": "escalator",
+     "title": "Serve from anywhere",
+     "levels": [
+      3,
+      3
+     ],
+     "change": "The server plays from the left, the right or the middle, and from different distances, so the defenders can't set up before the ball arrives.",
+     "setup": "An area 18 m wide and 15 m deep, with a target 4 m wide and 2.5 m deep, marked with cones, in the middle of the end line. Two attackers start between 8 and 14 m from the target, anywhere across the area; two defenders between them and the target. The server moves along the far line and the sides between reps."
+    },
+    {
+     "kind": "escalator",
+     "title": "3v2 with a defender recovering",
+     "levels": [
+      3,
+      4
+     ],
+     "diagram": 1,
+     "change": "A third attacker joins, and the target is 5 m wide. A third defender starts behind the play and sprints back, so the front two learn to delay until help arrives.",
+     "players": [
+      7,
+      7,
+      14
+     ],
+     "equipment": [
+      {
+       "item": "cones",
+       "quantity": 8
+      },
+      {
+       "item": "bibs",
+       "quantity": 3
+      },
+      {
+       "item": "balls",
+       "quantity": 10
+      }
+     ],
+     "setup": "An area 18 m wide and 15 m deep, with a target 5 m wide and 2.5 m deep in the middle of the end line. Three attackers start about 12 m from the target, two defenders between them and the target, and a third defender behind the attackers, near the server.",
+     "instructions": [
+      "The server plays the ball to an attacker; the third defender sprints back as soon as it's played.",
+      "The attackers score by dribbling the ball into the target.",
+      "The defenders score by keeping the ball out of the target for 8 seconds.",
+      "Defenders may not stand in the target.",
+      "Rotate roles every 4 or 5 reps."
+     ],
+     "coaching_points": [
+      "Outnumbered, the presser delays: close down, then back off slowly and don't dive in.",
+      "The cover stays between the next attacker and the target, behind the presser.",
+      "The recovering defender sprints back goal-side on the shortest line, then picks up the free attacker.",
+      "Talk: the front two call \"delay\", the recovering defender calls who they're taking."
+     ]
+    },
+    {
+     "kind": "escalator",
+     "title": "3v2, no help",
+     "levels": [
+      4,
+      5
+     ],
+     "diagram": 2,
+     "change": "Three attackers against two defenders, with nobody coming back: the pair has to cover and talk while outnumbered.",
+     "players": [
+      6,
+      6,
+      12
+     ],
+     "equipment": [
+      {
+       "item": "cones",
+       "quantity": 8
+      },
+      {
+       "item": "bibs",
+       "quantity": 3
+      },
+      {
+       "item": "balls",
+       "quantity": 10
+      }
+     ],
+     "setup": "An area 18 m wide and 15 m deep, with a target 5 m wide and 2.5 m deep in the middle of the end line. Three attackers start about 12 m from the target, two defenders between them and the target, and a server on the far line.",
+     "instructions": [
+      "The server plays the ball to an attacker to start.",
+      "The attackers score by dribbling the ball into the target.",
+      "The defenders score by keeping the ball out of the target for 8 seconds; shorten it to 6 if the attackers win too easily.",
+      "Defenders may not stand in the target.",
+      "Rotate roles every 4 or 5 reps."
+     ],
+     "coaching_points": [
+      "The presser delays and shows the attacker wide, away from the target and the other attackers.",
+      "The cover stays between the next most dangerous attacker and the target; the attacker furthest from the ball is left for now.",
+      "When the ball is passed, slide together: the new nearest presses, the other drops in to cover.",
+      "Keep talking: who's pressing, who's covering, and who's free."
+     ]
+    }
+   ],
+   "media": [
+    {
+     "kind": "diagram",
+     "caption": "One defender presses and shows the attacker wide; the other covers, between their own attacker and the target",
+     "diagram": {
+      "pitch": {
+       "width": 18,
+       "length": 15,
+       "view": "area"
+      },
+      "objects": {
+       "t1": {
+        "type": "cone",
+        "at": [
+         7,
+         12.5
+        ]
+       },
+       "t2": {
+        "type": "cone",
+        "at": [
+         11,
+         12.5
+        ]
+       },
+       "t3": {
+        "type": "cone",
+        "at": [
+         7,
+         15
+        ]
+       },
+       "t4": {
+        "type": "cone",
+        "at": [
+         11,
+         15
+        ]
+       },
+       "k1": {
+        "type": "cone",
+        "at": [
+         0,
+         0
+        ]
+       },
+       "k2": {
+        "type": "cone",
+        "at": [
+         18,
+         0
+        ]
+       },
+       "k3": {
+        "type": "cone",
+        "at": [
+         0,
+         15
+        ]
+       },
+       "k4": {
+        "type": "cone",
+        "at": [
+         18,
+         15
+        ]
+       },
+       "S": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         9,
+         0.5
+        ]
+       },
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         5,
+         3
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         13,
+         3.5
+        ]
+       },
+       "D1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7.5,
+         9
+        ]
+       },
+       "D2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         11,
+         8.5
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S"
+       }
+      },
+      "steps": [
+       {
+        "label": "The server plays to A2. D2, the nearer defender, presses; D1 drops between A1 and the target, close enough to cover D2",
+        "actions": [
+         {
+          "pass": {
+           "from": "S",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            12.2,
+            6.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            8.4,
+            9.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5.5,
+            5
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D2 arrives side-on and shows A2 wide, away from the target; D1 shifts across with them",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A2",
+           "to": [
+            14.6,
+            7.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            13.3,
+            8.3
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            9.2,
+            10.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            6.2,
+            7.4
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A2 passes inside to A1. D1 steps out to press; D2 drops back inside to cover",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "A1"
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            7.4,
+            9.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.6,
+            11
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            13.6,
+            9.6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D1 shows A1 wide; D2 stays between A2 and the target, and behind D1",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A1",
+           "to": [
+            4.4,
+            9.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            5.8,
+            10.9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            9.6,
+            11.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            12.6,
+            10.8
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "Eight seconds and the ball is still out of the target: the defenders score",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A1",
+           "to": [
+            3.8,
+            8.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            5,
+            10.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            12.8,
+            9.4
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Harder: 3v2 while a third defender recovers",
+     "diagram": {
+      "pitch": {
+       "width": 18,
+       "length": 15,
+       "view": "area"
+      },
+      "objects": {
+       "t1": {
+        "type": "cone",
+        "at": [
+         6.5,
+         12.5
+        ]
+       },
+       "t2": {
+        "type": "cone",
+        "at": [
+         11.5,
+         12.5
+        ]
+       },
+       "t3": {
+        "type": "cone",
+        "at": [
+         6.5,
+         15
+        ]
+       },
+       "t4": {
+        "type": "cone",
+        "at": [
+         11.5,
+         15
+        ]
+       },
+       "k1": {
+        "type": "cone",
+        "at": [
+         0,
+         0
+        ]
+       },
+       "k2": {
+        "type": "cone",
+        "at": [
+         18,
+         0
+        ]
+       },
+       "k3": {
+        "type": "cone",
+        "at": [
+         0,
+         15
+        ]
+       },
+       "k4": {
+        "type": "cone",
+        "at": [
+         18,
+         15
+        ]
+       },
+       "S": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         9,
+         0.5
+        ]
+       },
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         4,
+         3.5
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         9.5,
+         2.5
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         14.5,
+         4
+        ]
+       },
+       "D1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7.5,
+         8.5
+        ]
+       },
+       "D2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         11,
+         9.2
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S"
+       },
+       "D3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7,
+         0.8
+        ]
+       }
+      },
+      "steps": [
+       {
+        "label": "The server plays to A2 in the middle. D1 presses but doesn't dive in; D2 covers, between A3 and the target; D3 sprints back",
+        "actions": [
+         {
+          "pass": {
+           "from": "S",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            8.8,
+            6.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.6,
+            9.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            4.4,
+            5.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            14,
+            6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            7,
+            4.4
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D1 backs off slowly to delay while help arrives",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A2",
+           "to": [
+            9.4,
+            5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            9,
+            7.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.8,
+            10.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5,
+            7.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            14.2,
+            7.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            6.9,
+            7
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A2 passes wide to A3. D2 slides out to press, D1 drops in to cover and D3 picks up A1",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "A3"
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            12.6,
+            8.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            10.2,
+            10.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9.8,
+            7.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5.4,
+            8.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            6.4,
+            9.8
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D2 shows A3 wide; D1 stays between A2 and the target and D3 stays goal-side of A1",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A3",
+           "to": [
+            15.4,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            14,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            10.4,
+            11.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            10.2,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5.8,
+            9.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            6.9,
+            11
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The ball is kept out of the target until time is up: the defenders score",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A3",
+           "to": [
+            15.6,
+            7.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            14.4,
+            9.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9.6,
+            8
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Hardest: 3v2 with no help",
+     "diagram": {
+      "pitch": {
+       "width": 18,
+       "length": 15,
+       "view": "area"
+      },
+      "objects": {
+       "t1": {
+        "type": "cone",
+        "at": [
+         6.5,
+         12.5
+        ]
+       },
+       "t2": {
+        "type": "cone",
+        "at": [
+         11.5,
+         12.5
+        ]
+       },
+       "t3": {
+        "type": "cone",
+        "at": [
+         6.5,
+         15
+        ]
+       },
+       "t4": {
+        "type": "cone",
+        "at": [
+         11.5,
+         15
+        ]
+       },
+       "k1": {
+        "type": "cone",
+        "at": [
+         0,
+         0
+        ]
+       },
+       "k2": {
+        "type": "cone",
+        "at": [
+         18,
+         0
+        ]
+       },
+       "k3": {
+        "type": "cone",
+        "at": [
+         0,
+         15
+        ]
+       },
+       "k4": {
+        "type": "cone",
+        "at": [
+         18,
+         15
+        ]
+       },
+       "S": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         9,
+         0.5
+        ]
+       },
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         4,
+         3.5
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         9.5,
+         2.5
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         14.5,
+         4
+        ]
+       },
+       "D1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7.5,
+         8.5
+        ]
+       },
+       "D2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         11,
+         9.2
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S"
+       }
+      },
+      "steps": [
+       {
+        "label": "The server plays to A2 in the middle. D1 presses but doesn't dive in; D2 covers, between A3 and the target",
+        "actions": [
+         {
+          "pass": {
+           "from": "S",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            8.8,
+            6.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.6,
+            9.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            4.4,
+            5.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            14,
+            6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D1 backs off slowly to delay: two against three, so time is the defenders' friend",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A2",
+           "to": [
+            9.4,
+            5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            9,
+            7.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.8,
+            10.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5,
+            7.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            14.2,
+            7.4
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A2 passes wide to A3. D2 slides out to press, D1 drops in to cover, and A1, furthest from the ball, is left for now",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "A3"
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            12.6,
+            8.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            10.2,
+            10.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9.8,
+            7.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5.4,
+            8.6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "D2 shows A3 wide; D1 stays between A2 and the target, talking to D2",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A3",
+           "to": [
+            15.4,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            14,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            10.4,
+            11.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            10.2,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5.8,
+            9.6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The ball is kept out of the target until time is up: the defenders score",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A3",
+           "to": [
+            15.6,
+            7.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            14.4,
+            9.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9.6,
+            8
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}
