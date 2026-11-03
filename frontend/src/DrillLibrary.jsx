@@ -158,9 +158,9 @@ export function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialV
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
       <p className="drill-tags">{drill.tags.length ? drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>) : <span className="status-pill muted-pill">Any focus</span>}</p>
       {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
-      {drill.votes && <ShareDrill key={drill.slug} drill={drill} onMessage={onMessage} />}
-      {drill.team_id && <TeamDrillActions drill={drill} onEdit={onEdit} onDeleted={onDeleted} onSubmitted={setDrill} onOpen={onOpen} onMessage={onMessage} />}
-      {!drill.team_id && teamId && <TeamVersion drill={drill} teamId={teamId} onMakeVersion={onMakeVersion} onOpen={onOpen} />}
+      <DrillStatus drill={drill} teamId={teamId} onOpen={onOpen} />
+      {drill.votes && <ManageDrill key={drill.slug} drill={drill} teamId={teamId} onEdit={onEdit} onDeleted={onDeleted} onSubmitted={setDrill}
+        onMessage={onMessage} onMakeVersion={onMakeVersion} />}
     </header>
     <div className="drill-detail-body">
       <section className="drill-ladder" aria-labelledby="ladder-title">
@@ -190,6 +190,48 @@ export function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialV
 const shortDay = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 const SHARE_DAYS = { 1: 'a day', 7: 'a week', 30: '30 days' }
 
+// Under the drill's title: what a coach needs to know at a glance. What they can do with it is under Manage drill.
+export function DrillStatus({ drill, teamId, onOpen }) {
+  if (drill.team_id) {
+    const s = drill.submission
+    return <div className="drill-status">
+      <p><span className="status-pill warn-pill">Your team's drill</span> Only your team's coaches see it.</p>
+      {drill.shadows && <p>Your team's version of <button type="button" className="link-btn" onClick={() => onOpen(drill.shadows.slug)}>{drill.shadows.title}</button> from the shared library, which is hidden from your team's library and plans. Open it to see its diagrams.</p>}
+      {s && <p className="team-drill-submission" role="status">{s.status === 'pending' ? 'Submitted to the shared library: waiting for review.'
+        : s.status === 'accepted' ? 'Accepted for the shared library: it is being written up with diagrams.'
+        : s.status === 'declined' ? `Not added to the shared library${s.reason ? `: ${s.reason}` : '.'}`
+        : <>Now in the shared library{s.library ? <> as <button type="button" className="link-btn" onClick={() => onOpen(s.library.slug)}>{s.library.title}</button></> : ''}.</>}</p>}
+    </div>
+  }
+  const ours = teamId && drill.team_versions?.find(v => v.team_id === teamId)
+  if (!ours) return null
+  return <div className="drill-status"><p>Your team uses its own version of this drill: <button type="button" className="link-btn" onClick={() => onOpen(ours.slug)}>{ours.title}</button>. This one is hidden from your team's library and plans.</p></div>
+}
+
+// One button for everything a coach can do with the drill besides voting, in an overlay: share it, and for a team,
+// make its own version of a library drill, or edit, submit, unlink or delete its own drill.
+export function ManageDrill({ drill, teamId = null, onEdit = null, onDeleted, onSubmitted, onMessage, onMakeVersion = null }) {
+  const dialog = useRef(null)
+  const [open, setOpen] = useState(false)
+  useEffect(() => { if (open) dialog.current?.showModal() }, [open])
+  // Leaving the drill (to edit it, or after deleting it) closes the overlay first.
+  const leaving = action => (...args) => { setOpen(false); return action(...args) }
+  const versionable = !drill.team_id && teamId && onMakeVersion && !drill.team_versions?.some(v => v.team_id === teamId)
+  return <>
+    <button type="button" className="secondary-btn manage-drill-btn" onClick={() => setOpen(true)}>Manage drill</button>
+    {open && <dialog ref={dialog} className="manage-drill-dialog" aria-labelledby="manage-drill-title" onClose={() => setOpen(false)}>
+      <div className="manage-drill-head"><h3 id="manage-drill-title">{drill.title}</h3><button type="button" className="link-btn" onClick={() => dialog.current?.close()}>✕ Close</button></div>
+      <ShareDrill drill={drill} onMessage={onMessage} />
+      {versionable && <section className="manage-drill-section">
+        <h4>Your team's version</h4>
+        <p className="muted hint">Change the words, numbers or coaching points for your team. Your version replaces this one for your team; it has no diagrams.</p>
+        <div className="inline-row"><button type="button" className="secondary-btn" onClick={leaving(() => onMakeVersion(drill))}>Make our own version</button></div>
+      </section>}
+      {drill.team_id && onEdit && <TeamDrillActions drill={drill} onEdit={leaving(onEdit)} onDeleted={leaving(onDeleted)} onSubmitted={onSubmitted} onMessage={onMessage} />}
+    </dialog>}
+  </>
+}
+
 // A read-only link to the drill for a coach who isn't on the platform. The link is shown once, when it's made;
 // the coach's earlier links that are still open are listed, to revoke.
 function ShareDrill({ drill, onMessage }) {
@@ -198,6 +240,7 @@ function ShareDrill({ drill, onMessage }) {
   const [link, setLink] = useState(null)
   const [busy, setBusy] = useState(false)
   const load = useCallback(() => getDrillShares(drill.slug).then(setShares).catch(e => onMessage(errorMessage(e))), [drill.slug, onMessage])
+  useEffect(() => { load() }, [load])
   const create = async () => {
     setBusy(true)
     try { setLink(await shareDrill(drill.slug, Number(days))); load() } catch (e) { onMessage(errorMessage(e)) } finally { setBusy(false) }
@@ -206,8 +249,8 @@ function ShareDrill({ drill, onMessage }) {
     if (!window.confirm('Revoke this link? Anyone who has it will no longer be able to open the drill.')) return
     try { await revokeDrillShare(drill.slug, share.id); if (link?.id === share.id) setLink(null); load(); onMessage('Link revoked.') } catch (e) { onMessage(errorMessage(e)) }
   }
-  return <details className="drill-share" onToggle={e => { if (e.currentTarget.open && shares === null) load() }}>
-    <summary>Share with a coach</summary>
+  return <section className="manage-drill-section">
+    <h4>Share with a coach</h4>
     <p className="muted hint">Anyone with the link can see this drill, with its diagrams and videos, until the link expires. They don't need an account, and they can't vote or change anything.{drill.team_id ? ' Your team\'s drill stays hidden from other coaches on the platform.' : ''}</p>
     <div className="inline-row">
       <label>Open for <select value={days} onChange={e => setDays(e.target.value)}>{Object.entries(SHARE_DAYS).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select></label>
@@ -222,19 +265,11 @@ function ShareDrill({ drill, onMessage }) {
         Made {shortDay(s.created_at)}, works until {shortDay(s.expires_at)} · {s.opened_at ? `first opened ${shortDay(s.opened_at)}` : 'not opened yet'}
         <button type="button" className="link-btn" onClick={() => revoke(s)}>Revoke</button></li>)}</ul>
     </>}
-  </details>
+  </section>
 }
 
-// On a library drill: the team's own version of it, or the way to make one.
-export function TeamVersion({ drill, teamId, onMakeVersion, onOpen }) {
-  const ours = drill.team_versions?.find(v => v.team_id === teamId)
-  if (ours) return <p className="team-version-note">Your team uses its own version of this drill: <button type="button" className="link-btn" onClick={() => onOpen(ours.slug)}>{ours.title}</button>. This one is hidden from your team's library and plans.</p>
-  if (!onMakeVersion) return null
-  return <p className="team-version-note"><button type="button" className="secondary-btn" onClick={() => onMakeVersion(drill)}>Make our own version</button> <span className="muted">Change the words, numbers or coaching points for your team. Your version replaces this one for your team; it has no diagrams.</span></p>
-}
-
-// A team drill's own controls, and where its offer to the shared library stands.
-export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen, onMessage }) {
+// A team drill's own controls: edit, offer to the shared library, unlink from the library drill it's a version of, delete.
+export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onMessage }) {
   const [offering, setOffering] = useState(false)
   const [note, setNote] = useState('')
   const [confirmed, setConfirmed] = useState(false)
@@ -256,27 +291,23 @@ export function TeamDrillActions({ drill, onEdit, onDeleted, onSubmitted, onOpen
     if (!window.confirm(`Use ${drill.shadows.title} from the library instead, and delete your version? Sessions and plans that already use yours keep it.`)) return
     try { await deleteTeamDrill(drill.team_id, drill.slug); onMessage(`Your team uses ${drill.shadows.title} from the library again.`); onDeleted() } catch (e) { onMessage(errorMessage(e)) }
   }
-  return <div className="team-drill-actions">
-    <p><span className="status-pill warn-pill">Your team's drill</span> Only your team's coaches see it.</p>
-    {drill.shadows && <p>Your team's version of <button type="button" className="link-btn" onClick={() => onOpen(drill.shadows.slug)}>{drill.shadows.title}</button> from the shared library, which is hidden from your team's library and plans. Open it to see its diagrams.</p>}
-    {s && <p className="team-drill-submission" role="status">{s.status === 'pending' ? 'Submitted to the shared library: waiting for review.'
-      : s.status === 'accepted' ? 'Accepted for the shared library: it is being written up with diagrams.'
-      : s.status === 'declined' ? `Not added to the shared library${s.reason ? `: ${s.reason}` : '.'}`
-      : <>Now in the shared library{s.library ? <> as <button type="button" className="link-btn" onClick={() => onOpen(s.library.slug)}>{s.library.title}</button></> : ''}.</>}</p>}
-    {onEdit && <div className="inline-row">
+  return <section className="manage-drill-section">
+    <h4>Your team's drill</h4>
+    <div className="inline-row">
       <button className="secondary-btn" type="button" onClick={() => onEdit(drill)}>Edit</button>
       {canOffer && !offering && <button className="secondary-btn" type="button" onClick={() => setOffering(true)}>Submit to the shared library</button>}
       {drill.shadows && <button type="button" className="secondary-btn" onClick={unlink}>Unlink</button>}
       {drill.shadows ? <button type="button" className="danger-btn" onClick={useLibrary}>Use the library version instead</button>
         : <button type="button" className="danger-btn" onClick={remove}>Delete</button>}
-    </div>}
+    </div>
+    {drill.shadows && <p className="muted hint">Unlink keeps both drills, side by side, in your team's library.</p>}
     {offering && <form className="team-drill-offer" onSubmit={submit}>
       <p className="muted hint">An admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, and we don't name you or your team.</p>
       <label className="field"><span>Note for the reviewer <span className="muted">(optional)</span></span><textarea rows={2} maxLength={1000} value={note} onChange={e => setNote(e.target.value)} placeholder="Where it came from, the ages it works for" /></label>
       <label className="checkbox"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> This drill is mine, or my club's, to share</label>
       <div className="inline-row"><button type="submit" className="primary-btn" disabled={!confirmed}>Submit</button><button type="button" className="link-btn" onClick={() => setOffering(false)}>Cancel</button></div>
     </form>}
-  </div>
+  </section>
 }
 
 // Pressing the active button again clears the vote. A dislike may say why; the reason is optional.

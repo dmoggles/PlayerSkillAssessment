@@ -16,6 +16,7 @@ Search by name or skill, or filter by area, skill, part of the session (warm-up,
 - **Diagram:** press **Play** to watch the drill move step by step, or use the arrows to step through it.
 - **Videos:** some drills have a short video. Nothing loads until you press **Play video**.
 - **Like** or **Dislike** a drill. Disliked drills move to the end of your list and aren't suggested to you; votes are anonymous.
+- **Manage drill** opens everything else you can do with it: share it with another coach, make your team's own version, and for your team's drills, edit, submit or delete them.
 
 ![A drill with its variations and animated diagram](/landing/drill.jpg)
 
@@ -28,21 +29,21 @@ Press **Add a drill** to write up a drill you already run. Only your team's coac
 - **Easier and harder versions** are optional. Level groups and players' plans use them: the easier version for players rated 1–2, the harder for 4–5.
 - **No diagram:** your own drills don't have animated diagrams. Describe the set-up clearly, and add a YouTube or Vimeo link if you have a video of it.
 
-**Edit** changes it everywhere, including sessions and plans that use it. **Delete** takes it out of the library; sessions and plans that already use it keep it.
+Under **Manage drill**, **Edit** changes it everywhere, including sessions and plans that use it. **Delete** takes it out of the library; sessions and plans that already use it keep it.
 
 ### Your own version of a library drill
 
-Want to run a library drill your way? Press **Make our own version** on it. You start from a copy of its words (set-up, steps, coaching points, and the easier and harder versions nearest the base) and change anything. Your version replaces the library drill for your team: the library drill is hidden from your team's library, and sessions and plans choose yours. Other teams still see the library drill.
+Want to run a library drill your way? Open it, press **Manage drill**, then **Make our own version**. You start from a copy of its words (set-up, steps, coaching points, and the easier and harder versions nearest the base) and change anything. Your version replaces the library drill for your team: the library drill is hidden from your team's library, and sessions and plans choose yours. Other teams still see the library drill.
 
 Your version has only what you write, with no diagrams or videos from the library drill. It links to the library drill, so its diagrams are a click away. **Unlink** keeps both as separate drills; **Use the library version instead** deletes yours and brings the library drill back. Sessions and plans that already use either drill keep it.
 
 ### Sharing it with everyone
 
-**Submit to the shared library** offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share. Once it's in the library, your drill becomes your team's version of it, so you don't see both.
+**Submit to the shared library**, under **Manage drill**, offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share. Once it's in the library, your drill becomes your team's version of it, so you don't see both.
 
 ## Showing a drill to another coach
 
-To show a drill to a coach who isn't on TapLine IDP, open it and press **Share with a coach**. Choose how long the link works (a day, a week or 30 days), press **Create link**, and copy it: it's shown only once.
+To show a drill to a coach who isn't on TapLine IDP, open it and press **Manage drill**. Under **Share with a coach**, choose how long the link works (a day, a week or 30 days), press **Create link**, and copy it: it's shown only once.
 
 Whoever has the link sees the whole drill, with its versions, diagrams, videos and links, without signing in. They can't vote, suggest a video, report a link or make their own version, and they don't see related drills or your other drills. Your team's own drills can be shared too; the team's activity log records it.
 

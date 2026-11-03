@@ -258,12 +258,17 @@ test("a team's own version of a library drill starts from its words only, and th
   assert.equal(form.video_url, '', 'no videos copied')
   assert.equal(form.setup, 'A square.')
 
-  const { TeamVersion, TeamDrillActions } = await loadJsx('src/DrillLibrary.jsx')
+  const { DrillStatus, ManageDrill, TeamDrillActions } = await loadJsx('src/DrillLibrary.jsx')
   const render = (C, props) => renderToStaticMarkup(React.createElement(C, { onOpen: () => {}, onMessage: () => {}, onDeleted: () => {}, onSubmitted: () => {}, ...props }))
-  assert.match(render(TeamVersion, { drill: { team_versions: [] }, teamId: 1, onMakeVersion: () => {} }), /Make our own version/)
-  assert.match(render(TeamVersion, { drill: { team_versions: [{ team_id: 1, slug: 't1-ours', title: 'Our rondo' }] }, teamId: 1, onMakeVersion: () => {} }), /Your team uses its own version of this drill.*Our rondo/)
-  const ours = render(TeamDrillActions, { drill: { team_id: 1, slug: 't1-ours', title: 'Our rondo', submission: null, shadows: { slug: 'rondo', title: 'Rondo' } }, onEdit: () => {} })
-  assert.match(ours, /Your team&#x27;s version of .*Rondo/)
+  // What the drill is shows under its title; what to do with it is behind one button.
+  assert.equal(render(DrillStatus, { drill: { team_versions: [] }, teamId: 1 }), '')
+  assert.match(render(DrillStatus, { drill: { team_versions: [{ team_id: 1, slug: 't1-ours', title: 'Our rondo' }] }, teamId: 1 }), /Your team uses its own version of this drill.*Our rondo/)
+  const shadow = { team_id: 1, slug: 't1-ours', title: 'Our rondo', submission: null, shadows: { slug: 'rondo', title: 'Rondo' } }
+  assert.match(render(DrillStatus, { drill: shadow }), /Your team&#x27;s version of .*Rondo/)
+  const closed = render(ManageDrill, { drill: shadow, teamId: 1, onEdit: () => {} })
+  assert.match(closed, />Manage drill</)
+  assert.ok(!closed.includes('Unlink') && !closed.includes('Share with a coach'), 'the overlay is closed until asked for')
+  const ours = render(TeamDrillActions, { drill: shadow, onEdit: () => {} })
   assert.ok(ours.includes('Unlink') && ours.includes('Use the library version instead') && !ours.includes('Submit to the shared library') && !ours.includes('>Delete<'))
 })
 
