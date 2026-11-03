@@ -2597,10 +2597,113 @@
        },
        "ball": {
         "type": "ball",
-        "with": "A2"
+        "with": "AG"
        }
       },
       "steps": [
+       {
+        "label": "The goalkeeper plays out to A1. Everyone moves with the ball, inside their own third",
+        "actions": [
+         {
+          "pass": {
+           "from": "AG",
+           "to": "A1"
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            6,
+            24
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            24,
+            25
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B4",
+           "to": [
+            14,
+            32
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            9,
+            20
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B3",
+           "to": [
+            20,
+            21
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A1 passes to A2 in the middle third",
+        "actions": [
+         {
+          "pass": {
+           "from": "A1",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            9,
+            35
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            8,
+            19
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B4",
+           "to": [
+            12,
+            31
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A4",
+           "to": [
+            21,
+            9
+           ]
+          }
+         }
+        ]
+       },
        {
         "label": "A2 carries the ball up into the attacking third: one player may step up when their team has it",
         "actions": [
@@ -2626,8 +2729,8 @@
           "run": {
            "who": "A4",
            "to": [
-            18,
-            8
+            23,
+            7
            ]
           }
          },
@@ -2682,8 +2785,8 @@
           "run": {
            "who": "A1",
            "to": [
-            12,
-            34
+            8,
+            35
            ]
           }
          }
@@ -2702,8 +2805,8 @@
           "run": {
            "who": "A3",
            "to": [
-            21.5,
-            23.5
+            24.5,
+            24
            ]
           }
          },
