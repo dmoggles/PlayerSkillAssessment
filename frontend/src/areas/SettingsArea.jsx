@@ -54,42 +54,51 @@ export default function SettingsArea({ user, dashboard, onLogout }) {
       <PracticeLibrary key={team?.id} ageGroup={squad.single} onMessage={onMessage} />
     </Section>
   }
+  // Two stacks that each pack tightly, rather than rows that are as tall as their tallest tile. Tiles stay in their
+  // stack as they grow (a form opening, the squad loading), so nothing jumps; on narrow screens the stacks run one
+  // after the other, in this same order.
   return <div className="settings-grid">
-    <TeamsSection onCreated={created => { setTeams(previous => [...previous, created]); chooseTeam(String(created.id)); onMessage('Team created.') }} onMessage={onMessage} />
-    {team && <>
-      <PeriodsSection team={team} periods={periods} setPeriods={setPeriods} players={players} selectedPeriodId={period?.id}
-        choosePeriod={choosePeriod} selectPeriod={selectPeriod} confirmDiscard={confirmDiscard} onMessage={onMessage} />
-      <SquadSection team={team} period={period} players={players} setPlayers={setPlayers} groups={groups} setGroups={setGroups}
-        choosePlayer={choosePlayer} restorePlayer={restorePlayer} deletePlayer={owner ? deletePlayer : null} canExport={owner} onMessage={onMessage} />
-      {team.self_assessment_enabled && period && <Section title="Player self-assessment" description={`Links for ${period.label}. Each link works once and expires after 7 days.`}>
-        <SelfAssessmentBoard key={`${team.id}-${period.id}`} teamId={String(team.id)} period={period} rosterKey={players.filter(p => p.active).map(p => `${p.id}:${p.name}`).join(',')} onMessage={onMessage} />
-      </Section>}
-      <Section title="Drill library" description="The shared library of drills for every skill"><DrillLibrarySummary onOpen={() => setDrillLibraryOpen(true)} /></Section>
-      <Section title="Practice scenarios" description="Game situations players solve on a pitch"><PracticeLibrarySummary onOpen={() => setPracticeOpen(true)} /></Section>
-      {owner && <Section title="Skill matrix" description="The skills and level descriptions this team is rated on">
-        <MatrixSummary key={team.id} teamId={String(team.id)} onEdit={() => setEditingMatrix(true)} />
-      </Section>}
-      {owner && <TeamAccessSection user={user} team={team} setTeams={setTeams} members={members} setMembers={setMembers} dropTeam={dropTeam}
-        confirmDiscard={confirmDiscard} forgetMatrices={forgetMatrices} onMessage={onMessage} />}
-      {!owner && members.some(m => m.email === user.email) && <Section title="Team membership" description={`You are a coach on ${team.name}`}>
-        <MemberActions user={user} team={team} members={members} setMembers={setMembers} dropTeam={dropTeam} confirmDiscard={confirmDiscard} onMessage={onMessage} leaveOnly />
-      </Section>}
-    </>}
-    {user.is_admin && <SiteAdminSection onMessage={onMessage} />}
-    {user.is_admin && <VideoSuggestionQueue onMessage={onMessage} />}
-    {user.is_admin && <LinkReportQueue onMessage={onMessage} />}
-    {user.is_admin && <DrillSubmissionQueue onMessage={onMessage} />}
-    <Section title="Account" className="settings-account">
-      <p className="settings-account-email">{user.email}</p>
-      <ChangePasswordForm />
-      <button className="secondary-btn" type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
-      <MyVideoSuggestions />
-      <DeleteAccountForm confirmDiscard={confirmDiscard} />
-      {/* A new tab, so unsaved work in the app isn't lost. */}
-      <p className="settings-manual"><a href="/manual" target="_blank" rel="noopener">Read the manual</a> for how each part of the app works.</p>
-      <p className="app-version">Version {APP_VERSION}</p>
-      <LegalLinks />
-    </Section>
+    <div className="settings-column">
+      <TeamsSection onCreated={created => { setTeams(previous => [...previous, created]); chooseTeam(String(created.id)); onMessage('Team created.') }} onMessage={onMessage} />
+      {team && <>
+        <PeriodsSection team={team} periods={periods} setPeriods={setPeriods} players={players} selectedPeriodId={period?.id}
+          choosePeriod={choosePeriod} selectPeriod={selectPeriod} confirmDiscard={confirmDiscard} onMessage={onMessage} />
+        <SquadSection team={team} period={period} players={players} setPlayers={setPlayers} groups={groups} setGroups={setGroups}
+          choosePlayer={choosePlayer} restorePlayer={restorePlayer} deletePlayer={owner ? deletePlayer : null} canExport={owner} onMessage={onMessage} />
+        {team.self_assessment_enabled && period && <Section title="Player self-assessment" description={`Links for ${period.label}. Each link works once and expires after 7 days.`}>
+          <SelfAssessmentBoard key={`${team.id}-${period.id}`} teamId={String(team.id)} period={period} rosterKey={players.filter(p => p.active).map(p => `${p.id}:${p.name}`).join(',')} onMessage={onMessage} />
+        </Section>}
+      </>}
+    </div>
+    <div className="settings-column">
+      {team && <>
+        <Section title="Drill library" description="The shared library of drills for every skill"><DrillLibrarySummary onOpen={() => setDrillLibraryOpen(true)} /></Section>
+        <Section title="Practice scenarios" description="Game situations players solve on a pitch"><PracticeLibrarySummary onOpen={() => setPracticeOpen(true)} /></Section>
+        {owner && <Section title="Skill matrix" description="The skills and level descriptions this team is rated on">
+          <MatrixSummary key={team.id} teamId={String(team.id)} onEdit={() => setEditingMatrix(true)} />
+        </Section>}
+        {owner && <TeamAccessSection user={user} team={team} setTeams={setTeams} members={members} setMembers={setMembers} dropTeam={dropTeam}
+          confirmDiscard={confirmDiscard} forgetMatrices={forgetMatrices} onMessage={onMessage} />}
+        {!owner && members.some(m => m.email === user.email) && <Section title="Team membership" description={`You are a coach on ${team.name}`}>
+          <MemberActions user={user} team={team} members={members} setMembers={setMembers} dropTeam={dropTeam} confirmDiscard={confirmDiscard} onMessage={onMessage} leaveOnly />
+        </Section>}
+      </>}
+      {user.is_admin && <SiteAdminSection onMessage={onMessage} />}
+      {user.is_admin && <VideoSuggestionQueue onMessage={onMessage} />}
+      {user.is_admin && <LinkReportQueue onMessage={onMessage} />}
+      {user.is_admin && <DrillSubmissionQueue onMessage={onMessage} />}
+      <Section title="Account" className="settings-account">
+        <p className="settings-account-email">{user.email}</p>
+        <ChangePasswordForm />
+        <button className="secondary-btn" type="button" onClick={() => { if (confirmDiscard()) onLogout() }}>Sign out</button>
+        <MyVideoSuggestions />
+        <DeleteAccountForm confirmDiscard={confirmDiscard} />
+        {/* A new tab, so unsaved work in the app isn't lost. */}
+        <p className="settings-manual"><a href="/manual" target="_blank" rel="noopener">Read the manual</a> for how each part of the app works.</p>
+        <p className="app-version">Version {APP_VERSION}</p>
+        <LegalLinks />
+      </Section>
+    </div>
   </div>
 }
 
