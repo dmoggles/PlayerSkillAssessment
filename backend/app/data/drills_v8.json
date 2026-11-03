@@ -1239,6 +1239,2301 @@
      }
     }
    ]
+  },
+  {
+   "slug": "move-as-a-team-with-the-ball",
+   "title": "Move as a team with the ball",
+   "summary": "The coach moves the ball and the team adjusts its shape together, first unopposed, then around walking opponents.",
+   "format": "unit",
+   "players": [
+    5,
+    8,
+    11
+   ],
+   "ages": [
+    7,
+    14
+   ],
+   "duration": [
+    8,
+    12
+   ],
+   "session_phase": "technical",
+   "intensity": "low",
+   "space": [
+    30,
+    30
+   ],
+   "home_friendly": false,
+   "equipment": [
+    {
+     "item": "cones",
+     "quantity": 4
+    },
+    {
+     "item": "balls",
+     "quantity": 4
+    }
+   ],
+   "setup": "Half of the pitch you play on, with cones at the corners. The players stand in the shape they play in for your formation, in the half nearest their goal. The coach stands in front of them with a ball. With more than 11, run two groups and let the resting group check the other's shape.",
+   "instructions": [
+    "The coach carries the ball to a new spot, at a jog, and stops.",
+    "Every time the ball moves, every player moves: the nearest go towards it, the far side tucks in towards the middle.",
+    "When the ball stops, everyone stops. The coach checks the shape and asks one question, such as \"who's closest to the ball, and is that right?\"",
+    "After a few goes, the coach moves the ball without stopping, and the players keep adjusting."
+   ],
+   "coaching_points": [
+    "The ball is your reference: watch it and your nearest teammates, not just the coach.",
+    "Keep about the same distance to your nearest teammates wherever the ball goes: close enough to pass to, not so close one opponent could mark you both.",
+    "Don't stand level with the teammate next to you: be a little in front or behind.",
+    "Near the ball, close together; far from the ball, tuck in towards the middle.",
+    "When the ball comes towards your goal, drop back and stay goal-side of it.",
+    "Keep the unopposed part short: once players know where to go, move on to the walking opponents, which is what they'll read in a game."
+   ],
+   "tags": {
+    "team_shape": 1.0,
+    "scanning": 0.5
+   },
+   "ladder_tags": [
+    "team_shape"
+   ],
+   "links": [
+    {
+     "to": "game-in-thirds-hold-your-area",
+     "relation": "harder"
+    }
+   ],
+   "variations": [
+    {
+     "kind": "regression",
+     "title": "Walk it through",
+     "levels": [
+      1,
+      1
+     ],
+     "change": "Everyone walks, and the coach stops after every move to check the shape and say where each player should be."
+    },
+    {
+     "kind": "base",
+     "title": "The ball moves, everyone moves",
+     "levels": [
+      1,
+      2
+     ],
+     "diagram": 0,
+     "change": "At a jog, with the coach stopping the ball now and then to check the shape."
+    },
+    {
+     "kind": "escalator",
+     "title": "Ours or theirs",
+     "levels": [
+      2,
+      3
+     ],
+     "change": "As the coach moves the ball, they call \"ours\" or \"theirs\". On \"ours\", the team spreads out wide and deep to make the pitch big; on \"theirs\", it squeezes in around the ball and gets goal-side. Best with 7 or more players.",
+     "instructions": [
+      "The coach carries the ball to a new spot and calls \"ours\" or \"theirs\".",
+      "\"Ours\": spread out, wide and deep, so there's space to pass into.",
+      "\"Theirs\": squeeze in around the ball and get goal-side of it.",
+      "Every time the ball moves, every player moves; the coach checks the shape now and then."
+     ]
+    },
+    {
+     "kind": "escalator",
+     "title": "Walking opponents",
+     "levels": [
+      3,
+      4
+     ],
+     "diagram": 1,
+     "change": "Three or four opponents walk the ball around and pass it between them, without tackling. The team adjusts to the ball and stays goal-side of the opponents.",
+     "players": [
+      8,
+      10,
+      15
+     ],
+     "equipment": [
+      {
+       "item": "cones",
+       "quantity": 4
+      },
+      {
+       "item": "bibs",
+       "quantity": 4
+      },
+      {
+       "item": "balls",
+       "quantity": 4
+      }
+     ],
+     "setup": "Half of the pitch you play on, with cones at the corners. The team stands in its shape in the half nearest its goal; three or four opponents in bibs stand in front of them with a ball.",
+     "instructions": [
+      "The opponents walk with the ball and pass it between them. They don't tackle and nobody tackles them.",
+      "Every time the ball moves, the team moves: the nearest player steps up to the ball, the rest adjust and stay goal-side of the opponents.",
+      "The coach stops play now and then to check the shape.",
+      "Swap the opponents every few minutes."
+     ]
+    }
+   ],
+   "media": [
+    {
+     "kind": "diagram",
+     "caption": "Every time the ball moves, every player moves. The shape shown (two lines of three) is only an example: use your team's own",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 30,
+       "view": "area"
+      },
+      "objects": {
+       "L1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         8,
+         24
+        ]
+       },
+       "L2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         24.5
+        ]
+       },
+       "L3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         22,
+         24
+        ]
+       },
+       "F1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7,
+         15
+        ]
+       },
+       "F2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         16
+        ]
+       },
+       "F3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         23,
+         15
+        ]
+       },
+       "C": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         15,
+         6
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "C"
+       }
+      },
+      "steps": [
+       {
+        "label": "The coach carries the ball to the right. Everyone moves: the players nearest the ball close in, the far side tucks in towards the middle",
+        "actions": [
+         {
+          "dribble": {
+           "who": "C",
+           "to": [
+            25,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            25,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            19,
+            15
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            12.5,
+            16
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            23.5,
+            22.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            18.5,
+            23.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            13,
+            24.5
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The coach takes it across to the left. The whole shape slides with it, keeping the same distances",
+        "actions": [
+         {
+          "dribble": {
+           "who": "C",
+           "to": [
+            6,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            5,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            11,
+            15
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            17.5,
+            16
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            6.5,
+            22.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            11.5,
+            23.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            17,
+            24.5
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The coach drives at goal through the middle. The shape drops back and squeezes in, staying goal-side of the ball",
+        "actions": [
+         {
+          "dribble": {
+           "who": "C",
+           "to": [
+            15,
+            14
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            9,
+            19.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            15,
+            19
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            21,
+            19.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            10,
+            26
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            15,
+            26.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            20,
+            26
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Harder: the team adjusts to walking opponents passing the ball",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 30,
+       "view": "area"
+      },
+      "objects": {
+       "L1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         8,
+         24
+        ]
+       },
+       "L2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         24.5
+        ]
+       },
+       "L3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         22,
+         24
+        ]
+       },
+       "F1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7,
+         15
+        ]
+       },
+       "F2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         16
+        ]
+       },
+       "F3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         23,
+         15
+        ]
+       },
+       "S1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         6,
+         7
+        ]
+       },
+       "S2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         15,
+         4
+        ]
+       },
+       "S3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         24,
+         8
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S2"
+       }
+      },
+      "steps": [
+       {
+        "label": "The walking opponents pass to the right. The shape slides across while the ball travels",
+        "actions": [
+         {
+          "pass": {
+           "from": "S2",
+           "to": "S3"
+          }
+         },
+         {
+          "run": {
+           "who": "S1",
+           "to": [
+            9,
+            8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            24,
+            12.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            18.5,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            12.5,
+            15.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            22.5,
+            22.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            17.5,
+            23.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            12,
+            24.5
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A long pass to the far side. Everyone shifts back across, and the player nearest the ball steps up to it",
+        "actions": [
+         {
+          "pass": {
+           "from": "S3",
+           "to": "S1"
+          }
+         },
+         {
+          "run": {
+           "who": "S2",
+           "to": [
+            14,
+            6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            8,
+            11.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            12.5,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            19,
+            16
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            7.5,
+            22
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            12.5,
+            23.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            18,
+            24.5
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The opponent walks the ball towards goal: the nearest player stays in front, and the rest stay goal-side of their opponents",
+        "actions": [
+         {
+          "dribble": {
+           "who": "S1",
+           "to": [
+            7,
+            12
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "S2",
+           "to": [
+            13,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "S3",
+           "to": [
+            21,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F1",
+           "to": [
+            7.5,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F2",
+           "to": [
+            12,
+            15.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "F3",
+           "to": [
+            18.5,
+            16.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L1",
+           "to": [
+            8,
+            23
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L2",
+           "to": [
+            13,
+            24
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "L3",
+           "to": [
+            19,
+            24.5
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "slug": "game-in-thirds-hold-your-area",
+   "title": "Game in thirds: hold your area, then step out and back",
+   "summary": "A game on a pitch marked in thirds: players hold their area, then learn to step out and get back into shape when the ball is lost.",
+   "format": "team",
+   "players": [
+    8,
+    12,
+    22
+   ],
+   "ages": [
+    8,
+    16
+   ],
+   "duration": [
+    15,
+    20
+   ],
+   "session_phase": "small_sided_game",
+   "intensity": "high",
+   "space": [
+    30,
+    42
+   ],
+   "home_friendly": false,
+   "equipment": [
+    {
+     "item": "goals",
+     "quantity": 2
+    },
+    {
+     "item": "cones",
+     "quantity": 8
+    },
+    {
+     "item": "bibs",
+     "quantity": 11
+    },
+    {
+     "item": "balls",
+     "quantity": 6
+    }
+   ],
+   "setup": "A pitch for the numbers you have, from about 30 x 40 m for 4v4 up to your full match pitch, with goals and goalkeepers. Mark two lines across it with cones to make three thirds. Give each player the third that matches their position in your formation, so each team has players in every third.",
+   "instructions": [
+    "Play a normal game, but every player stays in their own third.",
+    "Restart from the goalkeeper after every goal and every ball out of play.",
+    "A player who leaves their third gives the ball to the other team.",
+    "Every few minutes, stop and move some players to a different third, so they learn other positions too."
+   ],
+   "coaching_points": [
+    "Know your third, and where in it to be: move with the ball inside it.",
+    "When your team has the ball, spread out across your third so there's someone to pass to.",
+    "When the ball's lost, get goal-side quickly, and close in towards the ball.",
+    "Talk to the players in the next third: \"drop\", \"push up\", \"I'm here\".",
+    "Keep the lines for a short block: they help players learn where to be, but they also make players move less together. Take them away once players hold their positions."
+   ],
+   "tags": {
+    "team_shape": 1.0,
+    "transition_defence": 0.5,
+    "support_play": 0.5
+   },
+   "ladder_tags": [
+    "team_shape"
+   ],
+   "links": [
+    {
+     "to": "slide-together-to-protect-the-gates",
+     "relation": "harder"
+    }
+   ],
+   "variations": [
+    {
+     "kind": "regression",
+     "title": "Two halves",
+     "levels": [
+      1,
+      2
+     ],
+     "change": "One line across the middle instead of two, so players only stay in their half: a back group and a front group.",
+     "setup": "A pitch for the numbers you have, from about 30 x 40 m for 4v4 up to your full match pitch, with goals and goalkeepers. Mark a line across the middle with cones. Give each player the half that matches their position, so each team has players in both halves.",
+     "equipment": [
+      {
+       "item": "goals",
+       "quantity": 2
+      },
+      {
+       "item": "cones",
+       "quantity": 6
+      },
+      {
+       "item": "bibs",
+       "quantity": 11
+      },
+      {
+       "item": "balls",
+       "quantity": 6
+      }
+     ]
+    },
+    {
+     "kind": "base",
+     "title": "Stay in your third",
+     "levels": [
+      2,
+      3
+     ],
+     "diagram": 0,
+     "change": "Three thirds, and every player stays in their own."
+    },
+    {
+     "kind": "escalator",
+     "title": "One steps up, everyone gets back",
+     "levels": [
+      3,
+      4
+     ],
+     "diagram": 1,
+     "change": "When a team has the ball, one player may move up into the next third. As soon as the ball is lost, they sprint back into their own.",
+     "instructions": [
+      "Play a game with every player in their own third.",
+      "When your team has the ball, one player may move up into the next third.",
+      "As soon as the ball is lost, they sprint back into their own third. A goal scored while they're still out of it counts double.",
+      "Restart from the goalkeeper after every goal and every ball out of play."
+     ]
+    },
+    {
+     "kind": "escalator",
+     "title": "No lines: freeze",
+     "levels": [
+      4,
+      5
+     ],
+     "change": "Take the lines away and play freely. A few times a game, the coach calls \"freeze\": a team whose players are in their areas and at good distances from each other scores a point.",
+     "setup": "A pitch for the numbers you have, from about 30 x 40 m for 4v4 up to your full match pitch, with goals and goalkeepers. No lines: each player plays their usual position.",
+     "equipment": [
+      {
+       "item": "goals",
+       "quantity": 2
+      },
+      {
+       "item": "cones",
+       "quantity": 4
+      },
+      {
+       "item": "bibs",
+       "quantity": 11
+      },
+      {
+       "item": "balls",
+       "quantity": 6
+      }
+     ],
+     "instructions": [
+      "Play a normal game, with each player in their usual position.",
+      "A few times a game, the coach calls \"freeze\" and everyone stops where they are.",
+      "A team whose players are in their areas, at good distances from each other and goal-side when they haven't got the ball, scores a point.",
+      "Ask the players to put right anything that's out, then play on."
+     ]
+    }
+   ],
+   "media": [
+    {
+     "kind": "diagram",
+     "caption": "Every player moves with the ball, inside their own third. The diagram shows 4v4 with goalkeepers; any numbers work",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 42,
+       "view": "area",
+       "goals": [
+        {
+         "id": "top",
+         "at": [
+          15,
+          0
+         ],
+         "width": 4
+        },
+        {
+         "id": "bottom",
+         "at": [
+          15,
+          42
+         ],
+         "width": 4
+        }
+       ]
+      },
+      "objects": {
+       "z1": {
+        "type": "cone",
+        "at": [
+         0,
+         14
+        ]
+       },
+       "z2": {
+        "type": "cone",
+        "at": [
+         30,
+         14
+        ]
+       },
+       "z3": {
+        "type": "cone",
+        "at": [
+         0,
+         28
+        ]
+       },
+       "z4": {
+        "type": "cone",
+        "at": [
+         30,
+         28
+        ]
+       },
+       "AG": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         41
+        ]
+       },
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         11,
+         34
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7,
+         22
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         23,
+         23
+        ]
+       },
+       "A4": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         14,
+         9
+        ]
+       },
+       "BG": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         15,
+         1
+        ]
+       },
+       "B1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         17,
+         6
+        ]
+       },
+       "B2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         10,
+         19
+        ]
+       },
+       "B3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         21,
+         19
+        ]
+       },
+       "B4": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         19,
+         33
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "AG"
+       }
+      },
+      "steps": [
+       {
+        "label": "The goalkeeper plays out to A1. Everyone moves with the ball, but stays inside their own third",
+        "actions": [
+         {
+          "pass": {
+           "from": "AG",
+           "to": "A1"
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            5,
+            24
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            24,
+            25
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B4",
+           "to": [
+            14,
+            32
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            9,
+            20
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B3",
+           "to": [
+            20,
+            21
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A1 passes to A3. The red middle players shift across to the ball inside their third, and A4 moves away from B1",
+        "actions": [
+         {
+          "pass": {
+           "from": "A1",
+           "to": "A3"
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            9,
+            35
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B3",
+           "to": [
+            22.5,
+            21.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            15,
+            19
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A4",
+           "to": [
+            10,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B1",
+           "to": [
+            19,
+            7
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A3 plays forward to A4, who has found space inside the attacking third",
+        "actions": [
+         {
+          "pass": {
+           "from": "A3",
+           "to": "A4"
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9,
+            18
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B1",
+           "to": [
+            13,
+            8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            13,
+            16
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A4 shoots",
+        "actions": [
+         {
+          "shot": {
+           "who": "A4",
+           "to": "top"
+          }
+         },
+         {
+          "run": {
+           "who": "B1",
+           "to": [
+            12,
+            6
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Harder: one player steps up, and sprints back when the ball's lost",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 42,
+       "view": "area",
+       "goals": [
+        {
+         "id": "top",
+         "at": [
+          15,
+          0
+         ],
+         "width": 4
+        },
+        {
+         "id": "bottom",
+         "at": [
+          15,
+          42
+         ],
+         "width": 4
+        }
+       ]
+      },
+      "objects": {
+       "z1": {
+        "type": "cone",
+        "at": [
+         0,
+         14
+        ]
+       },
+       "z2": {
+        "type": "cone",
+        "at": [
+         30,
+         14
+        ]
+       },
+       "z3": {
+        "type": "cone",
+        "at": [
+         0,
+         28
+        ]
+       },
+       "z4": {
+        "type": "cone",
+        "at": [
+         30,
+         28
+        ]
+       },
+       "AG": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         41
+        ]
+       },
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         11,
+         34
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7,
+         22
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         23,
+         23
+        ]
+       },
+       "A4": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         14,
+         9
+        ]
+       },
+       "BG": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         15,
+         1
+        ]
+       },
+       "B1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         17,
+         6
+        ]
+       },
+       "B2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         10,
+         19
+        ]
+       },
+       "B3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         21,
+         19
+        ]
+       },
+       "B4": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         19,
+         33
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "A2"
+       }
+      },
+      "steps": [
+       {
+        "label": "A2 carries the ball up into the attacking third: one player may step up when their team has it",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A2",
+           "to": [
+            8,
+            12
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            24.5,
+            17
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A4",
+           "to": [
+            18,
+            8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            9,
+            16
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B1",
+           "to": [
+            10,
+            9
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "B1 wins the ball. A2 sprints straight back into the middle third; the others get goal-side",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "B1"
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            9,
+            19
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            23.5,
+            22.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            12,
+            34
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "Red play forward, but blue are back in shape",
+        "actions": [
+         {
+          "pass": {
+           "from": "B1",
+           "to": "B3"
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            21.5,
+            23.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            14,
+            21
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "B2",
+           "to": [
+            10,
+            20
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "slug": "slide-together-to-protect-the-gates",
+   "title": "Slide together to protect the gates",
+   "summary": "A line of defenders shifts across together as the ball moves, to stop attackers dribbling through any of a row of small goals.",
+   "format": "unit",
+   "players": [
+    7,
+    9,
+    16
+   ],
+   "ages": [
+    9,
+    16
+   ],
+   "duration": [
+    12,
+    15
+   ],
+   "session_phase": "opposed",
+   "intensity": "high",
+   "space": [
+    30,
+    22
+   ],
+   "home_friendly": false,
+   "equipment": [
+    {
+     "item": "mini_goals",
+     "quantity": 5
+    },
+    {
+     "item": "cones",
+     "quantity": 4
+    },
+    {
+     "item": "bibs",
+     "quantity": 5
+    },
+    {
+     "item": "balls",
+     "quantity": 10
+    }
+   ],
+   "setup": "An area 30 m wide and about 22 m deep. Along the defenders' end line, put one more small goal (or 2 m cone gate) than there are defenders, spread evenly: five for a line of four. Mark a line 12 m out from the goals. A line of three to five defenders starts just inside it; the same number of attackers spread across the far end. The coach stands on the far line with the balls.",
+   "instructions": [
+    "The coach plays the ball to an attacker.",
+    "The attackers pass it across the area and try to dribble through any goal. Each goal is a point.",
+    "The defenders score a point by winning the ball, or by keeping it out for 30 seconds.",
+    "Defenders may not stand in a goal: they have to stop the ball before it gets there.",
+    "Swap roles every three minutes."
+   ],
+   "coaching_points": [
+    "The ball is your reference: every time it moves, the whole line moves, while it's travelling, not after it arrives.",
+    "The defender nearest the ball steps up to it; the next one covers just behind and inside.",
+    "The players nearest the ball stay closest together. The far side tucks in: leave the goal furthest from the ball, never the near one.",
+    "Keep about 5 to 7 m between neighbours, less with younger players.",
+    "Talk the whole time: \"shift\", \"step\", \"drop\", \"I've got the ball\"."
+   ],
+   "tags": {
+    "team_shape": 1.0,
+    "pressing": 0.5,
+    "communication": 0.5
+   },
+   "ladder_tags": [
+    "team_shape",
+    "pressing"
+   ],
+   "variations": [
+    {
+     "kind": "regression",
+     "title": "Passing slowly",
+     "levels": [
+      1,
+      2
+     ],
+     "change": "The attackers take two touches every time and may only try for a goal after four passes, so the line has time to shift.",
+     "instructions": [
+      "The coach plays the ball to an attacker.",
+      "The attackers take two touches each and pass across the area. After four passes, they may try to dribble through any goal.",
+      "The defenders score a point by winning the ball, or by keeping it out for 30 seconds.",
+      "Defenders may not stand in a goal.",
+      "Swap roles every three minutes."
+     ]
+    },
+    {
+     "kind": "base",
+     "title": "Live",
+     "levels": [
+      2,
+      3
+     ],
+     "diagram": 0,
+     "change": "Live: the attackers pass and dribble freely, and the line shifts to stop them."
+    },
+    {
+     "kind": "escalator",
+     "title": "One more attacker",
+     "levels": [
+      3,
+      5
+     ],
+     "diagram": 1,
+     "change": "The attackers have one more player than the defenders, so one is always free. The line has to stay close on the ball side and accept the far side is open.",
+     "players": [
+      7,
+      9,
+      17
+     ],
+     "setup": "An area 30 m wide and about 22 m deep. Along the defenders' end line, put one more small goal (or 2 m cone gate) than there are defenders, spread evenly: five for a line of four. Mark a line 12 m out from the goals. A line of three to five defenders starts just inside it; one more attacker than defenders spread across the far end. The coach stands on the far line with the balls.",
+     "coaching_points": [
+      "Shift while the ball travels: a long switch is the moment the line has to move fastest.",
+      "The defender nearest the ball delays: stay in front and don't dive in.",
+      "Stay close together on the ball side. The free attacker is on the far side, and that's the one to leave.",
+      "Talk: the far defender tells the line when to shift."
+     ]
+    }
+   ],
+   "media": [
+    {
+     "kind": "diagram",
+     "caption": "The line of four slides with the ball, closest on the ball side. Any number from three to five works, with one more goal than defenders",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 22,
+       "view": "area",
+       "goals": [
+        {
+         "id": "g1",
+         "at": [
+          3.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g2",
+         "at": [
+          9.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g3",
+         "at": [
+          15.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g4",
+         "at": [
+          21.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g5",
+         "at": [
+          27.0,
+          22
+         ],
+         "width": 2
+        }
+       ]
+      },
+      "objects": {
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         3,
+         6
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         11,
+         5
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         19,
+         5
+        ]
+       },
+       "A4": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         27,
+         6
+        ]
+       },
+       "D1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7.5,
+         13
+        ]
+       },
+       "D2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         12.5,
+         13.5
+        ]
+       },
+       "D3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         17.5,
+         13.5
+        ]
+       },
+       "D4": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         22.5,
+         13
+        ]
+       },
+       "C": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         15,
+         0.5
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "C"
+       }
+      },
+      "steps": [
+       {
+        "label": "The coach plays to A1. The line slides left while the ball travels: D1 steps up, D2 covers behind, the far side tucks in",
+        "actions": [
+         {
+          "pass": {
+           "from": "C",
+           "to": "A1"
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            4.5,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            9,
+            13
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            14,
+            14
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            19,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A2",
+           "to": [
+            10,
+            6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A1 passes to A2. D2 steps up and D1 drops in behind",
+        "actions": [
+         {
+          "pass": {
+           "from": "A1",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            10.5,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            6,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            15,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            20,
+            14
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A2 passes to A3. The whole line shifts back across together",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "A3"
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            18.5,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            14,
+            13
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            23,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            9,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5,
+            7
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A3 passes wide to A4. D4 steps up; the gate furthest from the ball is the one left open",
+        "actions": [
+         {
+          "pass": {
+           "from": "A3",
+           "to": "A4"
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            25.5,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            20.5,
+            13
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            15.5,
+            14
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            11,
+            15
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            20,
+            7
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A4 tries to go inside; D4 blocks it and D3 is there behind, so A4 has to pass back",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A4",
+           "to": [
+            24,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            23.5,
+            11
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            21,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            18,
+            6
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Harder: five attackers against a line of four",
+     "diagram": {
+      "pitch": {
+       "width": 30,
+       "length": 22,
+       "view": "area",
+       "goals": [
+        {
+         "id": "g1",
+         "at": [
+          3.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g2",
+         "at": [
+          9.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g3",
+         "at": [
+          15.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g4",
+         "at": [
+          21.0,
+          22
+         ],
+         "width": 2
+        },
+        {
+         "id": "g5",
+         "at": [
+          27.0,
+          22
+         ],
+         "width": 2
+        }
+       ]
+      },
+      "objects": {
+       "A1": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         2.5,
+         6
+        ]
+       },
+       "A2": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         9,
+         5
+        ]
+       },
+       "A3": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         15,
+         4
+        ]
+       },
+       "A4": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         21,
+         5
+        ]
+       },
+       "A5": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         27.5,
+         6
+        ]
+       },
+       "D1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         7.5,
+         13
+        ]
+       },
+       "D2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         12.5,
+         13.5
+        ]
+       },
+       "D3": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         17.5,
+         13.5
+        ]
+       },
+       "D4": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         22.5,
+         13
+        ]
+       },
+       "C": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         15,
+         0.5
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "C"
+       }
+      },
+      "steps": [
+       {
+        "label": "The coach plays to A2. The line slides towards the ball, and the far defender tucks in",
+        "actions": [
+         {
+          "pass": {
+           "from": "C",
+           "to": "A2"
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            6,
+            12.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            9.5,
+            10
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            14,
+            13
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            19,
+            14
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A3",
+           "to": [
+            14,
+            6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "A2 switches it to A5. The line slides across while the ball travels; D4 gets out in time to stop A5 running at the gate",
+        "actions": [
+         {
+          "pass": {
+           "from": "A2",
+           "to": "A5"
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            25,
+            11
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            20,
+            13
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D2",
+           "to": [
+            15,
+            14
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D1",
+           "to": [
+            10,
+            14.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A1",
+           "to": [
+            5,
+            7
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "With five attackers, one is always free: D4 delays and the others stay close to the ball side, leaving the far side",
+        "actions": [
+         {
+          "dribble": {
+           "who": "A5",
+           "to": [
+            26.5,
+            9
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D4",
+           "to": [
+            25.5,
+            12
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "D3",
+           "to": [
+            21.5,
+            13.5
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "A4",
+           "to": [
+            21,
+            8
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
   }
  ]
 }
