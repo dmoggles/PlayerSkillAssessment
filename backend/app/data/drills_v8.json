@@ -37,7 +37,7 @@
     },
     {
      "item": "balls",
-     "quantity": 10
+     "quantity": 6
     }
    ],
    "setup": "An area 18 m wide and 15 m deep, with a target 4 m wide and 2.5 m deep, marked with cones, in the middle of the end line. The target stands in for your penalty area. Two attackers start about 12 m from the target, two defenders between them and the target, and a server on the far line with the balls.",
@@ -128,7 +128,7 @@
       },
       {
        "item": "balls",
-       "quantity": 10
+       "quantity": 6
       }
      ],
      "setup": "An area 18 m wide and 15 m deep, with a target 5 m wide and 2.5 m deep in the middle of the end line. Three attackers start about 12 m from the target, two defenders between them and the target, and a third defender behind the attackers, near the server.",
@@ -171,7 +171,7 @@
       },
       {
        "item": "balls",
-       "quantity": 10
+       "quantity": 6
       }
      ],
      "setup": "An area 18 m wide and 15 m deep, with a target 5 m wide and 2.5 m deep in the middle of the end line. Three attackers start about 12 m from the target, two defenders between them and the target, and a server on the far line.",
@@ -1272,7 +1272,7 @@
     },
     {
      "item": "balls",
-     "quantity": 4
+     "quantity": 1
     }
    ],
    "setup": "Half of the pitch you play on, with cones at the corners. The players stand in the shape they play in for your formation, in the half nearest their goal. The coach stands in front of them with a ball. With more than 11, run two groups and let the resting group check the other's shape.",
@@ -1363,7 +1363,7 @@
       },
       {
        "item": "balls",
-       "quantity": 4
+       "quantity": 2
       }
      ],
      "setup": "Half of the pitch you play on, with cones at the corners. The team stands in its shape in the half nearest its goal; three or four opponents in bibs stand in front of them with a ball.",
@@ -2895,7 +2895,7 @@
     },
     {
      "item": "balls",
-     "quantity": 10
+     "quantity": 6
     }
    ],
    "setup": "An area 30 m wide and about 22 m deep. Along the defenders' end line, put one more small goal (or 2 m cone gate) than there are defenders, spread evenly: five for a line of four. Mark a line 12 m out from the goals. A line of three to five defenders starts just inside it; the same number of attackers spread across the far end. The coach stands on the far line with the balls.",

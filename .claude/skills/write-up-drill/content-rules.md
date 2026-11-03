@@ -30,21 +30,29 @@ reviewing drills. Check every drill against all of them before showing it to the
 10. **One ball per diagram.** Handling and saving drills end with the ball in the keeper's hands, not in the goal.
 11. **Captions say what the diagram simplifies** ("the diagram follows one pair").
 
+## Equipment
+12. **Count the balls the drill really uses.** Start with the balls in play at once (one each, one per pair, one per
+    game). Add spares only where the ball usually ends up away from whoever restarts it (a shot, a clearance, the ball
+    going out), and size them to one player's or one pair's reps before a rotation, usually 6 to 8. A ball that comes
+    back (passed back, rolled back by the keeper, dribbled back) needs one spare at most. Several drills listed 10
+    balls for one ball in play. The set-up says where the spares are ("a server with the balls", "two spare balls at
+    a corner"), and agrees with the count ("with one ball between two").
+
 ## Names and words
-12. **Literal names**: say what players do. No metaphors that could be mistaken for equipment ("goalkeeper handling
+13. **Literal names**: say what players do. No metaphors that could be mistaken for equipment ("goalkeeper handling
     ladder" was rejected: "there's no ladder").
-13. Written for coaches, in plain UK English.
+14. Written for coaches, in plain UK English.
 
 ## Home drills
-14. A home drill works alone or with a parent who only rolls or throws. Every one has an `indoors` text (a soft or
+15. A home drill works alone or with a parent who only rolls or throws. Every one has an `indoors` text (a soft or
     futsal ball, household items, no full-power shots, no heading, no diving indoors). Use `wall` objects and `via`
     passes in diagrams. Skip the diagram for on-the-spot touches (ball mastery, keep-ups) and let a video show them.
 
 ## Videos
-15. **Drill demos, not player tutorials.** The videos are for coaches setting a drill up on the field: short clips
+16. **Drill demos, not player tutorials.** The videos are for coaches setting a drill up on the field: short clips
     from coaching channels showing how the drill runs. Search drill, session or practice videos.
-16. **Check every candidate** with YouTube or Vimeo oEmbed (title, channel) and its page description, and list its
+17. **Check every candidate** with YouTube or Vimeo oEmbed (title, channel) and its page description, and list its
     length prominently. Label each "drill demo" or "technique tutorial". Say in the caption where the video differs
     from our drill (a 5 × 5 m square against our 10 × 10 m).
-17. **The user picks every video.** Never add one they haven't approved. A stopgap gets `"needs_better_video": true`;
+18. **The user picks every video.** Never add one they haven't approved. A stopgap gets `"needs_better_video": true`;
     `python -m app.drills --video-report` lists those and drills with no video.

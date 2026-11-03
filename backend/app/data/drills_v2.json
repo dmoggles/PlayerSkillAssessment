@@ -1177,7 +1177,7 @@
         },
         {
           "item": "balls",
-          "quantity": 4
+          "quantity": 2
         }
       ],
       "setup": "A channel 10 m wide and 20 m long. A server with balls at one end; the receiver in the middle with a defender on the far side of them.",
@@ -1726,10 +1726,10 @@
         },
         {
           "item": "balls",
-          "quantity": 6
+          "quantity": 3
         }
       ],
-      "setup": "A 15 by 15 m square. Six players in three pairs, each in its own bib colour: two pairs keep the ball, one pair presses.",
+      "setup": "A 15 by 15 m square. Six players in three pairs, each in its own bib colour: two pairs keep the ball, one pair presses. Two spare balls at a corner.",
       "instructions": [
         "The two pairs keep the ball; six passes in a row scores a point.",
         "The pressing pair works together to win the ball or force it out; a win scores them a point.",
@@ -2478,7 +2478,7 @@
         },
         {
           "item": "balls",
-          "quantity": 10
+          "quantity": 6
         }
       ],
       "setup": "A 20 by 20 m area in front of a goal with a goalkeeper. Four attackers and three defenders inside it; a server with the balls stands on the far end line.",
@@ -2567,7 +2567,7 @@
             },
             {
               "item": "balls",
-              "quantity": 10
+              "quantity": 6
             }
           ],
           "setup": "A 20 by 20 m area in front of a goal with a goalkeeper, and two mini-goals on the far end line. Four attackers and three defenders inside it; a server with the balls stands between the mini-goals.",

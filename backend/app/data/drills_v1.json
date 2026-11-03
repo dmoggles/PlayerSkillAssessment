@@ -1879,7 +1879,7 @@
         },
         {
           "item": "balls",
-          "quantity": 6
+          "quantity": 3
         }
       ],
       "setup": "A goal and a server 8 m out, central, with several balls.",
@@ -1952,7 +1952,7 @@
             },
             {
               "item": "balls",
-              "quantity": 6
+              "quantity": 3
             },
             {
               "item": "cones",

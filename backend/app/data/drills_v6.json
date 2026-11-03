@@ -4030,11 +4030,11 @@
           "quantity": 10
         }
       ],
-      "setup": "A goal of the size your age group plays with. Players line up with a ball each on the edge of the penalty area (closer for younger players). Nobody stands behind the goal or near it while others shoot.",
+      "setup": "A goal of the size your age group plays with. Players line up on the edge of the penalty area (closer for younger players), with one ball between two. Nobody stands behind the goal or near it while others shoot.",
       "instructions": [
         "One shot each in turn, aiming to hit the crossbar.",
         "Crossbar: three points. Post: one point.",
-        "After your shot, collect your ball and walk back to the end of the line.",
+        "After your shot, collect the ball, pass it back to your partner and walk to the end of the line.",
         "Three rounds, or first to five points."
       ],
       "coaching_points": [
@@ -4056,7 +4056,7 @@
           "instructions": [
             "One shot each in turn from the penalty spot.",
             "Hitting the crossbar or either post scores a point.",
-            "After your shot, collect your ball and walk back to the end of the line.",
+            "After your shot, collect the ball, pass it back to your partner and walk to the end of the line.",
             "Three rounds."
           ]
         },
@@ -4082,7 +4082,7 @@
           "instructions": [
             "One shot each in turn with your weaker foot, aiming to hit the crossbar.",
             "Crossbar: three points. Post: one point.",
-            "After your shot, collect your ball and walk back to the end of the line.",
+            "After your shot, collect the ball, pass it back to your partner and walk to the end of the line.",
             "Three rounds, or first to five points."
           ]
         },

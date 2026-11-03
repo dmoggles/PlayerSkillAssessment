@@ -33,7 +33,7 @@
         },
         {
           "item": "balls",
-          "quantity": 4
+          "quantity": 2
         }
       ],
       "setup": "Two 10 x 10 m boxes with a 20 m zone between them. One player in each box with a ball between them; several pairs can work side by side.",
@@ -133,7 +133,7 @@
             },
             {
               "item": "balls",
-              "quantity": 6
+              "quantity": 3
             },
             {
               "item": "bibs",
@@ -3318,7 +3318,7 @@
         },
         {
           "item": "balls",
-          "quantity": 10
+          "quantity": 6
         },
         {
           "item": "bibs",
@@ -4279,7 +4279,7 @@
         },
         {
           "item": "balls",
-          "quantity": 4
+          "quantity": 2
         },
         {
           "item": "bibs",
@@ -4801,7 +4801,7 @@
         },
         {
           "item": "balls",
-          "quantity": 10
+          "quantity": 4
         },
         {
           "item": "cones",
@@ -4913,7 +4913,7 @@
             },
             {
               "item": "balls",
-              "quantity": 10
+              "quantity": 8
             },
             {
               "item": "cones",
@@ -5591,7 +5591,7 @@
         },
         {
           "item": "balls",
-          "quantity": 10
+          "quantity": 8
         },
         {
           "item": "cones",
@@ -5699,7 +5699,7 @@
             },
             {
               "item": "balls",
-              "quantity": 10
+              "quantity": 8
             },
             {
               "item": "cones",
