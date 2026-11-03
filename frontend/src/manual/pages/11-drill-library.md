@@ -40,6 +40,14 @@ Your version has only what you write, with no diagrams or videos from the librar
 
 **Submit to the shared library** offers your drill to every coach. A site admin reviews it. If it's accepted, we write it up with diagrams before it appears in the library, without naming you or your team; your drill shows where it stands. Only submit a drill that's yours, or your club's, to share. Once it's in the library, your drill becomes your team's version of it, so you don't see both.
 
+## Showing a drill to another coach
+
+To show a drill to a coach who isn't on TapLine IDP, open it and press **Share with a coach**. Choose how long the link works (a day, a week or 30 days), press **Create link**, and copy it: it's shown only once.
+
+Whoever has the link sees the whole drill, with its versions, diagrams, videos and links, without signing in. They can't vote, suggest a video, report a link or make their own version, and they don't see related drills or your other drills. Your team's own drills can be shared too; the team's activity log records it.
+
+Your links that are still open are listed under **Share with a coach**, with when each was first opened. **Revoke** closes one straight away. A link also closes when it expires, when the drill is deleted, and for a team drill, when you leave the team.
+
 ## Suggesting a video
 
 Know a good video for a drill? Press **Suggest a video** on the drill, paste a YouTube or Vimeo link, and say why it's a good fit. A site admin checks every suggestion before anyone else sees it, and you can follow yours in **Settings → Account**.

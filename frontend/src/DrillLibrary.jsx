@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { deleteTeamDrill, errorMessage, getDrill, getDrills, submitTeamDrill, unlinkTeamDrill, voteOnDrill } from './api'
+import { deleteTeamDrill, errorMessage, getDrill, getDrillShares, getDrills, revokeDrillShare, shareDrill, submitTeamDrill, unlinkTeamDrill, voteOnDrill } from './api'
 import DiagramPlayer from './DiagramPlayer'
 import TeamDrillForm from './TeamDrillForm'
 import ReportLink from './ReportLink'
@@ -123,9 +123,10 @@ function DrillFilters({ filters, options, onChange, team = false }) {
   </div>
 }
 
-// loadDrill fetches the drill; a shared plan's page passes one that goes through the plan's link.
+// loadDrill fetches the drill; a shared plan's or drill's page passes one that goes through its link, and gets the
+// drill without votes, so nothing on it changes anything. Without onBack there's no way back (a shared drill's page).
 // onEdit (the library's) lets the team's coaches edit, delete and submit their own drills; dialogs only show them.
-function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill, onEdit = null, onDeleted = () => {}, teamId = null, onMakeVersion = null }) {
+export function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariationId = null, backLabel = '← All drills', loadDrill = getDrill, onEdit = null, onDeleted = () => {}, teamId = null, onMakeVersion = null }) {
   const [drill, setDrill] = useState(null)
   const [variationId, setVariationId] = useState(initialVariationId)
   useEffect(() => {
@@ -152,11 +153,12 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
   const changedTag = field => view.changed.has(field) && <span className="status-pill warn-pill variation-changed">Changed for this variation</span>
 
   return <article className="drill-detail">
-    <button type="button" className="link-btn back-link" onClick={onBack}>{backLabel}</button>
+    {onBack && <button type="button" className="link-btn back-link" onClick={onBack}>{backLabel}</button>}
     <header><h3>{drill.title}</h3><p>{drill.summary}</p>
       <p className="drill-facts">{FORMAT_LABELS[drill.format]} · {playersText(view.players)} · U{drill.ages[0]}–U{drill.ages[1]} · {drill.duration[0]}–{drill.duration[1]} min · {PHASE_LABELS[drill.session_phase]} · {drill.intensity} intensity{view.space ? ` · ${view.space[0]}×${view.space[1]} m` : ''}{drill.home_friendly ? ' · can be done at home' : ''}</p>
       <p className="drill-tags">{drill.tags.length ? drill.tags.map(t => <span key={t.id} className={`status-pill ${t.weight === 1 ? 'info-pill' : 'muted-pill'}`}>{t.label}{t.weight === 1 ? '' : ' (partial)'}</span>) : <span className="status-pill muted-pill">Any focus</span>}</p>
       {drill.votes && <DrillVote votes={drill.votes} onVote={vote} />}
+      {drill.votes && <ShareDrill key={drill.slug} drill={drill} onMessage={onMessage} />}
       {drill.team_id && <TeamDrillActions drill={drill} onEdit={onEdit} onDeleted={onDeleted} onSubmitted={setDrill} onOpen={onOpen} onMessage={onMessage} />}
       {!drill.team_id && teamId && <TeamVersion drill={drill} teamId={teamId} onMakeVersion={onMakeVersion} onOpen={onOpen} />}
     </header>
@@ -183,6 +185,44 @@ function DrillDetail({ slug, onBack, onOpen, onVoted, onMessage, initialVariatio
     {links.length > 0 && <section><h4>Links</h4><ul>{links.map(l => <li key={l.id}><a href={l.url} target="_blank" rel="noreferrer">{l.caption || l.url}</a>{reportable && <ReportLink drill={reportable} url={l.url} />}</li>)}</ul></section>}
     {drill.links.length > 0 && <section><h4>Related drills</h4><ul>{drill.links.map(l => <li key={l.slug}><button type="button" className="link-btn" onClick={() => onOpen(l.slug)}>{l.title}</button> <span className="muted">({l.relation.replace('_', ' ')})</span></li>)}</ul></section>}
   </article>
+}
+
+const shortDay = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+const SHARE_DAYS = { 1: 'a day', 7: 'a week', 30: '30 days' }
+
+// A read-only link to the drill for a coach who isn't on the platform. The link is shown once, when it's made;
+// the coach's earlier links that are still open are listed, to revoke.
+function ShareDrill({ drill, onMessage }) {
+  const [shares, setShares] = useState(null)
+  const [days, setDays] = useState('7')
+  const [link, setLink] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const load = useCallback(() => getDrillShares(drill.slug).then(setShares).catch(e => onMessage(errorMessage(e))), [drill.slug, onMessage])
+  const create = async () => {
+    setBusy(true)
+    try { setLink(await shareDrill(drill.slug, Number(days))); load() } catch (e) { onMessage(errorMessage(e)) } finally { setBusy(false) }
+  }
+  const revoke = async share => {
+    if (!window.confirm('Revoke this link? Anyone who has it will no longer be able to open the drill.')) return
+    try { await revokeDrillShare(drill.slug, share.id); if (link?.id === share.id) setLink(null); load(); onMessage('Link revoked.') } catch (e) { onMessage(errorMessage(e)) }
+  }
+  return <details className="drill-share" onToggle={e => { if (e.currentTarget.open && shares === null) load() }}>
+    <summary>Share with a coach</summary>
+    <p className="muted hint">Anyone with the link can see this drill, with its diagrams and videos, until the link expires. They don't need an account, and they can't vote or change anything.{drill.team_id ? ' Your team\'s drill stays hidden from other coaches on the platform.' : ''}</p>
+    <div className="inline-row">
+      <label>Open for <select value={days} onChange={e => setDays(e.target.value)}>{Object.entries(SHARE_DAYS).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select></label>
+      <button type="button" className="secondary-btn" disabled={busy} onClick={create}>Create link</button>
+    </div>
+    {link && <div className="field link-field"><label htmlFor={`share-${link.id}`}>Copy this link now; it won't be shown again. It works until {shortDay(link.expires_at)}.</label>
+      <input id={`share-${link.id}`} readOnly value={link.url} onFocus={e => e.target.select()} />
+      <button className="secondary-btn" type="button" onClick={() => navigator.clipboard.writeText(link.url).then(() => onMessage('Link copied.'))}>Copy link</button></div>}
+    {shares?.length > 0 && <>
+      <h5>Your open links</h5>
+      <ul className="drill-share-list">{shares.map(s => <li key={s.id}>
+        Made {shortDay(s.created_at)}, works until {shortDay(s.expires_at)} · {s.opened_at ? `first opened ${shortDay(s.opened_at)}` : 'not opened yet'}
+        <button type="button" className="link-btn" onClick={() => revoke(s)}>Revoke</button></li>)}</ul>
+    </>}
+  </details>
 }
 
 // On a library drill: the team's own version of it, or the way to make one.

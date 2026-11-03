@@ -673,6 +673,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .report-share h3 { margin: 0; font-size: .9rem; }
 .report-share p { margin: 0; font-size: .85rem; }
 .shared-report-page { max-width: 820px; }
+.shared-drill-page { max-width: 820px; }
+.shared-drill-page .public-card { max-width: none; text-align: left; }
 .shared-report-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 .shared-report-actions button { padding: 8px 12px; border-radius: 8px; font-weight: 600; }
 .report-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -911,6 +913,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .drill-vote-reason { display: flex; gap: 6px; align-items: center; font-size: .85rem; }
 .drill-vote-reason select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
 .drill-vote > small { flex-basis: 100%; }
+.drill-share { margin-top: 10px; font-size: .9rem; }
+.drill-share > summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.drill-share .inline-row { margin-top: 6px; }
+.drill-share select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; margin-left: 6px; }
+.drill-share h5 { margin: 12px 0 4px; }
+.drill-share-list { margin: 0; padding-left: 18px; }
+.drill-share-list .link-btn { margin-left: 8px; }
 
 .priority-drills { margin-top: 10px; font-size: .85rem; }
 .priority-drills summary { cursor: pointer; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; padding: 2px 0; }

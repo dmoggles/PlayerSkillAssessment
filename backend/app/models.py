@@ -584,6 +584,19 @@ class DrillVote(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class DrillShare(Base):
+    """A read-only link to one drill, for a coach who isn't on the platform. It opens until it expires or its coach
+    revokes it; a team drill's link also closes when its coach leaves the team. Only the token's hash is kept."""
+    __tablename__ = "drill_shares"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    drill_id: Mapped[int] = mapped_column(ForeignKey("drills.id", ondelete="CASCADE"), index=True)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class PracticeLink(Base):
     """A player's link to their practice scenarios: no account, just this link, which a coach can replace or
     revoke. One per player; only the token's hash is kept."""

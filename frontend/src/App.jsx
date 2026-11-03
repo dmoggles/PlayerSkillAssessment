@@ -4,6 +4,7 @@ import { createBrowserRouter, Link, Navigate, Route, RouterProvider, Routes, use
 const CoachDashboard = lazy(() => import('./CoachDashboard'))
 const PlayerPage = lazy(() => import('./PlayerPage'))
 const SharedReportPage = lazy(() => import('./SharedReportPage'))
+const SharedDrillPage = lazy(() => import('./SharedDrillPage'))
 const PracticePage = lazy(() => import('./practice/PracticePage'))
 const PollPage = lazy(() => import('./poll/PollPage'))
 const PollResults = lazy(() => import('./poll/PollResults'))
@@ -135,6 +136,7 @@ function Shell() {
     <Route path="/" element={<Landing user={loading ? undefined : user} />} />
     <Route path="/self/:token" element={<PlayerPage />} />
     <Route path="/report/:token" element={<SharedReportPage />} />
+    <Route path="/drill/:token" element={<SharedDrillPage />} />
     <Route path="/practice/:token" element={<PracticePage />} />
     {/* Coaching polls run on the development site only: elsewhere the API answers that they aren't available. */}
     <Route path="/poll/:pollId" element={<PollPage />} />

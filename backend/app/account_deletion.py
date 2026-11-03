@@ -3,7 +3,7 @@ who saved an assessment or plan is cleared, and activity logs say "a deleted acc
 from sqlalchemy import or_
 from sqlalchemy.orm import Session as DbSession
 from .models import (AccessRequest, Assessment, AssessmentRevision, AuditEvent, AuthToken, CycleCheckin, DevelopmentCycle,
-                     Drill, DrillLinkReport, DrillSubmission, DrillVideoSuggestion, DrillVote, MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, PracticeAssignment, Session, SessionTemplate, Team, TrainingSession, User)
+                     Drill, DrillLinkReport, DrillShare, DrillSubmission, DrillVideoSuggestion, DrillVote, MatrixDraft, MatrixVersion, Membership, PlayerPlan, PlayerReport, PracticeAssignment, Session, SessionTemplate, Team, TrainingSession, User)
 
 DELETED_ACCOUNT = "a deleted account"
 AUTHORED = ((Assessment, "updated_by"), (AssessmentRevision, "editor_id"), (DevelopmentCycle, "created_by"),
@@ -37,4 +37,6 @@ def erase_account(db: DbSession, user: User):
     db.query(AuthToken).filter(or_(AuthToken.user_id == user.id, AuthToken.email == user.email)).delete(synchronize_session=False)
     for model in (Session, Membership, DrillVote):
         db.query(model).filter_by(user_id=user.id).delete(synchronize_session=False)
+    # Their drill links close with the account.
+    db.query(DrillShare).filter_by(created_by=user.id).delete(synchronize_session=False)
     db.delete(user)

@@ -1,13 +1,17 @@
-"""The shared drill library, read by any signed-in coach, and each team's own drills, seen only by its coaches."""
+"""The shared drill library, read by any signed-in coach, and each team's own drills, seen only by its coaches.
+A coach can also share one drill, read-only and for a limited time, with someone who isn't on the platform."""
+from datetime import timedelta, timezone
 from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, model_validator
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session as DbSession
-from ..auth import current_user, require_member
+from ..audit import record
+from ..auth import current_user, digest, fresh_token, require_member
+from ..config import settings
 from ..database import get_db
 from ..matrix import version_tags
-from ..models import utcnow, Assessment, Drill, DrillSubmission, Membership, DrillLink, DrillLinkReport, DrillMedia, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
+from ..models import utcnow, Assessment, Drill, DrillSubmission, Membership, DrillLink, DrillLinkReport, DrillMedia, DrillShare, DrillTag, DrillVariation, DrillVote, Period, Player, PlayerGroup, Rating, SkillTag, User
 from .video_suggestions import approved_videos
 
 router = APIRouter(tags=["drills"])
@@ -167,6 +171,68 @@ def vote_on_drill(slug: str, payload: VoteIn, db: DbSession = Depends(get_db), u
         db.add(DrillVote(user_id=user.id, drill_id=drill.id, vote=payload.vote, reason=payload.reason, updated_at=utcnow()))
     db.commit()
     return _votes(db, [drill.id], user)[drill.id]
+
+
+class ShareIn(BaseModel):
+    days: Literal[1, 7, 30] = 7
+
+
+def share_out(share: DrillShare) -> dict:
+    return {"id": share.id, "created_at": share.created_at, "expires_at": share.expires_at, "opened_at": share.opened_at}
+
+
+def live_shares(db: DbSession, drill: Drill, user: User):
+    return db.query(DrillShare).filter(DrillShare.drill_id == drill.id, DrillShare.created_by == user.id,
+                                       DrillShare.expires_at > utcnow()).order_by(DrillShare.created_at.desc())
+
+
+@router.post("/drills/{slug}/shares")
+def share_drill(slug: str, body: ShareIn, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """A read-only link to the drill for someone without an account. The raw link is only returned here."""
+    drill = drill_for(db, slug, user)
+    raw = fresh_token()
+    share = DrillShare(drill_id=drill.id, created_by=user.id, token_hash=digest(raw), created_at=utcnow(),
+                       expires_at=utcnow() + timedelta(days=body.days))
+    db.add(share)
+    if drill.team_id:
+        record(db, drill.team_id, user, "team_drill_shared", title=drill.title, days=body.days)
+    db.commit()
+    return {**share_out(share), "url": f"{settings.public_base_url}/drill/{raw}"}
+
+
+@router.get("/drills/{slug}/shares")
+def drill_shares(slug: str, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    """The user's own links to this drill that haven't expired."""
+    return [share_out(s) for s in live_shares(db, drill_for(db, slug, user), user)]
+
+
+@router.delete("/drills/{slug}/shares/{share_id}", status_code=204)
+def revoke_drill_share(slug: str, share_id: int, db: DbSession = Depends(get_db), user: User = Depends(current_user)):
+    drill = drill_for(db, slug, user)
+    share = db.query(DrillShare).filter_by(id=share_id, drill_id=drill.id, created_by=user.id).first()
+    if not share:
+        raise HTTPException(404, "Link not found")
+    db.delete(share)
+    if drill.team_id:
+        record(db, drill.team_id, user, "team_drill_share_revoked", title=drill.title)
+    db.commit()
+
+
+@router.get("/shared-drills/{token}")
+def shared_drill(token: str, db: DbSession = Depends(get_db)):
+    """A shared drill, read-only: no votes, no related drills and nothing about the team it belongs to. A team
+    drill's link closes when the coach who shared it is no longer on the team."""
+    share = db.query(DrillShare).filter_by(token_hash=digest(token)).first()
+    drill = db.get(Drill, share.drill_id) if share else None
+    if not drill or drill.status != "published" or (drill.team_id and not db.query(Membership).filter_by(
+            team_id=drill.team_id, user_id=share.created_by).first()):
+        raise HTTPException(404, "Link unavailable")
+    if share.expires_at.replace(tzinfo=timezone.utc) <= utcnow():
+        raise HTTPException(410, "This link has expired. Ask the coach who shared it for a new one")
+    if not share.opened_at:
+        share.opened_at = utcnow()
+        db.commit()
+    return {**drill_out(db, drill, None), "team_id": None, "shadows": None, "expires_at": share.expires_at}
 
 
 SUGGESTIONS_PER_SKILL = 3
