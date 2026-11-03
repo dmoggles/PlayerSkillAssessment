@@ -1,0 +1,539 @@
+{
+ "source_version": "drills_v9",
+ "drills": [
+  {
+   "slug": "receive-between-two-pressers",
+   "title": "Receive between two pressers: first touch past them",
+   "summary": "A receiver facing the ball is pressed from both sides, and takes their first touch past one presser and out of the box.",
+   "format": "small_group",
+   "players": [
+    4,
+    6,
+    8
+   ],
+   "ages": [
+    9,
+    16
+   ],
+   "duration": [
+    10,
+    15
+   ],
+   "session_phase": "opposed",
+   "intensity": "high",
+   "space": [
+    15,
+    12
+   ],
+   "home_friendly": false,
+   "equipment": [
+    {
+     "item": "cones",
+     "quantity": 6
+    },
+    {
+     "item": "bibs",
+     "quantity": 2
+    },
+    {
+     "item": "balls",
+     "quantity": 10
+    }
+   ],
+   "setup": "A box 15 m wide and 12 m deep, marked with cones; the two sides are the lines the receiver carries the ball out across. The server stands just inside the bottom line with the balls. The receiver starts in the middle, facing the server, and a presser stands 5 m to each side of them. Anyone waiting stands outside the box, ready to rotate in.",
+   "instructions": [
+    "The server passes along the ground into the receiver.",
+    "The pressers may only move once the pass is played. Then both close down at full speed and try to win the ball.",
+    "The receiver chooses which way to go. Their first touch takes the ball past one of the pressers, and they carry it out across that side of the box within about 3 seconds.",
+    "The rep is over if a presser wins the ball or knocks it out of the box.",
+    "Give each receiver 4 or 5 reps, then rotate: server to receiver, receiver to presser, a presser to server or to the waiting players."
+   ],
+   "coaching_points": [
+    "Watch both pressers while the ball travels: which one is closer, and which is coming faster? Decide before the ball arrives.",
+    "Take the first touch away from the bigger threat, into the space beside or behind the other presser, not straight at them.",
+    "Weight the touch to get the ball beyond the presser's reach in one go, but not so far that they can recover to it.",
+    "Use the inside or outside of the foot, whichever takes the ball where you want it; open your body as the ball comes in.",
+    "After the touch, accelerate: the touch beats the presser, the burst keeps them beaten.",
+    "Stay calm: if both pressers are slow, a controlled touch to either side is enough."
+   ],
+   "tags": {
+    "first_touch": 1.0,
+    "composure": 0.5,
+    "scanning": 0.5
+   },
+   "ladder_tags": [
+    "first_touch",
+    "composure"
+   ],
+   "variations": [
+    {
+     "kind": "regression",
+     "title": "Pressers jog and don't tackle",
+     "levels": [
+      1,
+      2
+     ],
+     "change": "Both pressers close down at a jog and only get in the way; they don't tackle. The receiver still reads them and chooses which way to touch.",
+     "instructions": [
+      "The server passes along the ground into the receiver.",
+      "The pressers may only move once the pass is played. Then both close down at a jog and stand in the way; they don't tackle.",
+      "The receiver chooses which way to go. Their first touch takes the ball past one of the pressers, and they carry it out across that side of the box.",
+      "The rep is over if the first touch runs into a presser or out of the box.",
+      "Give each receiver 4 or 5 reps, then rotate: server to receiver, receiver to presser, a presser to server or to the waiting players."
+     ]
+    },
+    {
+     "kind": "base",
+     "title": "Both press",
+     "levels": [
+      2,
+      3
+     ],
+     "diagram": 0,
+     "change": "Both pressers close at full speed and can win the ball; the receiver's first touch takes it past one of them and out of the box within about 3 seconds."
+    },
+    {
+     "kind": "escalator",
+     "title": "Harder passes, closer pressers",
+     "levels": [
+      3,
+      4
+     ],
+     "change": "The server varies the pace and height of the pass, some firm and some bouncing, and the pressers start 4 m away instead of 5.",
+     "setup": "A box 15 m wide and 12 m deep, marked with cones; the two sides are the lines the receiver carries the ball out across. The server stands just inside the bottom line with the balls. The receiver starts in the middle, facing the server, and a presser stands 4 m to each side of them. Anyone waiting stands outside the box, ready to rotate in.",
+     "instructions": [
+      "The server mixes the pass: along the ground firm or soft, or bouncing up to knee height.",
+      "The pressers may only move once the pass is played. Then both close down at full speed and try to win the ball.",
+      "The receiver chooses which way to go. Their first touch takes the ball past one of the pressers, and they carry it out across that side of the box within about 3 seconds.",
+      "The rep is over if a presser wins the ball or knocks it out of the box.",
+      "Give each receiver 4 or 5 reps, then rotate: server to receiver, receiver to presser, a presser to server or to the waiting players."
+     ]
+    },
+    {
+     "kind": "escalator",
+     "title": "Pressers start behind",
+     "levels": [
+      4,
+      5
+     ],
+     "diagram": 1,
+     "change": "The pressers start behind the receiver's shoulders, out of sight, so the receiver has to check over both shoulders before the ball arrives.",
+     "setup": "A box 15 m wide and 12 m deep, marked with cones; the two sides are the lines the receiver carries the ball out across. The server stands just inside the bottom line with the balls. The receiver starts in the middle, facing the server, and the pressers stand 2 to 3 m behind them, one behind each shoulder, at different distances. Anyone waiting stands outside the box, ready to rotate in.",
+     "coaching_points": [
+      "Check over both shoulders before the pass, and again as it travels, if there's time: know where both pressers are before the ball arrives.",
+      "Take the first touch away from the presser who'll arrive first, into the space in front of the other one.",
+      "Weight the touch to get the ball beyond the presser's reach in one go, but not so far that they can recover to it.",
+      "After the touch, accelerate: the touch beats the presser, the burst keeps them beaten.",
+      "Pressers: start at different distances each rep, so the receiver has to look, not guess."
+     ]
+    }
+   ],
+   "media": [
+    {
+     "kind": "diagram",
+     "caption": "Both pressers close as the pass is played; the receiver's first touch goes past the slower one and out of the box",
+     "diagram": {
+      "pitch": {
+       "width": 15,
+       "length": 12,
+       "view": "area"
+      },
+      "objects": {
+       "c1": {
+        "type": "cone",
+        "at": [
+         0,
+         0
+        ]
+       },
+       "c2": {
+        "type": "cone",
+        "at": [
+         15,
+         0
+        ]
+       },
+       "c3": {
+        "type": "cone",
+        "at": [
+         0,
+         12
+        ]
+       },
+       "c4": {
+        "type": "cone",
+        "at": [
+         15,
+         12
+        ]
+       },
+       "c5": {
+        "type": "cone",
+        "at": [
+         0,
+         6
+        ]
+       },
+       "c6": {
+        "type": "cone",
+        "at": [
+         15,
+         6
+        ]
+       },
+       "S": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         7.5,
+         11
+        ]
+       },
+       "R": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7.5,
+         5
+        ]
+       },
+       "P1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         2.5,
+         5.2
+        ]
+       },
+       "P2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         12.5,
+         4.8
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S"
+       }
+      },
+      "steps": [
+       {
+        "label": "The server passes in. Only now can the pressers go: both close down, P2 faster and tighter than P1",
+        "actions": [
+         {
+          "pass": {
+           "from": "S",
+           "to": "R"
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            9.4,
+            5.1
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            4.6,
+            5.6
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The receiver reads it as the ball arrives: their first touch goes left, past P1 and away from P2",
+        "actions": [
+         {
+          "dribble": {
+           "who": "R",
+           "to": [
+            3.0,
+            2.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            4.6,
+            4.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            7.8,
+            4.8
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "S",
+           "to": [
+            7.5,
+            10
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The receiver carries the ball out across the left side within 3 seconds: rep won",
+        "actions": [
+         {
+          "dribble": {
+           "who": "R",
+           "to": [
+            0.4,
+            1.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            2.8,
+            3.2
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            5.6,
+            4.0
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "kind": "diagram",
+     "caption": "Hardest: the pressers start behind, so the receiver checks over both shoulders first",
+     "diagram": {
+      "pitch": {
+       "width": 15,
+       "length": 12,
+       "view": "area"
+      },
+      "objects": {
+       "c1": {
+        "type": "cone",
+        "at": [
+         0,
+         0
+        ]
+       },
+       "c2": {
+        "type": "cone",
+        "at": [
+         15,
+         0
+        ]
+       },
+       "c3": {
+        "type": "cone",
+        "at": [
+         0,
+         12
+        ]
+       },
+       "c4": {
+        "type": "cone",
+        "at": [
+         15,
+         12
+        ]
+       },
+       "c5": {
+        "type": "cone",
+        "at": [
+         0,
+         6
+        ]
+       },
+       "c6": {
+        "type": "cone",
+        "at": [
+         15,
+         6
+        ]
+       },
+       "S": {
+        "type": "player",
+        "team": "N",
+        "at": [
+         7.5,
+         11
+        ]
+       },
+       "R": {
+        "type": "player",
+        "team": "A",
+        "at": [
+         7.5,
+         5
+        ]
+       },
+       "P1": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         5.2,
+         2.6
+        ]
+       },
+       "P2": {
+        "type": "player",
+        "team": "B",
+        "at": [
+         10.2,
+         2.2
+        ]
+       },
+       "ball": {
+        "type": "ball",
+        "with": "S"
+       }
+      },
+      "steps": [
+       {
+        "label": "The pressers start behind the receiver's shoulders. Before the pass, the receiver checks over both shoulders",
+        "actions": [
+         {
+          "move": {
+           "who": "R",
+           "to": [
+            7.4,
+            5.3
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "The server passes in and both pressers close down; P1 is quicker and gets nearer",
+        "actions": [
+         {
+          "pass": {
+           "from": "S",
+           "to": "R"
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            6.5,
+            4.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            9.3,
+            3.9
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "Having seen P1 coming, the receiver touches right, round P2 and into the space P2 has left",
+        "actions": [
+         {
+          "dribble": {
+           "who": "R",
+           "to": [
+            12.0,
+            7.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            10.2,
+            5.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            8.4,
+            5.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "S",
+           "to": [
+            7.5,
+            10
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "label": "Out across the right side within 3 seconds: rep won",
+        "actions": [
+         {
+          "dribble": {
+           "who": "R",
+           "to": [
+            14.6,
+            8.4
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P2",
+           "to": [
+            12.0,
+            6.6
+           ]
+          }
+         },
+         {
+          "run": {
+           "who": "P1",
+           "to": [
+            10.2,
+            6.6
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}
